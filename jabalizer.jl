@@ -138,7 +138,24 @@ mutable struct State
     lost::Array{Int64}
 
     State() = new(0, [], [], [])
-    State(n) = new(n, [], [], zeros(n))
+    State(n::Int64) = new(n, [], [], zeros(n))
+    State(tab::Array{Int64}) = TableauToState(tab)
+end
+
+"""
+Generate stabilizer from tableau
+"""
+function TableauToState(tab::Array{Int64})
+    qubits = Int64((length(tab[1,:])-1)/2)
+    stabs = Int64(length(tab[:,1]))
+    state = State(qubits)
+
+    for row = 1:stabs
+        stab = Stabilizer(tab[row,:])
+        push!(state.stabilizers, stab)
+    end
+
+    return state
 end
 
 function GetQubitLabel(state::State, qubit::Int64)
@@ -599,35 +616,52 @@ function ChannelLoss(state::State, pLoss::Float64)
 end
 
 function RowAdd(tab::Array{Int64}, source::Int64, dest::Int64)
-    print(Stabilizer(tab[source,:]))
-    print(Stabilizer(tab[dest,:]))
     prod = Stabilizer(tab[source,:]) * Stabilizer(tab[dest,:])
-    print(prod)
     tab[dest,:] = ToTableau(prod)
     return tab
 end
 
 function ToGraph(state::State)
     newState = deepcopy(state)
+    qubits = state.qubits
+    stabs = length(state.stabilizers)
     LOseq = [] # Sequence of local operations performed
 
-    # Make X-block upper tri-diagaonal
+    # Make X-block full rank
     tab = sortslices(ToTableau(newState),dims=1,rev=true)
-    for n = 1:length(newState.stabilizers)
-        if(sum(tab[n:newState.qubits,n]) == 0)
+    for n = 1:stabs
+        if(sum(tab[n:stabs,n]) == 0)
             H(newState, n)
             push!(LOseq, ("H",n))
         end
         tab = sortslices(ToTableau(newState),dims=1,rev=true)
     end
 
-    # Row-reduction on X-block
+    # Make upper-triangular X-block
+    for n = 1:qubits
+        for m = (n+1):stabs
+            if tab[m,n] == 1
+                tab = RowAdd(tab,n,m)
+            end
+        end
+        tab = sortslices(tab,dims=1,rev=true)
+    end
+
+    # Make diagonal X-block
+    for n = (stabs-1):-1:1
+        for m = (n+1):stabs
+            if tab[n,m] == 1
+                tab = RowAdd(tab,m,n)
+            end
+        end
+    end
+
+    newState = State(tab)
 
     # Reduce all stabilizer phases to +1
-    tab = sortslices(ToTableau(newState),dims=1,rev=true)
 
     # Adjacency matrix
-    adjM = tab[:,(newState.qubits+1):(2*newState.qubits)]
+    adjM = tab[:,(qubits+1):(2*qubits)]
 
     return(newState, adjM, Tuple(LOseq))
 end
@@ -635,21 +669,40 @@ end
 
 #end
 
-println("---")
+# println("---")
 
-println("GHZ state:")
-state = State()
-# graph = [0 1 0;1 0 1; 0 1 0]
-AddGHZ(state,6)
-print(state)
+# println("GHZ state:")
+# state = State()
+# # graph = [0 1 0;1 0 1; 0 1 0]
+# AddGHZ(state,6)
+# tab=ToTableau(state)
+# print(state)
+#
+# (state,A,LOseq) = ToGraph(state)
+# display(gplot(Graph(A)))
+#
+# println("LO graph state:")
+# print(state)
+#
+# println("LOs = ", LOseq)
+#
+# println("Adjacency matrix:")
+# display(A)
 
-(state,A,LOseq) = ToGraph(state)
+simonsTab =
+[1 1 0 0 1 1 0 0 0 0 0 0 0 0 0;
+1 1 1 1 0 0 0 0 0 0 0 0 0 0 0;
+1 0 1 0 1 0 1 0 0 0 0 0 0 0 0;
+0 0 0 0 0 0 0 1 1 0 0 1 1 0 0;
+0 0 0 0 0 0 0 1 1 1 1 0 0 0 0;
+0 0 0 0 0 0 0 1 0 1 0 1 0 1 0;
+0 0 0 0 0 0 0 1 1 1 1 1 1 1 0]
+
+simonsState = State(simonsTab)
+print(simonsState)
+
+(graphState,A,LOseq) = ToGraph(simonsState)
+print(graphState)
+
+tab=ToTableau(graphState)
 display(gplot(Graph(A)))
-
-println("LO graph state:")
-print(state)
-
-println("LOs = ", LOseq)
-
-println("Adjacency matrix:")
-display(A)
