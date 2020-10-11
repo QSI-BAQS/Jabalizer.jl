@@ -4,7 +4,12 @@
 
 #module Jabalizer
 
-export State, Stabilizer, GetQubitLabel, ToString, Print, AddQubit, I, P, X, Y, Z, H, CNOT, CZ
+using LightGraphs
+using GraphPlot
+
+import Base.*
+import Base.print
+export State, Stabilizer, GetQubitLabel, ToString, print, AddQubit, I, P, X, Y, Z, H, CNOT, CZ
 
 """
 Stabilizer datatype for a single Pauli group stabilizer.
@@ -13,23 +18,111 @@ X,Z: binary bitstrings where;
     (X=1,Z=0) denotes Pauli X,
     (X=0,Z=1) denotes Pauli Z,
     (X=1,Z=1) denotes Pauli Y.
-phase: (1,-1,i,-i) denotes the phase of the stabilizer.
+phase: integer power of i denotes the phase of the stabilizer.
 """
 mutable struct Stabilizer
     qubits::Int64
-    X::Array{Int8}
-    Z::Array{Int8}
-    phase::Complex
+    X::Array{Int64}
+    Z::Array{Int64}
+    phase::Int64
 
     """
     Generator for an empty stabilizer.
     """
-    Stabilizer() = new(0, [], [], 1+0im)
+    Stabilizer() = new(0, [], [], 0)
 
     """
     Generator for an n-qubit identity stabilizer.
     """
-    Stabilizer(n) = new(n, zeros(n), zeros(n), 1+0im)
+    Stabilizer(n::Int64) = new(n, zeros(n), zeros(n), 0)
+
+    """
+    Generate stabilizer from tableau
+    """
+    Stabilizer(tab::Array{Int64}) = new(Int64((length(tab)-1)/2),
+        tab[1:Int64((length(tab)-1)/2)],
+        tab[Int64((length(tab)-1)/2+1):Int64(length(tab)-1)],
+        last(tab))
+end
+
+function Conjugate(stabilizer::Stabilizer)
+    conj = deepcopy(stabilizer)
+    conj.phase = (-conj.phase) % 4
+    return conj
+end
+
+function TabToPauli(X::Int64, Z::Int64)
+    if X==0 && Z==0
+        return 'I'
+    elseif X==1 && Z==0
+        return 'X'
+    elseif X==0 && Z==1
+        return 'Z'
+    elseif X==1 && Z==1
+        return 'Y'
+    else
+        return 'I'
+    end
+end
+
+function PauliToTab(pauli::Char)
+    if pauli == 'I'
+        return (0,0)
+    elseif pauli == 'X'
+        return (1,0)
+    elseif pauli == 'Z'
+        return (0,1)
+    elseif pauli == 'Y'
+        return (1,1)
+    else
+        return (0,0)
+    end
+end
+
+function PauliProd(left::Char, right::Char)
+    if left=='X' && right=='Z'
+        return ('Y',3)
+    elseif left=='X' && right=='Y'
+        return ('Z',1)
+    elseif left=='Z' && right=='X'
+        return ('Y',1)
+    elseif left=='Z' && right=='Y'
+        return ('X',3)
+    elseif left=='Y' && right=='Z'
+        return ('X',1)
+    elseif left=='Y' && right=='X'
+        return ('Z',3)
+    elseif left=='I'
+        return (right,0)
+    elseif right=='I'
+        return (left,0)
+    else
+        return ('I',0)
+    end
+end
+
+function *(left::Stabilizer, right::Stabilizer)
+    if left.qubits != right.qubits
+        return left
+    end
+
+    qubits = left.qubits
+    prod = Stabilizer(qubits)
+    prod.phase = (left.phase + right.phase) % 4
+
+    for n = 1:qubits
+        leftPauli = TabToPauli(left.X[n],left.Z[n])
+        rightPauli = TabToPauli(right.X[n],right.Z[n])
+
+        thisPauli = PauliProd(leftPauli,rightPauli)
+        thisTab = PauliToTab(thisPauli[1])
+
+        (prod.X[n],prod.Z[n]) = (thisTab[1],thisTab[2])
+        prod.phase += thisPauli[2]
+        prod.phase %= 4
+    end
+
+    return prod
 end
 
 """
@@ -42,17 +135,47 @@ mutable struct State
     qubits::Int64
     stabilizers::Array{Stabilizer}
     labels::Array{String}
+    lost::Array{Int64}
 
-    State() = new(0,[],[])
-    State(n) = new(n,[],[])
+    State() = new(0, [], [], [])
+    State(n) = new(n, [], [], zeros(n))
 end
 
 function GetQubitLabel(state::State, qubit::Int64)
-        return qubit
+    return qubit
 end
 
 function GetQubitLabel(state::State, qubit::String)
-        return findfirst(x->x==qubit, state.labels)
+    return findfirst(x->x==qubit, state.labels)
+end
+
+"""
+Convert stabilizer to tableau form
+"""
+function ToTableau(stabilizer::Stabilizer)
+    return vcat(stabilizer.X, stabilizer.Z, stabilizer.phase)
+end
+
+"""
+Convert stabilizer set to tableau form
+"""
+function ToTableau(state::State)
+    tab = Int64[]
+
+    for s in state.stabilizers
+        tab = vcat(tab, ToTableau(s))
+    end
+
+    tab = Array(transpose(reshape(tab, 2*state.qubits+1, length(state.stabilizers))))
+
+    return tab
+end
+
+"""
+Print tableau form of state
+"""
+function PrintTableau(state::State)
+    display(ToTableau(state))
 end
 
 """
@@ -61,7 +184,7 @@ Convert a stabilizer to a string.
 function ToString(stabilizer::Stabilizer)
     str = ""
 
-    for i in 1:stabilizer.qubits
+    for i = 1:stabilizer.qubits
         if stabilizer.X[i] == 0 && stabilizer.Z[i] == 0
             thisPauli = 'I'
         elseif stabilizer.X[i] == 1 && stabilizer.Z[i] == 0
@@ -75,16 +198,16 @@ function ToString(stabilizer::Stabilizer)
         str = string(str, thisPauli)
     end
 
-    return string(str, " (", stabilizer.phase, ")")
+    return string(str, " (", (0+1im)^stabilizer.phase, ")")
 end
 
 """
 Print a stabilizer to the terminal.
 """
-function Print(stabilizer::Stabilizer)
-    println("Stabilizer for ", stabilizer.qubits, " qubits:")
+function print(stabilizer::Stabilizer)
+    # println("Stabilizer for ", stabilizer.qubits, " qubits:")
     println(ToString(stabilizer))
-    println()
+    # println()
 end
 
 """
@@ -103,15 +226,15 @@ end
 """
 Print a state string to the terminal.
 """
-function Print(state::State)
-    println("Stabilizers for ", state.qubits, " qubit state:")
+function print(state::State)
+    # println("Stabilizers (", length(state.stabilizers), " stabilizers, ", state.qubits, " qubits):")
     println(ToString(state))
 
-    println("Qubit labels:")
-    println(state.labels)
+    #println("Qubit labels: ", state.labels)
+    #println("Lost qubits: ", state.lost)
 end
 
-function AddQubit(stabilizer::Stabilizer, pauli::Char, phase::Complex)
+function AddQubit(stabilizer::Stabilizer, pauli::Char, phase::Int64)
     if pauli == 'I'
         x = 0
         z = 0
@@ -128,21 +251,21 @@ function AddQubit(stabilizer::Stabilizer, pauli::Char, phase::Complex)
 
     push!(stabilizer.X, x)
     push!(stabilizer.Z, z)
-    stabilizer.phase *= phase
+    stabilizer.phase += phase
     stabilizer.qubits += 1
 end
 
 function AddQubit(stabilizer::Stabilizer)
-    AddQubit(stabilizer,'I',1+0im)
+    AddQubit(stabilizer,'I',0)
 end
 
 function AddQubits(stabilizer::Stabilizer, length::Int64)
-    for i in 1:length
-        AddQubit(stabilizer,'I',1+0im)
+    for i = 1:length
+        AddQubit(stabilizer,'I',0)
     end
 end
 
-function AddQubit(state::State, pauli::Char, phase::Complex, label::String)
+function AddQubit(state::State, pauli::Char, phase::Int64, label::String)
     for s in state.stabilizers
         AddQubit(s)
     end
@@ -151,35 +274,36 @@ function AddQubit(state::State, pauli::Char, phase::Complex, label::String)
     AddQubit(newStabilizer, pauli, phase)
     push!(state.stabilizers, newStabilizer)
     push!(state.labels, label)
+    push!(state.lost, 0)
     state.qubits += 1
 end
 
-function AddQubit(state::State, pauli::Char, phase::Complex)
+function AddQubit(state::State, pauli::Char, phase::Int64)
     AddQubit(state, pauli, phase, string(state.qubits+1))
 end
 
 function AddQubit(state::State, qubit::Char, label::String)
     pauli = 'I'
-    phase::Complex = 1
+    phase::Int64 = 0
 
     if qubit == '0'
         pauli = 'Z'
-        phase = 1
+        phase = 0
     elseif qubit == '1'
         pauli = 'Z'
-        phase = -1
+        phase = 2
     elseif qubit == '+'
         pauli = 'X'
-        phase = 1
+        phase = 0
     elseif qubit == '-'
         pauli = 'X'
-        phase = -1
+        phase = 2
     elseif qubit == 'L'
         pauli = 'Y'
-        phase = 1
+        phase = 0
     elseif qubit == 'R'
         pauli = 'Y'
-        phase = -1
+        phase = 2
     end
 
     AddQubit(state, pauli, phase, label)
@@ -189,7 +313,10 @@ function AddQubit(state::State, qubit::Char)
     AddQubit(state, qubit, string(state.qubits+1))
 end
 
-function AddBell(state::State, label1::String, label2::String) # |00>+|11>
+"""
+Add Bell state |00>+|11>
+"""
+function AddBell(state::State, label1::String, label2::String)
     AddGHZ(state, 2, [label1, label2])
 end
 
@@ -198,14 +325,10 @@ function AddBell(state::State)
 end
 
 function AddGHZ(state::State, size::Int64, labels::Array{String})
-    for s in state.stabilizers
-        AddQubits(s,size)
-    end
-
     AddQubit(state,'+',labels[1])
     start = state.qubits
 
-    for i in 1:(size-1)
+    for i = 1:(size-1)
         AddQubit(state,'0',labels[i+1])
         CNOT(state, start, start+i)
     end
@@ -214,7 +337,7 @@ end
 function AddGHZ(state::State, size::Int64)
     labels::Array{String} = []
 
-    for i in 1:size
+    for i = 1:size
         push!(labels, string(state.qubits+i))
     end
 
@@ -229,12 +352,12 @@ function AddGraph(state::State, graph::Array{Int64,2}, labels::Array{String})
     qubits = state.qubits
     graphSize = size(graph,1)
 
-    for n in 1:graphSize
+    for n = 1:graphSize
         AddQubit(state,'+',labels[n])
     end
 
-    for i in 1:(graphSize-1)
-        for j in (i+1):graphSize
+    for i = 1:(graphSize-1)
+        for j = (i+1):graphSize
             if graph[i,j] == 1
                 CZ(state, qubits+i, qubits+j)
             end
@@ -246,7 +369,7 @@ function AddGraph(state::State, graph::Array{Int64,2})
     qubits = size(graph,1)
     labels::Array{String} = []
 
-    for n in 1:qubits
+    for n = 1:qubits
         push!(labels, string(state.qubits+n))
     end
 
@@ -254,7 +377,6 @@ function AddGraph(state::State, graph::Array{Int64,2})
 end
 
 function I(stabilizer::Stabilizer, qubit::Int64)
-    # IUI = U
 end
 
 function P(stabilizer::Stabilizer, qubit::Int64)
@@ -262,9 +384,9 @@ function P(stabilizer::Stabilizer, qubit::Int64)
     z = stabilizer.Z[qubit]
 
     if x == 0 && z == 1 # PZP' = Z
-        stabilizer.phase *= -1
+        stabilizer.phase += 2
     elseif x == 1 && z == 0 # PXP' = ?
-        stabilizer.phase *= -1
+        stabilizer.phase += 2
     elseif x == 1 && z == 1 # PYP' = ?
     end
 end
@@ -274,9 +396,9 @@ function X(stabilizer::Stabilizer, qubit::Int64)
     z = stabilizer.Z[qubit]
 
     if x == 0 && z == 1 # XZX = -Z
-        stabilizer.phase *= -1
+        stabilizer.phase += 2
     elseif x == 1 && z == 1 # XYX = -Y
-        stabilizer.phase *= -1
+        stabilizer.phase += 2
     end
 end
 
@@ -285,9 +407,9 @@ function Y(stabilizer::Stabilizer, qubit::Int64)
     z = stabilizer.Z[qubit]
 
     if x == 0 && z == 1 # YZY =
-        stabilizer.phase *= -1
+        stabilizer.phase += 2
     elseif x == 1 && z == 1 # YXY = -X
-        stabilizer.phase *= -1
+        stabilizer.phase += 2
     end
 end
 
@@ -296,9 +418,9 @@ function Z(stabilizer::Stabilizer, qubit::Int64)
     z = stabilizer.Z[qubit]
 
     if x == 1 && z == 0 # ZXZ = -X
-        stabilizer.phase *= -1
+        stabilizer.phase += 2
     elseif x == 1 && z == 1 # ZYZ = -Y
-        stabilizer.phase *= -1
+        stabilizer.phase += 2
     end
 end
 
@@ -313,7 +435,7 @@ function H(stabilizer::Stabilizer, qubit::Int64)
         stabilizer.X[qubit] = 1
         stabilizer.Z[qubit] = 0
     elseif x == 1 && z == 1
-        stabilizer.phase *= -1
+        stabilizer.phase += 2
     end
 end
 
@@ -348,13 +470,13 @@ end
 
 function P(state::State, qubit)
     for s in state.stabilizers
-        P(s, GetQubitLabel(qubit))
+        P(s, GetQubitLabel(state, qubit))
     end
 end
 
 function X(state::State, qubit)
     for s in state.stabilizers
-        X(s, GetQubitLabel(qubit))
+        X(s, GetQubitLabel(state, qubit))
     end
 end
 
@@ -401,7 +523,7 @@ function ChannelZ(state::State, qubit, prob::Float64)
 end
 
 function ChannelZ(state::State, prob::Float64)
-    for qubit in 1:state.qubits
+    for qubit = 1:state.qubits
         ChannelZ(state,qubit,prob)
     end
 end
@@ -413,7 +535,7 @@ function ChannelX(state::State, qubit, prob::Float64)
 end
 
 function ChannelX(state::State, prob::Float64)
-    for qubit in 1:state.qubits
+    for qubit = 1:state.qubits
         ChannelX(state,qubit,prob)
     end
 end
@@ -425,7 +547,7 @@ function ChannelY(state::State, qubit, prob::Float64)
 end
 
 function ChannelY(state::State, prob::Float64)
-    for qubit in 1:state.qubits
+    for qubit = 1:state.qubits
         ChannelY(state,qubit,prob)
     end
 end
@@ -439,7 +561,7 @@ function ChannelDepol(state::State, qubit, prob::Float64)
 end
 
 function ChannelDepol(state::State, prob::Float64)
-    for qubit in 1:state.qubits
+    for qubit = 1:state.qubits
         ChannelDepol(state, qubit, prob)
     end
 end
@@ -457,19 +579,77 @@ function ChannelPauli(state::State, qubit, pXYZ::Array{Float64})
 end
 
 function ChannelPauli(state::State, pXYZ::Array{Float64})
-    for qubit in 1:state.qubits
+    for qubit = 1:state.qubits
         ChannelPauli(state,qubit,pXYZ)
     end
 end
 
+function ChannelLoss(state::State, qubit, pLoss::Float64)
+    r = rand(Float64)
+
+    if r <= pLoss
+        state.lost[qubit] = 1
+    end
+end
+
+function ChannelLoss(state::State, pLoss::Float64)
+    for qubit = 1:state.qubits
+        ChannelLoss(state,qubit,pLoss)
+    end
+end
+
+function RowAdd(tab::Array{Int64}, source::Int64, dest::Int64)
+    print(Stabilizer(tab[source,:]))
+    print(Stabilizer(tab[dest,:]))
+    prod = Stabilizer(tab[source,:]) * Stabilizer(tab[dest,:])
+    print(prod)
+    tab[dest,:] = ToTableau(prod)
+    return tab
+end
+
+function ToGraph(state::State)
+    newState = deepcopy(state)
+    LOseq = [] # Sequence of local operations performed
+
+    # Make X-block upper tri-diagaonal
+    tab = sortslices(ToTableau(newState),dims=1,rev=true)
+    for n = 1:length(newState.stabilizers)
+        if(sum(tab[n:newState.qubits,n]) == 0)
+            H(newState, n)
+            push!(LOseq, ("H",n))
+        end
+        tab = sortslices(ToTableau(newState),dims=1,rev=true)
+    end
+
+    # Row-reduction on X-block
+
+    # Reduce all stabilizer phases to +1
+    tab = sortslices(ToTableau(newState),dims=1,rev=true)
+
+    # Adjacency matrix
+    adjM = tab[:,(newState.qubits+1):(2*newState.qubits)]
+
+    return(newState, adjM, Tuple(LOseq))
+end
+
+
 #end
 
-println("---\n")
-state = State()
-graph = [0 1 0;1 0 1; 0 1 0]
-#AddGHZ(state,5)
-AddGraph(state,graph)
-Print(state)
-ChannelDepol(state,0.5)
-Print(state)
+println("---")
 
+println("GHZ state:")
+state = State()
+# graph = [0 1 0;1 0 1; 0 1 0]
+AddGHZ(state,6)
+print(state)
+
+(state,A,LOseq) = ToGraph(state)
+display(gplot(Graph(A)))
+
+println("LO graph state:")
+print(state)
+
+println("LOs = ", LOseq)
+
+println("Adjacency matrix:")
+display(A)
