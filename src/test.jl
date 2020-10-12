@@ -1,12 +1,38 @@
-using LightGraphs
-using GraphPlot
+include("jabalizer.jl")
 
-G = Graph(4) # graph with 3 vertices
+t = [
+    1 1 0 0 1 1 0 0 0 0 0 0 0 0 0
+    1 1 1 1 0 0 0 0 0 0 0 0 0 0 0
+    1 0 1 0 1 0 1 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 1 1 0 0 1 1 0 0
+    0 0 0 0 0 0 0 1 1 1 1 0 0 0 0
+    0 0 0 0 0 0 0 1 0 1 0 1 0 1 0
+    0 0 0 0 0 0 0 1 1 1 1 1 1 1 0
+]
 
-# make a triangle
-add_edge!(G, 1, 2)
-add_edge!(G, 1, 3)
-add_edge!(G, 2, 3)
-add_edge!(G, 3, 4)
+s = State(t)
+print(s)
+g = GraphState(s)
+print(g)
+gplot(g)
 
-gplot(G)
+# println("---")
+
+# println("GHZ state:")
+# state = State()
+# # graph = [0 1 0;1 0 1; 0 1 0]
+# AddGHZ(state,6)
+# tab=ToTableau(state)
+# print(state)
+#
+# (state,A,LOseq) = ToGraph(state)
+# display(gplot(Graph(A)))
+#
+# println("LO graph state:")
+# print(state)
+#
+# println("LOs = ", LOseq)
+#
+# println("Adjacency matrix:")
+# display(A)
+#
