@@ -67,24 +67,28 @@ function H(stabilizer::Stabilizer, qubit::Int64)
 end
 
 """
+    CNOT(Stabilizer, control, target)
+
 Apply CNOT gate to a Stabilizer.
 """
 function CNOT(stabilizer::Stabilizer, control::Int64, target::Int64)
-    # xc = stabilizer.X[control]
-    # zc = stabilizer.Z[control]
-    # xt = stabilizer.X[target]
-    # zt = stabilizer.Z[target]
+    xc = stabilizer.X[control]
+    zc = stabilizer.Z[control]
+    xt = stabilizer.X[target]
+    zt = stabilizer.Z[target]
 
-    # if xc == 1
-    #     stabilizer.Z[target] = 1 - stabilizer.Z[target]
-    # end
-    #
-    # if xt == 1
-    #     stabilizer.Z[control] = 1 - stabilizer.Z[control]
-    # end
+    if xc == 1
+        stabilizer.Z[target] = 1 - stabilizer.Z[target]
+    end
+
+    if xt == 1
+        stabilizer.Z[control] = 1 - stabilizer.Z[control]
+    end
 end
 
 """
+    CZ(State, control, target)
+
 Apply CZ gate to a Stabilizer.
 """
 function CZ(stabilizer::Stabilizer, control::Int64, target::Int64)
@@ -113,7 +117,9 @@ function SWAP(stabilizer::Stabilizer, qubit1::Int64, qubit2::Int64)
 end
 
 """
-Apply P gate to a State.
+    P(State, qubit)
+
+Apply P gate to a State on qubit.
 """
 function P(state::State, qubit)
     for s in state.stabilizers
@@ -122,6 +128,8 @@ function P(state::State, qubit)
 end
 
 """
+    X(State, qubit)
+
 Apply X gate to a State.
 """
 function X(state::State, qubit)
@@ -131,6 +139,8 @@ function X(state::State, qubit)
 end
 
 """
+    Y(State, qubit)
+
 Apply Y gate to a State.
 """
 function Y(state::State, qubit)
@@ -140,6 +150,8 @@ function Y(state::State, qubit)
 end
 
 """
+    Z(State, qubit)
+
 Apply Z gate to a State.
 """
 function Z(state::State, qubit)
@@ -149,6 +161,8 @@ function Z(state::State, qubit)
 end
 
 """
+    H(State, qubit)
+
 Apply H gate to a State.
 """
 function H(state::State, qubit)
@@ -158,6 +172,8 @@ function H(state::State, qubit)
 end
 
 """
+    CNOT(State, control, target)
+
 Apply CNOT gate to a State.
 """
 function CNOT(state::State, control, target)
@@ -167,6 +183,8 @@ function CNOT(state::State, control, target)
 end
 
 """
+    CZ(State, control, target)
+
 Apply CZ gate to a State.
 """
 function CZ(state::State, control, target)
@@ -176,6 +194,8 @@ function CZ(state::State, control, target)
 end
 
 """
+    SWAP(State, first, second)
+
 Apply SWAP gate to a State.
 """
 function SWAP(state::State, qubit1, qubit2)

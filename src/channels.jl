@@ -1,4 +1,6 @@
 """
+    ChannelZ(State, qubit, prob)
+
 Apply Pauli-Z channel gate to a State.
 """
 function ChannelZ(state::State, qubit, prob::Float64)
@@ -8,6 +10,8 @@ function ChannelZ(state::State, qubit, prob::Float64)
 end
 
 """
+    ChannelZ(State, prob)
+
 Apply Pauli-Z channel gate to a State.
 """
 function ChannelZ(state::State, prob::Float64)
@@ -17,6 +21,8 @@ function ChannelZ(state::State, prob::Float64)
 end
 
 """
+    ChannelX(State, qubit, prob)
+
 Apply Pauli-X channel gate to a State.
 """
 function ChannelX(state::State, qubit, prob::Float64)
@@ -26,6 +32,8 @@ function ChannelX(state::State, qubit, prob::Float64)
 end
 
 """
+    ChannelX(State, prob)
+
 Apply Pauli-X channel gate to a State.
 """
 function ChannelX(state::State, prob::Float64)
@@ -35,6 +43,8 @@ function ChannelX(state::State, prob::Float64)
 end
 
 """
+    ChannelY(State, qubit, prob)
+
 Apply Pauli-Y channel gate to a State.
 """
 function ChannelY(state::State, qubit, prob::Float64)
@@ -44,6 +54,8 @@ function ChannelY(state::State, qubit, prob::Float64)
 end
 
 """
+    ChannelY(State, prob)
+
 Apply Pauli-Y channel gate to a State.
 """
 function ChannelY(state::State, prob::Float64)
@@ -53,6 +65,8 @@ function ChannelY(state::State, prob::Float64)
 end
 
 """
+    ChannelDepol(State, qubit, prob)
+
 Apply depolarizing channel gate to a State.
 """
 function ChannelDepol(state::State, qubit, prob::Float64)
@@ -64,6 +78,8 @@ function ChannelDepol(state::State, qubit, prob::Float64)
 end
 
 """
+    ChannelDepol(State, prob)
+
 Apply depolarizing channel gate to a State.
 """
 function ChannelDepol(state::State, prob::Float64)
@@ -73,6 +89,8 @@ function ChannelDepol(state::State, prob::Float64)
 end
 
 """
+    ChannelPauli(State, qubit, probs)
+
 Apply general Pauli channel gate to a State.
 """
 function ChannelPauli(state::State, qubit, pXYZ::Array{Float64})
@@ -88,6 +106,8 @@ function ChannelPauli(state::State, qubit, pXYZ::Array{Float64})
 end
 
 """
+    ChannelPauli(State, prob)
+
 Apply general Pauli channel gate to a State.
 """
 function ChannelPauli(state::State, pXYZ::Array{Float64})
@@ -97,6 +117,8 @@ function ChannelPauli(state::State, pXYZ::Array{Float64})
 end
 
 """
+    ChannelLoss(State, qubit, prob)
+
 Apply loss channel gate to a State.
 """
 function ChannelLoss(state::State, qubit, pLoss::Float64)
@@ -108,6 +130,8 @@ function ChannelLoss(state::State, qubit, pLoss::Float64)
 end
 
 """
+    ChannelLoss(State, prob)
+
 Apply loss channel gate to a State.
 """
 function ChannelLoss(state::State, pLoss::Float64)

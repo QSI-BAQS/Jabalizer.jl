@@ -87,20 +87,26 @@ function AddQubit(state::State, qubit::Char)
 end
 
 """
-Add Bell state |00>+|11> to a State.
+    AddBell(state, labelA, labelB)
+
+Add Bell state ``(|00\\rangle+|11\\rangle)/\\sqrt{2}`` to a State.
 """
 function AddBell(state::State, label1::String, label2::String)
     AddGHZ(state, 2, [label1, label2])
 end
 
 """
-Add Bell state |00>+|11> to a State.
+    AddBell(state)
+
+Add Bell state ``(|00\\rangle+|11\\rangle)/\\sqrt{2}`` to a State.
 """
 function AddBell(state::State)
     AddGHZ(state, 2)
 end
 
 """
+    AddGHZ(state, size, labels)
+
 Add a GHZ state to a State.
 """
 function AddGHZ(state::State, size::Int64, labels::Array{String})
@@ -114,6 +120,8 @@ function AddGHZ(state::State, size::Int64, labels::Array{String})
 end
 
 """
+    AddGHZ(state, size)
+
 Add a GHZ state to a State.
 """
 function AddGHZ(state::State, size::Int64)
@@ -127,6 +135,8 @@ function AddGHZ(state::State, size::Int64)
 end
 
 """
+    AddGHZ(state)
+
 Add a 3-qubit GHZ state to a State.
 """
 function AddGHZ(state::State)
@@ -134,6 +144,8 @@ function AddGHZ(state::State)
 end
 
 """
+    AddGraph(state, graph, labels)
+
 Add a graph state to a State.
 """
 function AddGraph(state::State, graph::Array{Int64,2}, labels::Array{String})
@@ -154,6 +166,8 @@ function AddGraph(state::State, graph::Array{Int64,2}, labels::Array{String})
 end
 
 """
+    AddGraph(state, graph)
+
 Add a graph state to a State.
 """
 function AddGraph(state::State, graph::Array{Int64,2})

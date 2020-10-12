@@ -4,23 +4,20 @@
 
 #__precompile__(true)
 
-#module Jabalizer
+module Jabalizer
 
 using LightGraphs, GraphPlot, LinearAlgebra
-# using Crayons, Crayons.Box
 
 import Base: *, print, string
 import GraphPlot.gplot
 
-export *
-
-# export State, Stabilizer, GraphState
-# export AddQubit, AddQubits, AddGraph, AddGHZ, AddBell
-# export P, X, Y, Z, H, CNOT, CZ, SWAP
-# export ChannelDepol, ChannelLoss, ChannelPauli, ChannelX, ChannelY, ChannelZ
-# export ExecuteCircuit
-# export GetQubitLabel, GraphToState
-# export gplot, print, string
+export State, Stabilizer, GraphState
+export AddQubit, AddQubits, AddGraph, AddGHZ, AddBell
+export P, X, Y, Z, H, CNOT, CZ, SWAP
+export ChannelDepol, ChannelLoss, ChannelPauli, ChannelX, ChannelY, ChannelZ
+export ExecuteCircuit
+export GetQubitLabel, GraphToState, TableauToState
+export gplot, print, string
 
 """
 Stabilizer type
@@ -121,7 +118,9 @@ function PauliProd(left::Char, right::Char)
 end
 
 """
-Multiplication operator for stabilizer type.
+    *(left,right)
+
+Multiplication operator for stabilizers.
 """
 function *(left::Stabilizer, right::Stabilizer)::Stabilizer
     if left.qubits != right.qubits
@@ -249,7 +248,9 @@ function string(stabilizer::Stabilizer)
 end
 
 """
-Print stabilizer to terminal.
+    print(Stabilizer)
+
+Print a stabilizer to terminal.
 """
 function print(stabilizer::Stabilizer, info::Bool = false, tab::Bool = false)
     if info == true
@@ -261,18 +262,6 @@ function print(stabilizer::Stabilizer, info::Bool = false, tab::Bool = false)
     else
         str = ToTableau(stabilizer)
     end
-
-    # for char in str
-    #     if char == 'X'
-    #         print(BLUE_FG, char)
-    #     elseif char == 'Z'
-    #         print(RED_FG, char)
-    #     elseif char == 'Y'
-    #         print(GREEN_FG, char)
-    #     else
-    #         print(DEFAULT_FG, char)
-    #     end
-    # end
 
     println(str)
 end
@@ -291,7 +280,9 @@ function string(state::State)
 end
 
 """
-Print state to terminal.
+    print(State)
+
+Print the full stabilizer set of a state to the terminal.
 """
 function print(state::State, info::Bool = false, tab::Bool = false)
     if info == true
@@ -353,6 +344,8 @@ function GraphToState(adjM::Array{Int64})
 end
 
 """
+    gplot(GraphState)
+
 Plot the graph of a GraphState.
 """
 function gplot(graphState::GraphState)
@@ -360,6 +353,8 @@ function gplot(graphState::GraphState)
 end
 
 """
+    print(GraphState)
+
 Print a GraphState to the terminal.
 """
 function print(graphState::GraphState, info::Bool = false)
@@ -372,15 +367,6 @@ function print(graphState::GraphState, info::Bool = false)
     if info == true
         println("\nQubit labels: ", graphState.labels)
     end
-end
-
-"""
-Row addition operation for tableaus.
-"""
-function RowAdd(tab::Array{Int64}, source::Int64, dest::Int64)
-    prod = Stabilizer(tab[source, :]) * Stabilizer(tab[dest, :])
-    tab[dest, :] = ToTableau(prod)
-    return tab
 end
 
 """
@@ -411,58 +397,6 @@ function ExecuteCircuit(state::State, gates::Array{})
 end
 
 """
-Convert a State to its graph state equivalent under local operations.
-"""
-function ToGraph(state::State)
-    newState = deepcopy(state)
-    qubits = state.qubits
-    stabs = length(state.stabilizers)
-    LOseq = [] # Sequence of local operations performed
-
-    # Make X-block full rank
-    tab = sortslices(ToTableau(newState), dims = 1, rev = true)
-    for n = 1:stabs
-        if (sum(tab[n:stabs, n]) == 0)
-            H(newState, n)
-            push!(LOseq, ("H", n))
-        end
-        tab = sortslices(ToTableau(newState), dims = 1, rev = true)
-    end
-
-    # Make upper-triangular X-block
-    for n = 1:qubits
-        for m = (n+1):stabs
-            if tab[m, n] == 1
-                tab = RowAdd(tab, n, m)
-            end
-        end
-        tab = sortslices(tab, dims = 1, rev = true)
-    end
-
-    # Make diagonal X-block
-    for n = (stabs-1):-1:1
-        for m = (n+1):stabs
-            if tab[n, m] == 1
-                tab = RowAdd(tab, m, n)
-            end
-        end
-    end
-
-    newState = State(tab)
-
-    # Reduce all stabilizer phases to +1
-
-    # Adjacency matrix
-    adjM = tab[:, (qubits+1):(2*qubits)]
-
-    if (adjM != adjM') || (tr(adjM) != 0)
-        println("Error: invalid graph conversion.")
-    end
-
-    return (newState, adjM, Tuple(LOseq))
-end
-
-"""
 Plot the graph equivalent of a State.
 """
 function gplot(state::State)
@@ -470,8 +404,9 @@ function gplot(state::State)
     gplot(Graph(graphState.adjM),nodelabel=state.labels)
 end
 
+include("util.jl")
 include("preparation.jl")
 include("gates.jl")
 include("channels.jl")
 
-# end
+end

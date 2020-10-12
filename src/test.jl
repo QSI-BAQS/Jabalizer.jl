@@ -1,5 +1,7 @@
 include("jabalizer.jl")
 
+using LightGraphs, GraphPlot, LinearAlgebra
+
 t = [
     1 1 0 0 1 1 0 0 0 0 0 0 0 0 0
     1 1 1 1 0 0 0 0 0 0 0 0 0 0 0
@@ -10,9 +12,9 @@ t = [
     0 0 0 0 0 0 0 1 1 1 1 1 1 1 0
 ]
 
-s = State(t)
+s = Jabalizer.State(t)
 print(s)
-g = GraphState(s)
+g = Jabalizer.GraphState(s)
 print(g)
 gplot(g)
 
