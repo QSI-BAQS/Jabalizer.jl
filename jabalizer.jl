@@ -2,14 +2,14 @@
 # Quantum stabilizer circuit simulator
 # by Peter P. Rohde
 
+#__precompile__(true)
+
 #module Jabalizer
 
-using LightGraphs
-using GraphPlot
-
-import Base.*
-import Base.print
-export State, Stabilizer, GetQubitLabel, ToString, print, AddQubit, I, P, X, Y, Z, H, CNOT, CZ
+using LightGraphs, GraphPlot, LinearAlgebra
+import Base: *,print
+import GraphPlot.gplot
+export State, Stabilizer, GetQubitLabel, ToString, gplot, print, AddQubit, I, P, X, Y, Z, H, CNOT, CZ, SWAP
 
 """
 Stabilizer datatype for a single Pauli group stabilizer.
@@ -45,7 +45,7 @@ mutable struct Stabilizer
         last(tab))
 end
 
-function Conjugate(stabilizer::Stabilizer)
+function adjoint(stabilizer::Stabilizer)
     conj = deepcopy(stabilizer)
     conj.phase = (-conj.phase) % 4
     return conj
@@ -155,6 +155,10 @@ function TableauToState(tab::Array{Int64})
         push!(state.stabilizers, stab)
     end
 
+    for n = 1:qubits
+        push!(state.labels, string(n))
+    end
+
     return state
 end
 
@@ -189,13 +193,6 @@ function ToTableau(state::State)
 end
 
 """
-Print tableau form of state
-"""
-function PrintTableau(state::State)
-    display(ToTableau(state))
-end
-
-"""
 Convert a stabilizer to a string.
 """
 function ToString(stabilizer::Stabilizer)
@@ -221,10 +218,16 @@ end
 """
 Print a stabilizer to the terminal.
 """
-function print(stabilizer::Stabilizer)
-    # println("Stabilizer for ", stabilizer.qubits, " qubits:")
-    println(ToString(stabilizer))
-    # println()
+function print(stabilizer::Stabilizer, info::Bool=false, tab::Bool=false)
+    if info == true
+        println("Stabilizer for ", stabilizer.qubits, " qubits:")
+    end
+
+    if tab == false
+        println(ToString(stabilizer))
+    else
+        println(ToTableau(stabilizer))
+    end
 end
 
 """
@@ -243,12 +246,21 @@ end
 """
 Print a state string to the terminal.
 """
-function print(state::State)
-    # println("Stabilizers (", length(state.stabilizers), " stabilizers, ", state.qubits, " qubits):")
-    println(ToString(state))
+function print(state::State, info::Bool=false, tab::Bool=false)
+    if info == true
+        println("Stabilizers (", length(state.stabilizers), " stabilizers, ", state.qubits, " qubits):")
+    end
 
-    #println("Qubit labels: ", state.labels)
-    #println("Lost qubits: ", state.lost)
+    if tab == false
+        println(ToString(state))
+    else
+        println(ToTableau(state))
+    end
+
+    if info == true
+        println("Qubit labels: ", state.labels)
+        println("Lost qubits: ", state.lost)
+    end
 end
 
 function AddQubit(stabilizer::Stabilizer, pauli::Char, phase::Int64)
@@ -400,11 +412,8 @@ function P(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
     z = stabilizer.Z[qubit]
 
-    if x == 0 && z == 1 # PZP' = Z
+    if x == 1 # PXP' = -X
         stabilizer.phase += 2
-    elseif x == 1 && z == 0 # PXP' = ?
-        stabilizer.phase += 2
-    elseif x == 1 && z == 1 # PYP' = ?
     end
 end
 
@@ -412,9 +421,7 @@ function X(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
     z = stabilizer.Z[qubit]
 
-    if x == 0 && z == 1 # XZX = -Z
-        stabilizer.phase += 2
-    elseif x == 1 && z == 1 # XYX = -Y
+    if z == 1 # XZX = -Z
         stabilizer.phase += 2
     end
 end
@@ -434,9 +441,7 @@ function Z(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
     z = stabilizer.Z[qubit]
 
-    if x == 1 && z == 0 # ZXZ = -X
-        stabilizer.phase += 2
-    elseif x == 1 && z == 1 # ZYZ = -Y
+    if x == 1 # ZXZ = -X
         stabilizer.phase += 2
     end
 end
@@ -445,13 +450,13 @@ function H(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
     z = stabilizer.Z[qubit]
 
-    if x == 1 && z == 0
+    if x == 1 && z == 0 # HXH = Z
         stabilizer.X[qubit] = 0
         stabilizer.Z[qubit] = 1
-    elseif x == 0 && z == 1
+    elseif x == 0 && z == 1 # HZH = X
         stabilizer.X[qubit] = 1
         stabilizer.Z[qubit] = 0
-    elseif x == 1 && z == 1
+    elseif x == 1 && z == 1 # HYH = -Y
         stabilizer.phase += 2
     end
 end
@@ -472,14 +477,8 @@ function CZ(stabilizer::Stabilizer, control::Int64, target::Int64)
 end
 
 function SWAP(stabilizer::Stabilizer, qubit1::Int64, qubit2::Int64)
-    tempZ = stabilizer.Z[qubit1]
-    tempX = stabilizer.X[qubit1]
-
-    stabilizer.Z[qubit1] = stabilizer.Z[qubit2]
-    stabilizer.X[qubit1] = stabilizer.X[qubit2]
-
-    stabilizer.Z[qubit2] = tempZ
-    stabilizer.X[qubit2] = tempX
+    stabilizer.X[qubit1], stabilizer.X[qubit2] = stabilizer.X[qubit2], stabilizer.X[qubit1]
+    stabilizer.Z[qubit1], stabilizer.Z[qubit2] = stabilizer.Z[qubit2], stabilizer.Z[qubit1]
 end
 
 function I(state::State, qubit)
@@ -516,9 +515,9 @@ function H(state::State, qubit)
 end
 
 function CNOT(state::State, control, target)
-    H(state,target)
-    CZ(state,control,target)
-    H(state,target)
+    for s in state.stabilizers
+        CNOT(s, GetQubitLabel(state,control), GetQubitLabel(state,target))
+    end
 end
 
 function CZ(state::State, control, target)
@@ -621,6 +620,32 @@ function RowAdd(tab::Array{Int64}, source::Int64, dest::Int64)
     return tab
 end
 
+function ExecuteCircuit(state::State, gates::Array{})
+    for gate in gates
+        if gate[1] == "I"
+            I(state,gate[2])
+        elseif gate[1] == "X"
+            X(state,gate[2])
+        elseif gate[1] == "Y"
+            Y(state,gate[2])
+        elseif gate[1] == "Z"
+            Z(state,gate[2])
+        elseif gate[1] == "H"
+            H(state,gate[2])
+        elseif gate[1] == "P"
+            P(state,gate[2])
+        elseif gate[1] == "CNOT"
+            CNOT(state,gate[2],gate[3])
+        elseif gate[1] == "CZ"
+            CZ(state,gate[2],gate[3])
+        elseif gate[1] == "SWAP"
+            SWAP(state,gate[2],gate[3])
+        else
+            println("Warning: unknown gate.")
+        end
+    end
+end
+
 function ToGraph(state::State)
     newState = deepcopy(state)
     qubits = state.qubits
@@ -663,9 +688,17 @@ function ToGraph(state::State)
     # Adjacency matrix
     adjM = tab[:,(qubits+1):(2*qubits)]
 
+    if (adjM != adjM') || (tr(adjM) != 0)
+        println("Error: invalid graph conversion.")
+    end
+
     return(newState, adjM, Tuple(LOseq))
 end
 
+function gplot(state::State)
+    (graphState,adjM,LOseq) = ToGraph(state)
+    gplot(Graph(adjM),nodelabel=state.labels)
+end
 
 #end
 
@@ -688,7 +721,7 @@ end
 #
 # println("Adjacency matrix:")
 # display(A)
-
+#
 simonsTab =
 [1 1 0 0 1 1 0 0 0 0 0 0 0 0 0;
 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0;
@@ -700,9 +733,4 @@ simonsTab =
 
 simonsState = State(simonsTab)
 print(simonsState)
-
-(graphState,A,LOseq) = ToGraph(simonsState)
-print(graphState)
-
-tab=ToTableau(graphState)
-display(gplot(Graph(A)))
+gplot(simonsState)
