@@ -87,7 +87,7 @@ function CNOT(stabilizer::Stabilizer, control::Int64, target::Int64)
 end
 
 """
-    CZ(State, control, target)
+    CZ(state, control, target)
 
 Apply CZ gate to a Stabilizer.
 """
@@ -117,89 +117,111 @@ function SWAP(stabilizer::Stabilizer, qubit1::Int64, qubit2::Int64)
 end
 
 """
-    P(State, qubit)
+    P(state, qubit)
 
 Apply P gate to a State on qubit.
 """
-function P(state::State, qubit)
+function P(state::StabilizerState, qubit)
     for s in state.stabilizers
         P(s, GetQubitLabel(state, qubit))
     end
 end
 
 """
-    X(State, qubit)
+    X(state, qubit)
 
 Apply X gate to a State.
 """
-function X(state::State, qubit)
+function X(state::StabilizerState, qubit)
     for s in state.stabilizers
         X(s, GetQubitLabel(state, qubit))
     end
 end
 
 """
-    Y(State, qubit)
+    Y(state, qubit)
 
 Apply Y gate to a State.
 """
-function Y(state::State, qubit)
+function Y(state::StabilizerState, qubit)
     for s in state.stabilizers
         Y(s, GetQubitLabel(state, qubit))
     end
 end
 
 """
-    Z(State, qubit)
+    Z(state, qubit)
 
 Apply Z gate to a State.
 """
-function Z(state::State, qubit)
+function Z(state::StabilizerState, qubit)
     for s in state.stabilizers
         Z(s, GetQubitLabel(state, qubit))
     end
 end
 
 """
-    H(State, qubit)
+    H(state, qubit)
 
 Apply H gate to a State.
 """
-function H(state::State, qubit)
+function H(state::StabilizerState, qubit)
     for s in state.stabilizers
         H(s, GetQubitLabel(state, qubit))
     end
 end
 
 """
-    CNOT(State, control, target)
+    CNOT(state, control, target)
 
 Apply CNOT gate to a State.
 """
-function CNOT(state::State, control, target)
+function CNOT(state::StabilizerState, control, target)
     for s in state.stabilizers
         CNOT(s, GetQubitLabel(state, control), GetQubitLabel(state, target))
     end
 end
 
 """
-    CZ(State, control, target)
+    CZ(state, control, target)
 
 Apply CZ gate to a State.
 """
-function CZ(state::State, control, target)
+function CZ(state::StabilizerState, control, target)
     for s in state.stabilizers
         CZ(s, GetQubitLabel(state, control), GetQubitLabel(state, target))
     end
 end
 
 """
-    SWAP(State, first, second)
+    SWAP(state, first, second)
 
 Apply SWAP gate to a State.
 """
-function SWAP(state::State, qubit1, qubit2)
+function SWAP(state::StabilizerState, qubit1, qubit2)
     for s in state.stabilizers
         SWAP(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
     end
+end
+
+"""
+    FusionI(state, first, second)
+
+Apply type-I fusion gate to a state.
+"""
+function FusionI(state::StabilizerState, qubit1, qubit2)
+    # for s in state.stabilizers
+    #     SWAP(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
+    # end
+end
+
+"""
+    FusionII(state, first, second)
+
+Apply type-II fusion gate to a state.
+"""
+function FusionII(state::StabilizerState, qubit1, qubit2)
+    # for s in state.stabilizers
+    #     SWAP(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
+    # end
 end

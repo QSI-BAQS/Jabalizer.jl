@@ -9,7 +9,17 @@ CurrentModule = Jabalizer
 ```@contents
 ```
 
+## Types
+
+```@docs
+Stabilizer
+StabilizerState
+GraphState
+```
+
 ## Functions
+
+### State preparation
 
 ```@docs
 AddQubit
@@ -17,17 +27,40 @@ AddQubits
 AddBell
 AddGHZ
 AddGraph
+```
+
+### Gates
+
+```@docs
+H
+X
+Y
+Z
+P
+SWAP
 CNOT
 CZ
-H
+FusionI
+FusionII
+```
+
+### Channels
+
+```@docs
 ChannelX
 ChannelY
 ChannelZ
 ChannelPauli
 ChannelDepol
 ChannelLoss
+```
+
+### Utilities
+
+```@docs
 RowAdd
 print
+string
 *
 ```
 

@@ -38,7 +38,7 @@ function AddQubits(stabilizer::Stabilizer, length::Int64)
     end
 end
 
-function AddQubit(state::State, pauli::Char, phase::Int64, label::String)
+function AddQubit(state::StabilizerState, pauli::Char, phase::Int64, label::String)
     for s in state.stabilizers
         AddQubit(s)
     end
@@ -51,11 +51,11 @@ function AddQubit(state::State, pauli::Char, phase::Int64, label::String)
     state.qubits += 1
 end
 
-function AddQubit(state::State, pauli::Char, phase::Int64)
+function AddQubit(state::StabilizerState, pauli::Char, phase::Int64)
     AddQubit(state, pauli, phase, string(state.qubits + 1))
 end
 
-function AddQubit(state::State, qubit::Char, label::String)
+function AddQubit(state::StabilizerState, qubit::Char, label::String)
     pauli = 'I'
     phase::Int64 = 0
 
@@ -82,7 +82,7 @@ function AddQubit(state::State, qubit::Char, label::String)
     AddQubit(state, pauli, phase, label)
 end
 
-function AddQubit(state::State, qubit::Char)
+function AddQubit(state::StabilizerState, qubit::Char)
     AddQubit(state, qubit, string(state.qubits + 1))
 end
 
@@ -91,7 +91,7 @@ end
 
 Add Bell state ``(|00\\rangle+|11\\rangle)/\\sqrt{2}`` to a State.
 """
-function AddBell(state::State, label1::String, label2::String)
+function AddBell(state::StabilizerState, label1::String, label2::String)
     AddGHZ(state, 2, [label1, label2])
 end
 
@@ -100,7 +100,7 @@ end
 
 Add Bell state ``(|00\\rangle+|11\\rangle)/\\sqrt{2}`` to a State.
 """
-function AddBell(state::State)
+function AddBell(state::StabilizerState)
     AddGHZ(state, 2)
 end
 
@@ -109,7 +109,7 @@ end
 
 Add a GHZ state to a State.
 """
-function AddGHZ(state::State, size::Int64, labels::Array{String})
+function AddGHZ(state::StabilizerState, size::Int64, labels::Array{String})
     AddQubit(state, '+', labels[1])
     start = state.qubits
 
@@ -124,7 +124,7 @@ end
 
 Add a GHZ state to a State.
 """
-function AddGHZ(state::State, size::Int64)
+function AddGHZ(state::StabilizerState, size::Int64)
     labels::Array{String} = []
 
     for i = 1:size
@@ -139,7 +139,7 @@ end
 
 Add a 3-qubit GHZ state to a State.
 """
-function AddGHZ(state::State)
+function AddGHZ(state::StabilizerState)
     AddGHZ(state, 3)
 end
 
@@ -148,7 +148,7 @@ end
 
 Add a graph state to a State.
 """
-function AddGraph(state::State, graph::Array{Int64,2}, labels::Array{String})
+function AddGraph(state::StabilizerState, graph::Array{Int64,2}, labels::Array{String})
     qubits = state.qubits
     graphSize = size(graph, 1)
 
@@ -170,7 +170,7 @@ end
 
 Add a graph state to a State.
 """
-function AddGraph(state::State, graph::Array{Int64,2})
+function AddGraph(state::StabilizerState, graph::Array{Int64,2})
     qubits = size(graph, 1)
     labels::Array{String} = []
 

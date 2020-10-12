@@ -3,7 +3,7 @@
 
 Apply Pauli-Z channel gate to a State.
 """
-function ChannelZ(state::State, qubit, prob::Float64)
+function ChannelZ(state::StabilizerState, qubit, prob::Float64)
     if rand(Float64) < prob
         Z(state, qubit)
     end
@@ -14,7 +14,7 @@ end
 
 Apply Pauli-Z channel gate to a State.
 """
-function ChannelZ(state::State, prob::Float64)
+function ChannelZ(state::StabilizerState, prob::Float64)
     for qubit = 1:state.qubits
         ChannelZ(state, qubit, prob)
     end
@@ -25,7 +25,7 @@ end
 
 Apply Pauli-X channel gate to a State.
 """
-function ChannelX(state::State, qubit, prob::Float64)
+function ChannelX(state::StabilizerState, qubit, prob::Float64)
     if rand(Float64) < prob
         X(state, qubit)
     end
@@ -36,7 +36,7 @@ end
 
 Apply Pauli-X channel gate to a State.
 """
-function ChannelX(state::State, prob::Float64)
+function ChannelX(state::StabilizerState, prob::Float64)
     for qubit = 1:state.qubits
         ChannelX(state, qubit, prob)
     end
@@ -47,7 +47,7 @@ end
 
 Apply Pauli-Y channel gate to a State.
 """
-function ChannelY(state::State, qubit, prob::Float64)
+function ChannelY(state::StabilizerState, qubit, prob::Float64)
     if rand(Float64) < prob
         Y(state, qubit)
     end
@@ -58,7 +58,7 @@ end
 
 Apply Pauli-Y channel gate to a State.
 """
-function ChannelY(state::State, prob::Float64)
+function ChannelY(state::StabilizerState, prob::Float64)
     for qubit = 1:state.qubits
         ChannelY(state, qubit, prob)
     end
@@ -69,7 +69,7 @@ end
 
 Apply depolarizing channel gate to a State.
 """
-function ChannelDepol(state::State, qubit, prob::Float64)
+function ChannelDepol(state::StabilizerState, qubit, prob::Float64)
     if rand(Float64) < ((1 - prob) / 3)
         X(state, qubit)
         Y(state, qubit)
@@ -82,7 +82,7 @@ end
 
 Apply depolarizing channel gate to a State.
 """
-function ChannelDepol(state::State, prob::Float64)
+function ChannelDepol(state::StabilizerState, prob::Float64)
     for qubit = 1:state.qubits
         ChannelDepol(state, qubit, prob)
     end
@@ -93,7 +93,7 @@ end
 
 Apply general Pauli channel gate to a State.
 """
-function ChannelPauli(state::State, qubit, pXYZ::Array{Float64})
+function ChannelPauli(state::StabilizerState, qubit, pXYZ::Array{Float64})
     r = rand(Float64)
 
     if r <= pXYZ[1]
@@ -110,7 +110,7 @@ end
 
 Apply general Pauli channel gate to a State.
 """
-function ChannelPauli(state::State, pXYZ::Array{Float64})
+function ChannelPauli(state::StabilizerState, pXYZ::Array{Float64})
     for qubit = 1:state.qubits
         ChannelPauli(state, qubit, pXYZ)
     end
@@ -121,7 +121,7 @@ end
 
 Apply loss channel gate to a State.
 """
-function ChannelLoss(state::State, qubit, pLoss::Float64)
+function ChannelLoss(state::StabilizerState, qubit, pLoss::Float64)
     r = rand(Float64)
 
     if r <= pLoss
@@ -134,7 +134,7 @@ end
 
 Apply loss channel gate to a State.
 """
-function ChannelLoss(state::State, pLoss::Float64)
+function ChannelLoss(state::StabilizerState, pLoss::Float64)
     for qubit = 1:state.qubits
         ChannelLoss(state, qubit, pLoss)
     end

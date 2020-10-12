@@ -12,7 +12,7 @@ t = [
     0 0 0 0 0 0 0 1 1 1 1 1 1 1 0
 ]
 
-s = Jabalizer.State(t)
+s = Jabalizer.StabilizerState(t)
 print(s)
 g = Jabalizer.GraphState(s)
 print(g)
