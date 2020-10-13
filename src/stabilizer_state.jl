@@ -14,8 +14,11 @@ mutable struct StabilizerState
     StabilizerState() = new(0, [], [], [])
     StabilizerState(n::Int64) = new(n, [], [], zeros(n))
     StabilizerState(tab::Array{Int64}) = TableauToState(tab)
-    #State(graphState::GraphState) = GraphToState(graphState)
 end
+
+# function StabilizerState(graphState::GraphState)
+#     return(GraphToState(graphState))
+# end
 
 """
 Generate stabilizer from tableau
@@ -125,5 +128,5 @@ Plot the graph equivalent of a state.
 """
 function gplot(state::StabilizerState)
     graphState = GraphState(state)
-    gplot(Graph(graphState.adjM),nodelabel=state.labels)
+    gplot(Graph(graphState.adjM),nodelabel=1:state.qubits)
 end

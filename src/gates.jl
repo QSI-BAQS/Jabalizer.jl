@@ -1,5 +1,20 @@
 """
-Apply P gate to a Stabilizer.
+Here's some inline maths: \$\\sqrt[n]{1 + x + x^2 + \\ldots}\$.
+
+Here's an equation:
+
+\$\\frac{n!}{k!(n - k)!} = \\binom{n}{k}\$
+
+This is the binomial coefficient.
+"""
+function Id(stabilizer::Stabilizer, qubit::Int64)
+end
+
+
+"""
+    P(stabilizer, qubit)
+
+Apply the \$P=\\sqrt{Z}\$ gate to a stabilizer.
 """
 function P(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
@@ -11,7 +26,9 @@ function P(stabilizer::Stabilizer, qubit::Int64)
 end
 
 """
-Apply X gate to a Stabilizer.
+    X(stabilizer, qubit)
+
+Apply Pauli-X gate to a stabilizer.
 """
 function X(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
@@ -23,7 +40,9 @@ function X(stabilizer::Stabilizer, qubit::Int64)
 end
 
 """
-Apply Y gate to a Stabilizer.
+    Y(stabilizer, qubit)
+
+Apply Y gate to a stabilizer.
 """
 function Y(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
@@ -37,7 +56,9 @@ function Y(stabilizer::Stabilizer, qubit::Int64)
 end
 
 """
-Apply Z gate to a Stabilizer.
+    Z(stabilizer, qubit)
+
+Apply Z gate to a stabilizer.
 """
 function Z(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
@@ -49,7 +70,9 @@ function Z(stabilizer::Stabilizer, qubit::Int64)
 end
 
 """
-Apply H gate to a Stabilizer.
+    H(stabilizer, qubit)
+
+Apply H gate to a stabilizer.
 """
 function H(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
@@ -72,18 +95,22 @@ end
 Apply CNOT gate to a Stabilizer.
 """
 function CNOT(stabilizer::Stabilizer, control::Int64, target::Int64)
-    xc = stabilizer.X[control]
-    zc = stabilizer.Z[control]
-    xt = stabilizer.X[target]
-    zt = stabilizer.Z[target]
+    H(stabilizer, target)
+    CZ(stabilizer, control, target)
+    H(stabilizer, target)
 
-    if xc == 1
-        stabilizer.Z[target] = 1 - stabilizer.Z[target]
-    end
-
-    if xt == 1
-        stabilizer.Z[control] = 1 - stabilizer.Z[control]
-    end
+    # xc = stabilizer.X[control]
+    # zc = stabilizer.Z[control]
+    # xt = stabilizer.X[target]
+    # zt = stabilizer.Z[target]
+    #
+    # if xc == 1
+    #     stabilizer.Z[target] = 1 - stabilizer.Z[target]
+    # end
+    #
+    # if zt == 1
+    #     stabilizer.Z[control] = 1 - stabilizer.Z[control]
+    # end
 end
 
 """
@@ -92,21 +119,13 @@ end
 Apply CZ gate to a Stabilizer.
 """
 function CZ(stabilizer::Stabilizer, control::Int64, target::Int64)
-    xc = stabilizer.X[control]
-    zc = stabilizer.Z[control]
-    xt = stabilizer.X[target]
-    zt = stabilizer.Z[target]
-
-    if xc == 1
-        stabilizer.Z[target] = 1 - stabilizer.Z[target]
-    end
-
-    if xt == 1
-        stabilizer.Z[control] = 1 - stabilizer.Z[control]
-    end
+    stabilizer.Z[target] = (stabilizer.X[control] + stabilizer.Z[target]) % 2
+    stabilizer.Z[control] = (stabilizer.X[target] + stabilizer.Z[control]) % 2
 end
 
 """
+    SWAP(stabilizer, qubit1, qubit2)
+
 Apply SWAP gate to a Stabilizer.
 """
 function SWAP(stabilizer::Stabilizer, qubit1::Int64, qubit2::Int64)
@@ -117,9 +136,21 @@ function SWAP(stabilizer::Stabilizer, qubit1::Int64, qubit2::Int64)
 end
 
 """
+    Id(state, qubit)
+
+Apply I gate to a State on qubit.
+"""
+function Id(state::StabilizerState, qubit)
+    for s in state.stabilizers
+        Id(s, GetQubitLabel(state, qubit))
+    end
+end
+
+
+"""
     P(state, qubit)
 
-Apply P gate to a State on qubit.
+Apply P gate to a state on qubit.
 """
 function P(state::StabilizerState, qubit)
     for s in state.stabilizers
@@ -210,9 +241,9 @@ end
 Apply type-I fusion gate to a state.
 """
 function FusionI(state::StabilizerState, qubit1, qubit2)
-    # for s in state.stabilizers
-    #     SWAP(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
-    # end
+     for s in state.stabilizers
+         FusionI(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
+     end
 end
 
 """
@@ -221,7 +252,26 @@ end
 Apply type-II fusion gate to a state.
 """
 function FusionII(state::StabilizerState, qubit1, qubit2)
-    # for s in state.stabilizers
-    #     SWAP(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
-    # end
+     for s in state.stabilizers
+         FusionII(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
+     end
+end
+
+function MeasureZ(state::StabilizerState, qubit::Int64)::Int64
+    # implement the row reduction procedure as per Gottesman
+    # randomly choose outcome
+    # update the state
+    # return outcome
+end
+
+function MeasureX(state::StabilizerState, qubit::Int64)::Int64
+    H(state, qubit)
+    outcome = MeasureZ(state, qubit)
+    return(outcome)
+end
+
+function MeasureY(state::StabilizerState, qubit::Int64)::Int64
+    P(state, qubit)
+    outcome = MeasureX(state, qubit)
+    return(outcome)
 end

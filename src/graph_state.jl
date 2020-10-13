@@ -7,9 +7,11 @@ mutable struct GraphState
     qubits::Int64
     adjM::Array{Int64}
     labels::Array{String}
+    lost::Array{Int64}
 
-    GraphState() = new(0, [], [])
-    GraphState(adjM::Array{Int64}) = new(length(adjM[:, 1]), adjM, [])
+    GraphState() = new(0, [], [], [])
+    GraphState(adjM::Array{Int64}) =
+    new(length(adjM[:, 1]), adjM, [], zeros(length(adjM[:, 1])))
     GraphState(state::StabilizerState) =
         new(state.qubits, ToGraph(state)[2], state.labels)
 end
@@ -43,7 +45,7 @@ end
 Plot the graph of a GraphState.
 """
 function gplot(graphState::GraphState)
-    gplot(Graph(graphState.adjM), nodelabel = graphState.labels)
+    gplot(Graph(graphState.adjM), nodelabel = 1:graphState.qubits)
 end
 
 """

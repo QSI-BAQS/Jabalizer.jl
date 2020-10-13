@@ -32,10 +32,11 @@ AddGraph
 ### Gates
 
 ```@docs
-H
+Id
 X
 Y
 Z
+H
 P
 SWAP
 CNOT

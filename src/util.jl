@@ -131,7 +131,9 @@ Execute a gate sequence.
 """
 function ExecuteCircuit(state::StabilizerState, gates::Array{})
     for gate in gates
-        if gate[1] == "X"
+        if gate[1] == "I"
+            Id(state, gate[2])
+        elseif gate[1] == "X"
             X(state, gate[2])
         elseif gate[1] == "Y"
             Y(state, gate[2])

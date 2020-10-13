@@ -1,6 +1,6 @@
 include("jabalizer.jl")
 
-using LightGraphs, GraphPlot, LinearAlgebra
+using LightGraphs, GraphPlot
 
 t = [
     1 1 0 0 1 1 0 0 0 0 0 0 0 0 0
