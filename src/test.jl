@@ -16,9 +16,7 @@ s = Jabalizer.StabilizerState(t)
 print(s)
 g = Jabalizer.GraphState(s)
 print(g)
-#gplot(g)
 
-Jabalizer.MeasureZ(g,4)
 gplot(g)
 
 # println("---")

@@ -16,16 +16,23 @@ function FusionII(state::GraphState, qubit1, qubit2)
 end
 
 function MeasureZ(state::GraphState, qubit::Int64)::Int64
-    Disconnect(state, qubit)
+    Isolate(state, qubit)
     return 1
 end
 
 function MeasureX(state::GraphState, qubit::Int64)::Int64
-    return 1
+    Nb = findfirst(x -> x==1, state.A[qubit,:])
+    if Nb != nothing
+        LC(state, Nb)
+        outcome = MeasureY(state, qubit)
+        LC(state, Nb)
+    end
+    Isolate(state, qubit)
+    return outcome
 end
 
 function MeasureY(state::GraphState, qubit::Int64)::Int64
     LC(state, qubit)
-    Disconnect(state, qubit)
+    Isolate(state, qubit)
     return 1
 end

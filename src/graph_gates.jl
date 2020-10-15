@@ -59,7 +59,7 @@ end
 
 Disconnect an qubit from the graph by deleting all neighbouring edges.
 """
-function Disconnect(state::GraphState, qubit)
+function Isolate(state::GraphState, qubit)
     state.A[qubit,:] = zeros(Int64,state.qubits,1)
     state.A[:,qubit] = zeros(Int64,1,state.qubits)
 end
