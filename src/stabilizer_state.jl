@@ -128,5 +128,5 @@ Plot the graph equivalent of a state.
 """
 function gplot(state::StabilizerState)
     graphState = GraphState(state)
-    gplot(Graph(graphState.adjM),nodelabel=1:state.qubits)
+    gplot(Graph(graphState.A),nodelabel=1:state.qubits)
 end

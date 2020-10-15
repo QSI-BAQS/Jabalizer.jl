@@ -43,13 +43,13 @@ function ToGraph(state::StabilizerState)
     # Reduce all stabilizer phases to +1
 
     # Adjacency matrix
-    adjM = tab[:, (qubits+1):(2*qubits)]
+    A = tab[:, (qubits+1):(2*qubits)]
 
-    if (adjM != adjM') || (tr(adjM) != 0)
+    if (A != A') || (tr(A) != 0)
         println("Error: invalid graph conversion.")
     end
 
-    return (newState, adjM, Tuple(LOseq))
+    return (newState, A, Tuple(LOseq))
 end
 
 """

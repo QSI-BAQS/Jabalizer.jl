@@ -15,7 +15,10 @@ include("stabilizer_state.jl")
 include("graph_state.jl")
 include("util.jl")
 include("preparation.jl")
-include("gates.jl")
+include("stabilizer_gates.jl")
+include("graph_gates.jl")
+include("stabilizer_measurements.jl")
+include("graph_measurements.jl")
 include("channels.jl")
 
 end
