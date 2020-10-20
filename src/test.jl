@@ -2,7 +2,7 @@ include("jabalizer.jl")
 
 using LightGraphs, GraphPlot
 
-t = [
+t1 = [
     1 1 0 0 1 1 0 0 0 0 0 0 0 0 0
     1 1 1 1 0 0 0 0 0 0 0 0 0 0 0
     1 0 1 0 1 0 1 0 0 0 0 0 0 0 0
@@ -12,13 +12,32 @@ t = [
     0 0 0 0 0 0 0 1 1 1 1 1 1 1 0
 ]
 
-s = Jabalizer.StabilizerState(t)
-print(s)
-g = Jabalizer.GraphState(s)
-gplot(g)
+print("c")
 
-Jabalizer.MeasureY(g, 4)
-gplot(g)
+t = [
+    1 0 0 0 0 0 0
+    0 1 0 0 0 0 0
+    0 0 0 0 0 1 0
+]
+
+stab_state = Jabalizer.StabilizerState(t)
+print(typeof(s))
+println()
+print(s)
+
+println()
+Jabalizer.H(stab_state, 2)
+
+Jabalizer.X(stab_state, 2)
+
+Jabalizer.CNOT(stab_state, 2, 3)
+
+print(stab_state)
+
+a = Jabalizer.MeasureZ(stab_state, 2)
+print(a)
+println()
+print(stab_state)
 
 # println("---")
 

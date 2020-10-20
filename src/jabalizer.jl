@@ -7,6 +7,7 @@ using Documenter
 
 import Base: *, print, string
 import GraphPlot.gplot
+import StatsBase
 
 export *
 
