@@ -14,10 +14,10 @@ t = [
 
 s = Jabalizer.StabilizerState(t)
 print(s)
-g = Jabalizer.GraphState(s)
-gplot(g)
 
-Jabalizer.MeasureY(g, 4)
+x = Jabalizer.FusionII(s,6,7)
+
+g = Jabalizer.GraphState(s)
 gplot(g)
 
 # println("---")

@@ -1,11 +1,7 @@
 """
-Here's some inline maths: \$\\sqrt[n]{1 + x + x^2 + \\ldots}\$.
 
 Here's an equation:
 
-\$\\frac{n!}{k!(n - k)!} = \\binom{n}{k}\$
-
-This is the binomial coefficient.
 """
 function Id(stabilizer::Stabilizer, qubit::Int64)
 end
@@ -17,11 +13,9 @@ end
 Apply the \$P=\\sqrt{Z}\$ gate to a stabilizer.
 """
 function P(stabilizer::Stabilizer, qubit::Int64)
-    x = stabilizer.X[qubit]
-    z = stabilizer.Z[qubit]
-
-    if x == 1 # PXP' = Y
+    if stabilizer.X[qubit] == 1 # PXP' = Y
         stabilizer.phase += 2
+        stabilizer.Z[qubit] = 1 - stabilizer.Z[qubit]
     end
 end
 
@@ -119,8 +113,7 @@ end
 Apply CZ gate to a Stabilizer.
 """
 function CZ(stabilizer::Stabilizer, control::Int64, target::Int64)
-    stabilizer.Z[target] = (stabilizer.X[control] + stabilizer.Z[target]) % 2
-    stabilizer.Z[control] = (stabilizer.X[target] + stabilizer.Z[control]) % 2
+    stabilizer.Z[control], stabilizer.Z[target] = (stabilizer.X[target] + stabilizer.Z[control]) % 2, (stabilizer.X[control] + stabilizer.Z[target]) % 2
 end
 
 """

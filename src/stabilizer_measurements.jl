@@ -4,10 +4,10 @@
 
 Apply type-I fusion gate to a state.
 """
-function FusionI(state::StabilizerState, qubit1, qubit2)
-     for s in state.stabilizers
-         FusionI(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
-     end
+function FusionI(state::StabilizerState, qubit1::Int64, qubit2::Int64)::Int64
+    CNOT(state, qubit1, qubit2)
+    phase = MeasureX(state, qubit1)
+    return phase
 end
 
 """
@@ -15,10 +15,16 @@ end
 
 Apply type-II fusion gate to a state.
 """
-function FusionII(state::StabilizerState, qubit1, qubit2)
-     for s in state.stabilizers
-         FusionII(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
+function FusionII(state::StabilizerState, qubit1::Int64, qubit2::Int64)
+     H(state, qubit1)
+     H(state, qubit2)
+     CNOT(state, qubit1, qubit2)
+     parity = MeasureZ(state, qubit2)
+     if parity == 1
+         H(state, qubit1)
      end
+     phase = MeasureX(state, qubit1)
+     return (parity, phase)
 end
 
 function MeasureZ(state::StabilizerState, qubit::Int64)::Int64
@@ -26,6 +32,7 @@ function MeasureZ(state::StabilizerState, qubit::Int64)::Int64
     # randomly choose outcome
     # update the state
     # return outcome
+    return 0
 end
 
 function MeasureX(state::StabilizerState, qubit::Int64)::Int64
