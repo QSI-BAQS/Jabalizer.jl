@@ -3,7 +3,9 @@ using Pkg
 
 dependencies = [
 "LightGraphs",
-"GraphPlot"
+"GraphPlot",
+"Documenter",
+"StatsBase"
 ]
 
 Pkg.add(dependencies)
