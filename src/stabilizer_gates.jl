@@ -13,7 +13,13 @@ end
 Apply the \$P=\\sqrt{Z}\$ gate to a stabilizer.
 """
 function P(stabilizer::Stabilizer, qubit::Int64)
-    if stabilizer.X[qubit] == 1 # PXP' = Y
+    x = stabilizer.X[qubit]
+    z = stabilizer.Z[qubit]
+
+    if x == 1 && z == 0 # PXP' = Y
+        stabilizer.Z[qubit] = 1
+    elseif x == 1 && z == 1 # PYP' = -X
+        stabilizer.Z[qubit] = 0
         stabilizer.phase += 2
         stabilizer.Z[qubit] = 1 - stabilizer.Z[qubit]
     end
@@ -28,7 +34,9 @@ function X(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
     z = stabilizer.Z[qubit]
 
-    if z == 1 # XZX = -Z
+    if x == 1 && z == 1 # XYX = -Y
+        stabilizer.phase += 2
+    elseif x == 0 && z == 1 # XZX = -Z
         stabilizer.phase += 2
     end
 end
@@ -42,9 +50,9 @@ function Y(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
     z = stabilizer.Z[qubit]
 
-    if x == 0 && z == 1 # YZY =
+    if x == 0 && z == 1 # YZY = -Z
         stabilizer.phase += 2
-    elseif x == 1 && z == 1 # YXY = -X
+    elseif x == 1 && z == 0 # YXY = -X
         stabilizer.phase += 2
     end
 end
@@ -58,7 +66,9 @@ function Z(stabilizer::Stabilizer, qubit::Int64)
     x = stabilizer.X[qubit]
     z = stabilizer.Z[qubit]
 
-    if x == 1 # ZXZ = -X
+    if x == 1 && z == 0 # ZXZ = -X
+        stabilizer.phase += 2
+    elseif x == 1 && z == 1 # ZYZ = -Y
         stabilizer.phase += 2
     end
 end
@@ -113,7 +123,24 @@ end
 Apply CZ gate to a Stabilizer.
 """
 function CZ(stabilizer::Stabilizer, control::Int64, target::Int64)
-    stabilizer.Z[control], stabilizer.Z[target] = (stabilizer.X[target] + stabilizer.Z[control]) % 2, (stabilizer.X[control] + stabilizer.Z[target]) % 2
+    stabilizer.Z[target] = (stabilizer.X[control] + stabilizer.Z[target]) % 2 # CZ (X.I) CZ = X.Z  && CZ (Y.I) CZ = Y.Z
+    stabilizer.Z[control] = (stabilizer.X[target] + stabilizer.Z[control]) % 2 # CZ (I.X) CZ = Z.X  && CZ (I.Y) CZ = Z.Y
+
+    x1 = stabilizer.X[control]
+    z1 = stabilizer.Z[control]
+    x2 = stabilizer.X[target]
+    z2 = stabilizer.Z[target]
+
+    if (x1 + x2) == 2 && (z1 + z2) == 1 # CZ (X.Y) CZ = -Y.X  && CZ (Y.X) CZ = -X.Y
+        SWAP(stabilizer, control, target)
+        stabilizer.phase += 2
+    elseif (x1 + x2) == 2 && (z1 + z2) == 0 # CZ (X.X) CZ = Y.Y
+        stabilizer.Z[control] = 1
+        stabilizer.Z[target] = 1
+    elseif (x1 + x2) == 2 && (z1 + z2) == 2 # CZ (Y.Y) CZ = X.X
+        stabilizer.Z[control] = 0
+        stabilizer.Z[target] = 0
+    end
 end
 
 """

@@ -2,7 +2,7 @@ include("jabalizer.jl")
 
 using LightGraphs, GraphPlot
 
-t = [
+t1 = [
     1 1 0 0 1 1 0 0 0 0 0 0 0 0 0
     1 1 1 1 0 0 0 0 0 0 0 0 0 0 0
     1 0 1 0 1 0 1 0 0 0 0 0 0 0 0
@@ -12,7 +12,17 @@ t = [
     0 0 0 0 0 0 0 1 1 1 1 1 1 1 0
 ]
 
-s = Jabalizer.StabilizerState(t)
+print("c")
+
+t = [
+    1 0 0 0 0 0 0
+    0 1 0 0 0 0 0
+    0 0 0 0 0 1 0
+]
+
+stab_state = Jabalizer.StabilizerState(t)
+print(typeof(s))
+println()
 print(s)
 
 x = Jabalizer.FusionII(s,6,7)
