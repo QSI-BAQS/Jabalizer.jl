@@ -2,7 +2,7 @@ include("jabalizer.jl")
 
 using LightGraphs, GraphPlot
 
-t1 = [
+t = [
     1 1 0 0 1 1 0 0 0 0 0 0 0 0 0
     1 1 1 1 0 0 0 0 0 0 0 0 0 0 0
     1 0 1 0 1 0 1 0 0 0 0 0 0 0 0
@@ -12,22 +12,9 @@ t1 = [
     0 0 0 0 0 0 0 1 1 1 1 1 1 1 0
 ]
 
-print("c")
-
-t = [
-    1 0 0 0 0 0 0
-    0 1 0 0 0 0 0
-    0 0 0 0 0 1 0
-]
-
-stab_state = Jabalizer.StabilizerState(t)
-print(typeof(s))
-println()
-print(s)
-
-x = Jabalizer.FusionII(s,6,7)
-
+s = Jabalizer.StabilizerState(t)
 g = Jabalizer.GraphState(s)
+t = Jabalizer.StabilizerState(g)
 gplot(g)
 
 # println("---")
