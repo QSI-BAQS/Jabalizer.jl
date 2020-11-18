@@ -47,10 +47,16 @@ s = Jabalizer.StabilizerState(t)
 #
 
 g = Jabalizer.GraphState(s)
+<<<<<<< HEAD
 
 println()
 print(s)
 print(g)
+=======
+print(g)
+
+gplot(g)
+>>>>>>> parent of 5aded4d... minor
 
 # println("---")
 

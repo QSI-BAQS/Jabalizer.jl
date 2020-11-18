@@ -22,18 +22,12 @@ end
 
 function MeasureX(state::GraphState, qubit::Int64)::Int64
     Nb = findfirst(x -> x==1, state.A[qubit,:])
-    outcome = MeasureX(state, qubit, Nb)
-    return outcome
-end
-
-function MeasureX(state::GraphState, qubit::Int64, Nb::Int64)::Int64
     if Nb != nothing
         LC(state, Nb)
-    end
-    outcome = MeasureY(state, qubit)
-    if Nb != nothing
+        outcome = MeasureY(state, qubit)
         LC(state, Nb)
     end
+    Isolate(state, qubit)
     return outcome
 end
 
