@@ -6,6 +6,7 @@ using LightGraphs, GraphPlot, LinearAlgebra, StatsBase
 using Documenter
 
 import Base: *, print, string
+import GraphPlot: gplot
 
 export *
 

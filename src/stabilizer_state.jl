@@ -30,6 +30,10 @@ function TableauToState(tab::Array{Int64})::StabilizerState
     stabs = Int64(length(tab[:, 1]))
     state = StabilizerState(qubits)
 
+    # println("---")
+    # println("q=",qubits)
+    # println("s=",stabs)
+
     for row = 1:stabs
         stab = Stabilizer(tab[row, :])
         push!(state.stabilizers, stab)
