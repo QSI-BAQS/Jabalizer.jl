@@ -1,5 +1,3 @@
-import Base.print
-
 """
     Stabilizer type
 

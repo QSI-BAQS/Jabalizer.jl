@@ -2,79 +2,42 @@ include("jabalizer.jl")
 
 using LightGraphs, GraphPlot
 
-# t = [
-#     1 1 0 0 1 1 0 0 0 0 0 0 0 0 0
-#     1 1 1 1 0 0 0 0 0 0 0 0 0 0 0
-#     1 0 1 0 1 0 1 0 0 0 0 0 0 0 0
-#     0 0 0 0 0 0 0 1 1 0 0 1 1 0 0
-#     0 0 0 0 0 0 0 1 1 1 1 0 0 0 0
-#     0 0 0 0 0 0 0 1 0 1 0 1 0 1 0
-#     0 0 0 0 0 0 0 1 1 1 1 1 1 1 0
-# ]
-#
-# s = Jabalizer.StabilizerState(t)
-# g = Jabalizer.GraphState(s)
-# t = Jabalizer.StabilizerState(g)
-# display(g.A)
-# gplot(Graph(g.A))
+# number of qubits
+n = 5
 
-t = [
-    1 0 0 0 0 0 0 0 0 0 0
-    0 1 0 0 0 0 0 0 0 0 0
-    0 0 1 0 0 0 0 0 0 0 0
-    0 0 0 1 0 0 0 0 0 0 0
-    0 0 0 0 1 0 0 0 0 0 0
-]
+# initialize all zero state
+s = Jabalizer.ZeroState(n)
 
-s = Jabalizer.StabilizerState(t)
+# apply random Hadamards
+for i = 1:n
+    if rand((0,1)) == 1
+        Jabalizer.H(s,i)
+    end
+end
 
-# numq = 5
-# dep = 5
-#
-# for n = 1:numq
-#     if rand((0,1)) == 1
-#         Jabalizer.H(s,n)
-#     end
-# end
-#
-# for n = 1:dep
-#     control = rand(1:numq)
-#     target = rand(1:numq)
-#     if control != target
-#         Jabalizer.CNOT(s,control,target)
-#     end
-# end
-#
+# circuit depth
+d = 5
 
-g = Jabalizer.GraphState(s)
-<<<<<<< HEAD
+# apply random CNOT sequence of given circuit depth
+for i = 1:d
+    control = rand(1:n)
+    target = rand(1:n)
+    if control != target
+        Jabalizer.CNOT(s,control,target)
+    end
+end
 
-println()
-print(s)
-print(g)
-=======
-print(g)
+display("Stabilizers for the random state:")
+display(Jabalizer.ToTableau(s))
+
+display("Convert to graph form:")
+(g,A,seq) = Jabalizer.ToGraph(s)
+display(Jabalizer.ToTableau(g))
+
+display("Adjacency matrix:")
+display(A)
+
+display("Local operation sequence used to convert to graph form:")
+display(seq)
 
 gplot(g)
->>>>>>> parent of 5aded4d... minor
-
-# println("---")
-
-# println("GHZ state:")
-# state = State()
-# # graph = [0 1 0;1 0 1; 0 1 0]
-# AddGHZ(state,6)
-# tab=ToTableau(state)
-# print(state)
-#
-# (state,A,LOseq) = ToGraph(state)
-# display(gplot(Graph(A)))
-#
-# println("LO graph state:")
-# print(state)
-#
-# println("LOs = ", LOseq)
-#
-# println("Adjacency matrix:")
-# display(A)
-#

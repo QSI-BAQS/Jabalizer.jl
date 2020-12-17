@@ -3,31 +3,114 @@
 
 Convert a state to its graph state equivalent under local operations.
 """
+# function ToGraph(state::StabilizerState)
+#     newState = deepcopy(state)
+#     qubits = state.qubits
+#     stabs = length(state.stabilizers)
+#     LOseq = [] # Sequence of local operations performed
+
+#     # Make X-block full rank
+#     tab = sortslices(ToTableau(newState), dims = 1, rev = true)
+#     for n = 1:stabs
+#         if (sum(tab[n:stabs, n]) == 0)
+#             H(newState, n)
+#             push!(LOseq, ("H", n))
+#         end
+#         tab = sortslices(ToTableau(newState), dims = 1, rev = true)
+#     end
+
+#     # Make upper-triangular X-block
+#     for n = 1:qubits
+#         for m = (n+1):stabs
+#             if tab[m, n] == 1
+#                 tab = RowAdd(tab, n, m)
+#             end
+#         end
+#         tab = sortslices(tab, dims = 1, rev = true)
+#     end
+
+#     # Make diagonal X-block
+#     for n = (stabs-1):-1:1
+#         for m = (n+1):stabs
+#             if tab[n, m] == 1
+#                 tab = RowAdd(tab, m, n)
+#             end
+#         end
+#     end
+
+#     newState = StabilizerState(tab)
+
+#     # Reduce all stabilizer phases to +1
+
+#     # Adjacency matrix
+#     A = tab[:, (qubits+1):(2*qubits)]
+#     phases = sum(tab[:, 2*qubits+1])
+
+#     if A != A'
+#         println("Error: invalid graph conversion (non-symmetric).")
+#     end
+
+#     if tr(A) != 0
+#         println("Error: invalid graph conversion (non-zero trace).")
+#     end
+
+#     if phases != 0
+#         println("Error: invalid graph conversion (non-zero phase).")
+#         println("phases=",phases)
+#     end
+
+#     return (newState, A, LOseq)
+# end
+
 function ToGraph(state::StabilizerState)
     newState = deepcopy(state)
     qubits = state.qubits
     stabs = length(state.stabilizers)
     LOseq = [] # Sequence of local operations performed
 
-    # Make X-block full rank
-    tab = sortslices(ToTableau(newState), dims = 1, rev = true)
-    for n = 1:stabs
-        if (sum(tab[n:stabs, n]) == 0)
-            H(newState, n)
-            push!(LOseq, ("H", n))
-        end
-        tab = sortslices(ToTableau(newState), dims = 1, rev = true)
-    end
+    # print("ORIGINAL")
+    # display(ToTableau(newState))
 
-    # Make upper-triangular X-block
-    for n = 1:qubits
-        for m = (n+1):stabs
-            if tab[m, n] == 1
+    tab = sortslices(ToTableau(newState), dims = 1, rev = true)
+
+    # Make X-block upper triangular
+    for n in 1:stabs
+        # println("loop:",n)
+        tab = sortslices(tab, dims = 1, rev = true)
+
+        lead_sum = sum(tab[n:stabs, n])
+        # println("lead:",lead_sum)
+
+        if lead_sum == 0
+            H(newState, n)
+            swapcols!(tab, n, n + qubits)
+            push!(LOseq, ("H", n))
+            tab = sortslices(tab, dims = 1, rev = true)
+            lead_sum = sum(tab[n:stabs, n])
+        end
+
+        if lead_sum > 1
+            for m in (n+1):(n+lead_sum-1)
                 tab = RowAdd(tab, n, m)
+                # println("add:",n," -> ",m)
             end
         end
-        tab = sortslices(tab, dims = 1, rev = true)
+
+        # display(tab)
     end
+
+    # print("---UPPER---")
+    # display(tab)
+
+    # Make upper-triangular X-block
+    # for n = 1:qubits
+    #     for m = (n+1):stabs
+    #         if tab[m, n] == 1
+    #             tab = RowAdd(tab, n, m)
+    #         end
+    #     end
+    #     tab = sortslices(tab, dims = 1, rev = true)
+    # end
 
     # Make diagonal X-block
     for n = (stabs-1):-1:1
@@ -38,18 +121,37 @@ function ToGraph(state::StabilizerState)
         end
     end
 
-    newState = StabilizerState(tab)
+    newState = TableauToState(tab)
+
+    # println("---OUT---")
+    # display(tab)
 
     # Reduce all stabilizer phases to +1
 
     # Adjacency matrix
     A = tab[:, (qubits+1):(2*qubits)]
+    phases = sum(tab[:, 2*qubits+1])
 
-    if (A != A') || (tr(A) != 0)
-        println("Error: invalid graph conversion.")
+    if A != A'
+        println("Error: invalid graph conversion (non-symmetric).")
     end
 
-    return (newState, A, Tuple(LOseq))
+    if tr(A) != 0
+        println("Error: invalid graph conversion (non-zero trace).")
+    end
+
+    if phases != 0
+        println("Error: invalid graph conversion (non-zero phase).")
+        println("phases=",phases)
+    end
+
+    return (newState, A, LOseq)
+end
+
+function swapcols!(X::AbstractMatrix, i::Integer, j::Integer)
+    @inbounds for k = 1:size(X,1)
+        X[k,i], X[k,j] = X[k,j], X[k,i]
+    end
 end
 
 """

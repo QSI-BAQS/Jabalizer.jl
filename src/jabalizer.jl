@@ -2,11 +2,11 @@ __precompile__(true)
 
 module Jabalizer
 
-using LightGraphs, GraphPlot, LinearAlgebra, StatsBase
+using LightGraphs, GraphPlot, LinearAlgebra
 using Documenter
 
 import Base: *, print, string
-import GraphPlot: gplot
+import GraphPlot.gplot
 
 export *
 

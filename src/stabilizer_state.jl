@@ -1,5 +1,3 @@
-import GraphPlot.gplot
-
 """
     Stabilizer state type.
 
@@ -14,8 +12,11 @@ mutable struct StabilizerState
     lost::Array{Int64}
 
     StabilizerState() = new(0, [], [], [])
-    StabilizerState(n::Int64) = new(n, [], [], zeros(n))
-    StabilizerState(tab::Array{Int64}) = TableauToState(tab)
+    StabilizerState(n::Int64) = new(n, [], [], [])
+end
+
+function ZeroState(n::Int64)
+    return(TableauToState(hcat(zeros(Int64,n,n), Matrix(I,n,n), zeros(Int64,n,1))))
 end
 
 # function StabilizerState(graphState::GraphState)
@@ -29,10 +30,6 @@ function TableauToState(tab::Array{Int64})::StabilizerState
     qubits = Int64((length(tab[1, :]) - 1) / 2)
     stabs = Int64(length(tab[:, 1]))
     state = StabilizerState(qubits)
-
-    # println("---")
-    # println("q=",qubits)
-    # println("s=",stabs)
 
     for row = 1:stabs
         stab = Stabilizer(tab[row, :])

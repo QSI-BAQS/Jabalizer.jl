@@ -40,15 +40,6 @@ function GraphToState(A::Array{Int64})
 end
 
 """
-    StabilizerState(graphState)
-
-Convert GraphState to State.
-"""
-function StabilizerState(graphState::GraphState)
-    return (GraphToState(graphState))
-end
-
-"""
     gplot(graphState)
 
 Plot the graph of a GraphState.
