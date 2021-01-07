@@ -44,7 +44,11 @@ end
 
 Plot the graph of a GraphState.
 """
-function gplot(graphState::GraphState)
+function gplot(graphState::GraphState; node_dist=5.0)
+
+    # Creates an anonymous function to allow changing the layout params
+    # in gplot. The value of C determines distance between connected nodes.
+    layout=(args...)->spring_layout(args...; C=node_dist)
     gplot(Graph(graphState.A), nodelabel = 1:graphState.qubits)
 end
 
