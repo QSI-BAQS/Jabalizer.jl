@@ -2,7 +2,7 @@
 using Pkg
 
 dependencies = [
-"PyCall"
+"PyCall",
 "LightGraphs",
 "GraphPlot",
 "Documenter",
