@@ -6,7 +6,8 @@ dependencies = [
 "LightGraphs",
 "GraphPlot",
 "Documenter",
-"StatsBase"
+"StatsBase",
+"Debugger",
 ]
 
 Pkg.add(dependencies)

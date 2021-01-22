@@ -15,13 +15,17 @@ circuit to the stabilizer state.
                        cirq.CNOT => Jabalizer.CNOT,
                        cirq.SWAP => Jabalizer.SWAP,
                        cirq.S => Jabalizer.P,
-                       cirq.CZ => Jabalizer.CZ)
+                       cirq.CZ => Jabalizer.CZ,
+                       cirq.MeasurementGate => Jabalizer.MeasureZ)
 
     # get ordered array of qubits
     qubits = sort([q for q in circuit.all_qubits()])
 
     # loops over all operations (read gates) in the circuit
     for op in circuit.all_operations()
+
+
+
         # Checks if the gate is supported
         if !haskey(gate_map, op.gate)
             throw(error("Unsupported operation $(op.gate)"))
