@@ -55,3 +55,6 @@ class OperationId():
         if not isinstance(other, OperationId):
             return NotImplemented
         return self._cmp_tuple() >= other._cmp_tuple()
+
+LEFT_MOST_OP = OperationId((0))
+RIGHT_MOST_OP = OperationId((9999999999999999999999))

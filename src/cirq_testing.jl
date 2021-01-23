@@ -47,13 +47,13 @@ print(icm_circuit.__str__())
 println()
 # execute_cirq_circuit(state, circuit)
 
-state = Jabalizer.ZeroState(length(icm_circuit.all_qubits()))
-println("\nInitial State : \n")
-print(state)
-
-
-execute_cirq_circuit(state, icm_circuit)
-
-
-println("\n\nFinal State :\n")
-print(state)
+# state = Jabalizer.ZeroState(length(icm_circuit.all_qubits()))
+# println("\nInitial State : \n")
+# print(state)
+#
+#
+# execute_cirq_circuit(state, icm_circuit)
+#
+#
+# println("\n\nFinal State :\n")
+# print(state)

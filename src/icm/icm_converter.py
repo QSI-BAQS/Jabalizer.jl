@@ -9,6 +9,7 @@ diagrams" https://arxiv.org/abs/1811.06011
 """
 
 import cirq
+from . import icm_operation_id as op
 from . import icm_flag_manipulations
 
 def decomp_to_icm(cirq_operation):
@@ -51,8 +52,10 @@ def keep_icm(cirq_operation):
     """
         Decompose if the operation is from the set of the ones to keep
     """
+    keep = False
+
     if isinstance(cirq_operation.gate, (cirq.CNotPowGate, cirq.MeasurementGate)):
-        return True
+        keep = True
 
     """
         Keep the operation if:
@@ -61,20 +64,13 @@ def keep_icm(cirq_operation):
         * is not marked for decomposition
     """
     if not icm_flag_manipulations.is_op_with_op_id(cirq_operation, [cirq_operation.gate]):
-        return True
+        keep = True
 
-    return False
+    if keep:
+        # Update the reference to the latest
+        nqubits = []
+        for i in range(len(cirq_operation.qubits)):
+            nqubits.append(cirq_operation.qubits[i].get_latest_ref(op.RIGHT_MOST_OP))
+        cirq_operation._qubits = tuple(nqubits)
 
-# import icm.icm_flag_manipulations as flags
-# a = SplitQubit("a")
-# b = SplitQubit("b")
-#
-# mycircuit = cirq.Circuit(cirq.T.on(a), cirq.T.on(b), cirq.CNOT.on(a,b), cirq.S.on(a))
-# flags.add_op_ids(mycircuit, [cirq.T, cirq.S])
-#
-# print(mycircuit)
-#
-# icm_circuit = cirq.Circuit(cirq.decompose(mycircuit,
-#                                           intercepting_decomposer=decomp_to_icm,
-#                                           keep = keep_icm))
-# print(icm_circuit)
+    return keep
