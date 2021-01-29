@@ -37,11 +37,40 @@ println("\nICM circuit:\n")
 print(icm_circuit.__str__())
 println()
 
-# Prepare initial plus state
-state = Jabalizer.ZeroState(length(icm_circuit.all_qubits()))
-for qubit in 1:state.qubits
+# Prepare initial state
+num_qubits = 3
+icm_length = length(icm_circuit.all_qubits())
+qubit_start = icm_length - num_qubits + 1
+state = Jabalizer.ZeroState(icm_length)
+
+
+# Prepare Ancillas qubits in the plus state
+for qubit in 1:(qubit_start - 1)
     Jabalizer.H(state, qubit)
 end
+
+# Create a random input state
+
+# Apply random Hadamards to state qubits
+for qubit = qubit_start:icm_length
+    if rand((0,1)) == 1
+        Jabalizer.H(state, qubit)
+    end
+end
+
+# Circuit depth
+d = 5
+
+# Apply random CNOT sequence of given circuit depth
+# to state qubits
+for i = 1:d
+    control = rand(qubit_start:icm_length)
+    target = rand(qubit_start:icm_length)
+    if control != target
+        Jabalizer.CNOT(state,control,target)
+    end
+end
+
 
 println("\nInitial State : \n")
 print(state)
