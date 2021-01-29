@@ -15,8 +15,7 @@ circuit to the stabilizer state.
                        cirq.CNOT => Jabalizer.CNOT,
                        cirq.SWAP => Jabalizer.SWAP,
                        cirq.S => Jabalizer.P,
-                       cirq.CZ => Jabalizer.CZ,
-                       cirq.MeasurementGate => Jabalizer.MeasureZ)
+                       cirq.CZ => Jabalizer.CZ)
 
     # get ordered array of qubits
     qubits = sort([q for q in circuit.all_qubits()])
