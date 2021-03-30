@@ -19,3 +19,29 @@ println()
 execute_cirq_circuit(state, circuit)
 println("\nFinal State\n")
 print(state)
+
+(g,A,seq) = Jabalizer.ToGraph(state)
+
+using GraphPlot
+gplot(g)
+
+# circuit_2 = cirq.Circuit()
+# circuit_2.append([cirq.X(q0), cirq.X(q1), cirq.X(q2) ])
+#
+# print(circuit_2.__str__())
+# println()
+#
+# simulator = cirq.Simulator()
+# result = simulator.simulate(circuit)
+# final_state_1 = result.final_state
+#
+#
+# println(length(final_state_1))
+#
+# check_circuit = circuit + circuit_2
+# print(check_circuit.__str__())
+#
+# result = simulator.simulate(circuit)
+# final_state_2 = result.final_state
+#
+# println(final_state_1 == final_state_2)
