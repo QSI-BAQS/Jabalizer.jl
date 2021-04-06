@@ -1,18 +1,24 @@
+using PyCall
+stim = pyimport("stim")
+
 """
     Stabilizer state type.
 
 qubits: number of qubits.
 stabilizers: set of state stabilizers.
 labels: qubit labels.
+
+simulator: stim simulator
 """
 mutable struct StabilizerState
     qubits::Int64
     stabilizers::Array{Stabilizer}
     labels::Array{String}
     lost::Array{Int64}
+    simulator::PyObject
 
-    StabilizerState() = new(0, [], [], [])
-    StabilizerState(n::Int64) = new(n, [], [], [])
+    StabilizerState() = new(0, [], [], [], stim.TableauSimulator())
+    StabilizerState(n::Int64) = new(n, [], [], [], stim.TableauSimulator())
 end
 
 function ZeroState(n::Int64)
