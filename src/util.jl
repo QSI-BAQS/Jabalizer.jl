@@ -1,4 +1,69 @@
 """
+    stim_tableau(stim_sim::PyObject)::Array{Int64,n}
+
+Return a Jabilizer tableau from a stim TableauSimulator instance
+
+# Arguments
+- `stim_sim::PyObject`: stim.TableauSimulator from which to compute the Jabalizer tableau
+"""
+function stim_tableau(stim_sim::PyObject)::Array{Int64}
+
+    inverse_tableau = stim_sim.current_inverse_tableau()
+    forward_tableau = inverse_tableau^-1
+
+    tab_arr = [forward_tableau.z_output(i - 1) for i in 1:length(forward_tableau)]
+
+    qubits = length(tab_arr)
+    tableau = zeros(Int64, qubits, 2 * qubits + 1)
+
+    for i in 1:qubits
+        # update sign
+        if tab_arr[i].sign == -1
+            tableau[i, end] = 2
+        end
+
+        # Stabalizer replacement
+        for j in 1:qubits
+            # X replacement
+            if tab_arr[i][j] == 1
+                tableau[i, j] = 1
+            end
+            # Z replacement
+            if tab_arr[i][j] == 3
+                tableau[i, j + qubits] = 1
+            end
+
+            # Y replacement
+            if tab_arr[i][j] == 2
+                tableau[i, j] = 1
+                tableau[i , j + qubits] = 1
+            end
+        end
+    end
+    return(tableau)
+end
+
+"""
+    update_tableau(state::StabilizerState)
+
+Update the state tableau with the current state of the stim simulator
+"""
+function update_tableau(state::StabilizerState)
+
+    # Extract the tableau in Jabalizer format
+    tableau = stim_tableau(state.simulator)
+
+    # create a new state temporarily
+    inbetween_state = TableauToState(tableau)
+
+    # update the initial state
+    state.qubits = inbetween_state.qubits
+    state.stabilizers = deepcopy(inbetween_state.stabilizers)
+
+
+end
+
+"""
     ToGraph(state)
 
 Convert a state to its graph state equivalent under local operations.
