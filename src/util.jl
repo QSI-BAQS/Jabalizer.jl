@@ -1,5 +1,5 @@
 """
-    stim_tableau(stim_sim::PyObject)::Array{Int64,n}
+    stim_tableau(stim_sim::PyObject)::Array{Int64}
 
 Return a Jabilizer tableau from a stim TableauSimulator instance
 
@@ -128,6 +128,9 @@ Convert a state to its graph state equivalent under local operations.
 # end
 
 function ToGraph(state::StabilizerState)
+
+    # update the state tableau from the stim simulator
+    # update_tableau(state)
     newState = deepcopy(state)
     qubits = state.qubits
     stabs = length(state.stabilizers)

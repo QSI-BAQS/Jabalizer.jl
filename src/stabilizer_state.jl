@@ -20,9 +20,20 @@ mutable struct StabilizerState
     StabilizerState() = new(0, [], [], [], stim.TableauSimulator())
     StabilizerState(n::Int64) = new(n, [], [], [], stim.TableauSimulator())
 end
+"""
+    ZeroState(n::Int64)
+
+Generates a state of n qubits in the +1 Z eigenstate.
+"""
 
 function ZeroState(n::Int64)
-    return(TableauToState(hcat(zeros(Int64,n,n), Matrix(I,n,n), zeros(Int64,n,1))))
+    state = StabilizerState(n)
+    for i in 1:n
+        state.simulator.z(i)
+    end
+    update_tableau(state)
+    return(state)
+    # return(TableauToState(hcat(zeros(Int64,n,n), Matrix(I,n,n), zeros(Int64,n,1))))
 end
 
 # function StabilizerState(graphState::GraphState)
