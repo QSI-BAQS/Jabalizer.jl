@@ -1,9 +1,17 @@
 include("jabalizer.jl")
 
-state = Jabalizer.StabilizerState()
-state.simulator.h(0)
-state.simulator.cnot(0, 1)
 
+state = Jabalizer.StabilizerState()
+#state.simulator.h(0)
+#state.simulator.cnot(0, 1)
+Jabalizer.H(state, 1)
+Jabalizer.CNOT(state, 2, 3)
+Jabalizer.P(state, 4)
+Jabalizer.X(state, 5)
+Jabalizer.Y(state, 6)
+Jabalizer.Z(state, 1)
+Jabalizer.CZ(state, 2, 4)
+Jabalizer.SWAP(state, 3, 4)
 Jabalizer.update_tableau(state)
 print(state)
 
