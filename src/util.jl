@@ -125,7 +125,7 @@ function ToGraph(state::StabilizerState)
     for n=1:qubits
         if tab[n,2*qubits+1] != 0
             tab[n,2*qubits+1] = 0
-            push!(LOseq, ("P", n))
+            push!(LOseq, ("Z", n))
         end
     end
     newState = TableauToState(tab)
