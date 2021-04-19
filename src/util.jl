@@ -121,6 +121,13 @@ function ToGraph(state::StabilizerState)
         end
     end
 
+    # Phase correction
+    for n=1:qubits
+        if tab[n,2*qubits+1] != 0
+            tab[n,2*qubits+1] = 0
+            push!(LOseq, ("Z", n))
+        end
+    end
     newState = TableauToState(tab)
 
     # println("---OUT---")
