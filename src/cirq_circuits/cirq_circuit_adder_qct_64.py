@@ -1,5 +1,6 @@
 # Example of how to definite a cirq circuit
-# main code should import cirq
+import cirq
+
 def build_circuit():
     '''Function that builds the cirq circuit'''
     import numpy as np

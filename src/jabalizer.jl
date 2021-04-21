@@ -20,6 +20,7 @@ include("graph_gates.jl")
 include("stabilizer_measurements.jl")
 include("graph_measurements.jl")
 include("channels.jl")
+include("execute_cirq.jl")
 
 end
 
