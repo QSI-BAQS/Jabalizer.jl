@@ -2,10 +2,16 @@ import cirq
 
 import icm
 
-from cirq_circuits.cirq_circuit_adder_qct_8 import build_circuit
+## The 8 qubit adder below will be decomposed by the icm converter.
+# from cirq_circuits.cirq_circuit_adder_qct_8 import build_circuit
+
+# # This gui output circuit will fail to decompose
+# from cirq_circuits.gui_output import build_circuit
 
 
-#Circuit with just a Toffoli gate
+# This toffoli gate will be succesfully decomposed
+
+# Circuit with just a Toffoli gate
 # def build_circuit():
 #     """
 #     build a simple circuit
@@ -16,7 +22,7 @@ from cirq_circuits.cirq_circuit_adder_qct_8 import build_circuit
 #
 #     return circuit
 
-
+# # This circuit will decompose correctly
 # # 3 qubit circuit with Hadamards, cnots and T gates.
 # def build_circuit():
 #     """
@@ -31,6 +37,26 @@ from cirq_circuits.cirq_circuit_adder_qct_8 import build_circuit
 #     circuit.append([cirq.CNOT(q[0],q[1]), cirq.CNOT(q[1],q[2])])
 #
 #     return circuit
+
+# Exmaple of icm decomposer failing - uncomment last gate addition
+# to break the conversion.
+def build_circuit():
+    """
+    build a simple circuit
+    """
+    circuit = cirq.Circuit()
+    q = [cirq.GridQubit(i, 0) for i in range(3)]
+    # q = [icm.SplitQubit('q' + str(i)) for i in range(3)]
+    circuit.append([cirq.H(q[0]), cirq.Z(q[1])])
+    circuit.append([cirq.X(q[0])])
+    circuit.append([cirq.Y(q[2])])
+    circuit.append([cirq.H(q[2]) ])
+    circuit.append([cirq.SWAP(q[1],q[2])])
+    # circuit.append([cirq.X(q[0]) ])
+
+    return circuit
+
+
 
 def replace_circuit(cirq_circuit):
 
@@ -60,7 +86,7 @@ pre_icm_circuit = replace_circuit(circuit)
 #
 # print(pre_icm_circuit)
 
-icm.icm_flag_manipulations.add_op_ids(pre_icm_circuit, [cirq.T, cirq.H, cirq.CCNOT])
+icm.icm_flag_manipulations.add_op_ids(pre_icm_circuit, [cirq.CCNOT])
 
 icm_circuit = cirq.Circuit(cirq.decompose(pre_icm_circuit,
                                           intercepting_decomposer=icm.decomp_to_icm,
