@@ -16,7 +16,8 @@ sys.path.insert(0, os.path.join(dirname, $circ_dir))
 # Will fail
 # cirq_circuit  = pyimport("gui_output")
 
-cirq_circuit  = pyimport("cirq_circuit_adder_qct_8")
+cirq_circuit  = pyimport("simple_circuit")
+# cirq_circuit  = pyimport("cirq_circuit_adder_qct_8")
 # cirq_circuit  = pyimport("cirq_circuit_adder_qct_64")
 
 

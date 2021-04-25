@@ -22,8 +22,21 @@ import icm
 #
 #     return circuit
 
-# # This circuit will decompose correctly
-# # 3 qubit circuit with Hadamards, cnots and T gates.
+# ## This circuit will decompose
+# # # Circuit with just a S gate
+# def build_circuit():
+#     """
+#     build a simple circuit
+#     """
+#     circuit = cirq.Circuit()
+#     q = [cirq.GridQubit(i, 0) for i in range(3)]
+#     circuit.append([cirq.S.on(q[0])])
+#
+#     return circuit
+
+
+# This circuit will decompose correctly
+# 3 qubit circuit with Hadamards, cnots and T gates.
 # def build_circuit():
 #     """
 #     build a simple circuit
@@ -40,6 +53,7 @@ import icm
 
 # Exmaple of icm decomposer failing - uncomment last gate addition
 # to break the conversion.
+
 def build_circuit():
     """
     build a simple circuit
@@ -86,7 +100,7 @@ pre_icm_circuit = replace_circuit(circuit)
 #
 # print(pre_icm_circuit)
 
-icm.icm_flag_manipulations.add_op_ids(pre_icm_circuit, [cirq.CCNOT])
+icm.icm_flag_manipulations.add_op_ids(pre_icm_circuit, [cirq.T, cirq.S])
 
 icm_circuit = cirq.Circuit(cirq.decompose(pre_icm_circuit,
                                           intercepting_decomposer=icm.decomp_to_icm,

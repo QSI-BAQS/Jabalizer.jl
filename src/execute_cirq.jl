@@ -144,6 +144,7 @@ function ToGraph(circuit::PyObject)
 
     # print ICM circuit
     println()
+    println()
     println("ICM Circuit")
     print(icm_circuit.__str__())
     println()
