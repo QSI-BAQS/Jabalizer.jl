@@ -21,6 +21,17 @@ Jabalizer.CZ(state, 2, 4)
 Jabalizer.SWAP(state, 3, 4)
 Jabalizer.CNOT(state, 2, 4)
 
+z = Jabalizer.MeasureZ(state, 3)
+x = Jabalizer.MeasureX(state, 4)
+#y = Jabalizer.MeasureY(state, 1) #This will cause an error
+y = Jabalizer.MeasureY(state, 5)
+
+
+
+print("", "MeasureZ qubit 1: ", z, "\n")
+print("", "MeasureX qubit 4: ", x, "\n")
+print("", "MeasureY qubit 5: ", y, "\n")
+
 Jabalizer.update_tableau(state)
 
 print(state)

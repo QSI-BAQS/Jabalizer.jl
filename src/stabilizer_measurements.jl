@@ -26,6 +26,8 @@ function MeasureZ(state::StabilizerState, qubit::Int64)::Int64
     # randomly choose outcome
     # update the state
     # return outcome
+    outcome = state.simulator.measure(qubit-1)
+    return outcome
 end
 
 function MeasureX(state::StabilizerState, qubit::Int64)::Int64
