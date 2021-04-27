@@ -37,7 +37,8 @@ function MeasureX(state::StabilizerState, qubit::Int64)::Int64
 end
 
 function MeasureY(state::StabilizerState, qubit::Int64)::Int64
+    H(state, qubit)
     P(state, qubit)
-    outcome = MeasureX(state, qubit)
+    outcome = MeasureZ(state, qubit)
     return(outcome)
 end
