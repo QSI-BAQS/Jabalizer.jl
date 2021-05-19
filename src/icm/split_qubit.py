@@ -24,12 +24,17 @@ class SplitQubit(cirq.NamedQubit):
             return self
 
         n_ref = self
+        stuck = 0
         while n_ref.children != (None, None):
+            stuck+= 1
+            if stuck == 1000:
+                print(f"Error: I got stuck updating reference for qubit {self.name} with operation with id : {operation_id.numbers}, exiting loop")
+                break
             # Decide based on the threshold
             if n_ref.threshold >= operation_id:
-                n_ref = self.children[0]
+                n_ref = n_ref.children[0]
             else:
-                n_ref = self.children[1]
+                n_ref = n_ref.children[1]
 
         return n_ref
 
