@@ -25,16 +25,16 @@ function stim_tableau(stim_sim::PyObject)::Array{Int64}
         # Stabalizer replacement
         for j in 1:qubits
             # X replacement
-            if tab_arr[i][j] == 1
+            if get(tab_arr[i], j - 1, "index not found") == 1
                 tableau[i, j] = 1
             end
             # Z replacement
-            if tab_arr[i][j] == 3
+            if get(tab_arr[i], j - 1, "index not found") == 3
                 tableau[i, j + qubits] = 1
             end
 
             # Y replacement
-            if tab_arr[i][j] == 2
+            if get(tab_arr[i], j - 1, "index not found") == 2
                 tableau[i, j] = 1
                 tableau[i , j + qubits] = 1
             end
