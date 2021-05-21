@@ -196,6 +196,17 @@ function ToGraph(state::StabilizerState)
             push!(LOseq, ("Z", n))
         end
     end
+
+    # Y correct
+    for n = 1:qubits
+    # Check if there is a Y on the diagonal
+    if tab[n,n] == 1 && tab[n, qubits + n] == 1
+        # Change Y to X
+        tab[n, qubits + n] = 0
+        push!(LOseq, ("P",n))
+    end
+end
+
     newState = TableauToState(tab)
 
     # println("---OUT---")

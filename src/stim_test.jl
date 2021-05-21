@@ -53,6 +53,10 @@ println("Converting to graph state ...")
 println()
 graph_state, adj, local_ops = Jabalizer.ToGraph(state)
 
+println("\nLocal operations")
+print(local_ops)
+println("\n")
+
 println("Graph state : ")
 println()
 
