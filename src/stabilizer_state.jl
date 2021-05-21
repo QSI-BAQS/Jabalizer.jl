@@ -28,7 +28,7 @@ Generates a state of n qubits in the +1 Z eigenstate.
 
 function ZeroState(n::Int64)
     state = StabilizerState(n)
-    for i in 1:n
+    for i in 0:n-1
         state.simulator.z(i)
     end
     update_tableau(state)
