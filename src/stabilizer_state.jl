@@ -153,3 +153,23 @@ function gplot(state::StabilizerState; node_dist=5.0)
     layout=(args...)->spring_layout(args...; C=node_dist)
     gplot(Graph(graphState.A),nodelabel=1:state.qubits, layout=layout)
 end
+
+function GraphToState(A::Matrix{Int64})::StabilizerState
+    print("GO")
+    n = size(A,1)
+    state = ZeroState(n)
+
+    for i=1:n
+        H(state,i)
+    end
+
+    for i=1:n
+        for j=(i+1):n
+            if A[i,j]==1
+                CZ(state,i,j)
+            end
+        end
+    end
+
+    return state
+end

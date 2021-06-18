@@ -27,6 +27,8 @@ for i = 1:d
     end
 end
 
+Jabalizer.update_tableau(s)
+
 display("Stabilizers for the random state:")
 display(Jabalizer.ToTableau(s))
 
@@ -41,3 +43,10 @@ display("Local operation sequence used to convert to graph form:")
 display(seq)
 
 gplot(g)
+
+println("GraphToState demo")
+A = [0 1 0; 1 0 1; 0 1 0]
+display(A)
+gs = Jabalizer.GraphToState(A)
+Jabalizer.update_tableau(gs)
+display(Jabalizer.ToTableau(gs))
