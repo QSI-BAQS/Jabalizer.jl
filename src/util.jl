@@ -342,3 +342,15 @@ function ExecuteCircuit(state::StabilizerState, gates::Array{})
         end
     end
 end
+
+
+function isequal(state_1::StabilizerState, state_2::StabilizerState)
+    check = []
+    for (stab1, stab2) in zip(state_1.stabilizers, state_2.stabilizers)
+        push!(check, stab1.X == stab2.X)
+        push!(check, stab1.Z == stab2.Z)
+        push!(check, stab1.phase == stab2.phase)
+    end
+
+    return all(check)
+end

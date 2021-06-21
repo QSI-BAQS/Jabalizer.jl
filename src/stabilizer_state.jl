@@ -1,4 +1,5 @@
 using PyCall
+
 stim = pyimport("stim")
 
 """
@@ -40,6 +41,9 @@ end
 #     return(GraphToState(graphState))
 # end
 
+
+# This function is problematic with the the
+# stim integration
 """
 Generate stabilizer from tableau
 """
@@ -116,6 +120,7 @@ end
 Print the full stabilizer set of a state to the terminal.
 """
 function print(state::StabilizerState, info::Bool = false, tab::Bool = false)
+    update_tableau(state)
     if info == true
         println(
             "Stabilizers (",
@@ -155,7 +160,6 @@ function gplot(state::StabilizerState; node_dist=5.0)
 end
 
 function GraphToState(A::Matrix{Int64})::StabilizerState
-    print("GO")
     n = size(A,1)
     state = ZeroState(n)
 
@@ -170,6 +174,6 @@ function GraphToState(A::Matrix{Int64})::StabilizerState
             end
         end
     end
-
+    Jabalizer.update_tableau(state)
     return state
 end
