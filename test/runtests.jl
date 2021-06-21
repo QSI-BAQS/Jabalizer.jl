@@ -128,20 +128,4 @@ target_tab = [0 0 0 0  1 0 0 0  0;
 
 @test target_tab == Jabalizer.ToTableau(state)
 
-# Phase gate test
-state = basis_state()
-# Apply Y gate on all qubits
-for i in 1:4
-    Jabalizer.P(state, i)
-end
-Jabalizer.update_tableau(state)
-
-target_tab = [0 0 0 0  1 0 0 0  0;
-              0 0 0 0  0 1 0 0  2;
-              0 0 1 0  0 0 1 0  0;
-              0 0 0 1  0 0 0 1  2]
-
-@test target_tab == Jabalizer.ToTableau(state)
-
-
 end
