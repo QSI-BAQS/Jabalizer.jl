@@ -31,6 +31,81 @@ function basis_state()
     return state
 end
 
+function twoqubit_basis(arr)
+    """
+    Returns the state  H_2^d H_1^c X_2^b X_1^a | 0 0 >, where arr = [a b c d].
+    for arr in {0,1}^4 this generates all the computational and conjugate basis
+    state combinations (e.g. |0 +> for [0 0 0 1] )
+
+    """
+    a,b,c,d = arr
+    state = Jabalizer.ZeroState(2)
+
+    if Bool(a)
+        Jabalizer.X(state, 1)
+    end
+
+    if Bool(b)
+        Jabalizer.X(state, 2)
+    end
+
+    if Bool(c)
+        Jabalizer.H(state, 1)
+    end
+
+    if Bool(d)
+        Jabalizer.H(state, 2)
+    end
+    Jabalizer.update_tableau(state)
+
+    return state
+end
+
+function apply_cnot(tab, con, targ)
+    """
+    Applies the CNOT operation the given Tableau.
+    """
+
+    cnot = Dict([0 0 0 1] => [0 1 0 1],
+                [0 0 1 1] => [0 1 1 1],
+                [1 0 0 0] => [1 0 1 0],
+                [1 0 0 1] => [1 1 1 1],
+                [1 1 0 0] => [1 1 1 0],
+                [1 1 0 1] => [1 0 1 1],
+
+                [0 1 0 1] => [0 0 0 1],
+                [0 1 1 1] => [0 0 1 1],
+                [1 0 1 0] => [1 0 0 0],
+                [1 1 1 1] => [1 0 0 1],
+                [1 1 1 0] => [1 1 0 0],
+                [1 0 1 1] => [1 1 0 1]
+                )
+
+    n = Int64((length(tab[1,:]) - 1) / 2)
+
+    # generates the array [x_1 z_1 x_2 z_2] for the given tableau where
+    # 1 and 2 are the control and target respectively
+
+    for i in 1:n
+        stab = [tab[i, con] tab[i, n + con] tab[i, targ] tab[i, n + targ]]
+
+        # gen the updated stab (defaults to itself if not found)
+        new_stab = get(cnot, stab, stab)
+
+        #update stabilizer
+        tab[i, con], tab[i, n + con], tab[i, targ], tab[i, n + targ] = new_stab
+
+        # update phase
+        if stab in [[1 1 1 1], [1 0 0 1]]
+            tab[i, 2 * n + 1] = (tab[i, 2 * n + 1] + 2) % 4
+        end
+    end
+    return tab
+end
+
+
+
+
 # using Main.Jabalizer
 
 
@@ -48,7 +123,7 @@ end
     @test tab == Jabalizer.ToTableau(state)
 end
 
-@testset "Gate Tests" begin
+@testset "Single qubit gate tests" begin
 
 # X tests
 state = basis_state()
@@ -127,5 +202,26 @@ target_tab = [0 0 0 0  1 0 0 0  0;
               0 0 0 1  0 0 0 1  2]
 
 @test target_tab == Jabalizer.ToTableau(state)
+end
+
+@testset "Two qubit gate tests" begin
+
+# CNOT gate
+
+for bitarr in Base.Iterators.product(0:1,0:1,0:1,0:1)
+
+    # Initialise to
+    state = twoqubit_basis(bitarr)
+    # State Tableau
+    tab = Jabalizer.ToTableau(state)
+
+    Jabalizer.CNOT(state, 1, 2)
+    Jabalizer.update_tableau(state)
+
+    # manually update tableau
+    tab = apply_cnot(tab, 1, 2)
+
+    @test tab == Jabalizer.ToTableau(state)
+end
 
 end
