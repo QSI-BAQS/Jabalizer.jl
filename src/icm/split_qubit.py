@@ -51,7 +51,7 @@ class SplitQubit(cirq.NamedQubit):
 
         # It is a new wire, that is introduced and gets a new name
         SplitQubit.nr_ancilla += 1
-        n_child_1 = SplitQubit("_anc_{0}".format(SplitQubit.nr_ancilla))
+        n_child_1 = SplitQubit("›:anc_{0}".format(SplitQubit.nr_ancilla))
 
         # Update the children tuple of this wire
         current_wire.children = (n_child_0, n_child_1)
