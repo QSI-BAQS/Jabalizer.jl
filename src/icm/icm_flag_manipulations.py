@@ -40,9 +40,12 @@ def add_op_ids(circuit, gate_types):
     nr_op = 0
     for op in circuit.all_operations():
         if not is_op_with_op_id(op, gate_types):
+            # # Condition to prevent opid being added to all ops
+            # if op.gate in gate_types:
             setattr(op, "icm_op_id", OperationId(nr_op))
             # increase the id
             nr_op += 1
+            # print(nr_op)
 
 def remove_op_ids(circuit, gate_types):
     for op in circuit.all_operations():
