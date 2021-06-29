@@ -19,7 +19,7 @@ Jabalizer is a simulator for quantum Clifford circuits and graph states written 
 
 # Stabilizer circuits
 
-While simulating arbitrary quantum circuits is classically inefficient with exponential resource overhead, via the [Gottesman-Knill theorem](https://arxiv.org/abs/quant-ph/9807006) it is known that circuits comprising only Clifford operations (ones that commute with the Pauli group) can be efficiently simulated using the stabilizer formalism. In the stabilizer formalism an _n_-qubit state is defined as the simultaneous positive eigenstate of _n_ 'stabilizers', each of which is an _n_-fold tensor product of Pauli operators and a sign (+/-). That is, for each stabilizer $$ S_i $$ (for $$ i=1\dots n $$) the state $$ |\psi\rangle $$ satisfies,
+While simulating arbitrary quantum circuits is classically inefficient with exponential resource overhead, via the [Gottesman-Knill theorem](https://arxiv.org/abs/quant-ph/9807006) it is known that circuits comprising only Clifford operations (ones that commute with the Pauli group) can be efficiently simulated using the stabilizer formalism. In the stabilizer formalism an _n_-qubit state is defined as the simultaneous positive eigenstate of _n_ 'stabilizers', each of which is an _n_-fold tensor product of Pauli operators and a sign (+/-). That is, for each stabilizer $$ S_i $$ (for $$ i\in 1\dots n $$) the state $$ |\psi\rangle $$ satisfies,
 $$ S_i|\psi\rangle = |\psi\rangle $$.
 
 As an example, the Bell state $$ \frac{1}{\sqrt{2}}(|0,0\rangle + |1,1\rangle) $$ can equivalently be represented by the two stabilizers,
@@ -47,4 +47,4 @@ All stabilizer states can be converted to graph states via local operations, ach
 
 # Acknowledgements
 
-We especially thank Craig Gidney and co-developers for developing the STIM package which provides the CHP backend upon which Jabalizer is based. The technical whitepaper for STIM is available [here](https://arxiv.org/abs/2103.02202).
+We especially thank [Craig Gidney](https://algassert.com) and co-developers for developing the STIM package which provides the CHP backend upon which Jabalizer is based. The technical whitepaper for STIM is available [here](https://arxiv.org/abs/2103.02202).
