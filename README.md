@@ -79,7 +79,27 @@ The efficiency of classically simulating stabilizer circuits was subsequently im
 
 # Graph states
 
-$$ S_i = X_i \prod_{j\in n_i} Z_j. $$
+A graph state is defined as a set of _n_ qubits represented as vertices in a graph, where qubits are initialised into the $$ |+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle) $$ state and edges between them represent the application of controlled-phase (CZ) gates. This leads to the general stabilizer representation for graph states,
+
+$$ S_i = X_i \prod_{j\in n_i} Z_j, $$
+
+for each qubit _i_, where $$ n_i $$ denotes the graph neighbourhood of vertex _i_.
+
+For example, the set of stabilizers associated with the graph,
+
+![image](https://user-images.githubusercontent.com/4382522/123741542-96930b80-d8ed-11eb-9b9a-1caf37f5fcf0.jpeg)
+
+is given by,
+
+$$ S_1 = XZII, $$
+
+$$ S_2 = ZXZZ, $$
+
+$$ S_3 = IZXZ, $$
+
+$$ S_4 = IZZX. $$
+
+Viewing this as a matrix note that the _X_ operators appear along the main diagonal, which the locations of the _Z_ operators define the adjacency matrix for the graph.
 
 All stabilizer states can be converted to graph states via local operations, achieved via a tailored Gaussian elimination procedure on the stabilizer tableau. Jabalizer allows an arbitrary stabilizer state to be converted to a locally equivalent graph state and provide the associated adjacency matrix for the respective graph.
 
