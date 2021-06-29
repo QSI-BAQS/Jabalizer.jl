@@ -118,12 +118,49 @@ All stabilizer states can be converted to graph states via local operations, ach
 
 Here's some simple Jabalizer code that executes the gate sequence used to generate a GHZ state, display the associated set of stabilizers, and then convert it to its locally equivalent graph state, which is then manipulated via several Pauli measurements and finally converted back to stabilizer form.
 
-
 ```julia
 using Jabalizer
 
-test = 1
+# Prepare a 6-qubit GHZ state
+n = 6
+state = ZeroState(n)
+H(state,1)
+CNOT(state,1,2)
+CNOT(state,1,3)
+CNOT(state,1,4)
+CNOT(state,1,5)
+CNOT(state,1,6)
+
+# Display the stabilizer tableau
+update_tableau(state)
+tab = ToTableau(state)
+display(tab)
+
+# Convert to graph state
+graphState = GraphState(state)
+
+# Display graph adjacency matrix
+display(graphState.A)
+
+# Plot graph
+gplot(Graph(graphState.A))
+
+# Convert back to stabilizer state
+stabState = StabilizerState(graphState)
 ```
+
+Produces the output:
+
+```julia
+6×6 Matrix{Int64}:
+ 0  1  1  1  1  1
+ 1  0  0  0  0  0
+ 1  0  0  0  0  0
+ 1  0  0  0  0  0
+ 1  0  0  0  0  0
+```
+ 
+<p align="center"><img src="https://user-images.githubusercontent.com/4382522/123879677-b45f7f80-d984-11eb-8590-67a3714eec71.png" width="50%"></p>
 
 # Acknowledgements
 
