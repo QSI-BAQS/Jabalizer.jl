@@ -9,6 +9,8 @@
 
 + Madhav Krishnan Vijayan ([mkv.215@gmail.com](mailto:mkv.215@gmail.com))
 + Hudson Leone ([leoneht0@gmail.com](mailto:leoneht0@gmail.com))
++ Darcy Morgan ([darcy.morgan@student.uts.edu.au](darcy.morgan@student.uts.edu.au))
++ Simon Devitt ([simonjdevitt@gmail.com](mailto:simonjdevitt@gmail.com))
 + Peter Rohde ([dr.rohde@gmail.com](mailto:dr.rohde@gmail.com), [www.peterrohde.org](https://www.peterrohde.org))
 
 # About
@@ -93,7 +95,8 @@ for each qubit _i_, where $$ n_i $$ denotes the graph neighbourhood of vertex _i
 
 For example, the set of stabilizers associated with the graph,
 
-![image](https://user-images.githubusercontent.com/4382522/123741542-96930b80-d8ed-11eb-9b9a-1caf37f5fcf0.jpeg)
+<p align="center"><img src="https://user-images.githubusercontent.com/4382522/123741542-96930b80-d8ed-11eb-9b9a-1caf37f5fcf0.jpeg" width="50%"></p>
+<!--- ![image](https://user-images.githubusercontent.com/4382522/123741542-96930b80-d8ed-11eb-9b9a-1caf37f5fcf0.jpeg) --->
 
 is given by,
 
