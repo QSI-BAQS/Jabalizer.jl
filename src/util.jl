@@ -207,7 +207,7 @@ function ToGraph(state::StabilizerState)
     end
 end
 
-    newState = TableauToState(tab)
+    newState = GraphToState(tab[:,qubits+1:2*qubits])
 
     # println("---OUT---")
     # display(tab)
