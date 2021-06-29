@@ -7,15 +7,17 @@
 
 # Developers
 
-+ Madhav Krishnan Vijayan ([mkv.215@gmail.com](mailto:mkv.215@gmail.com))
-+ Hudson Leone ([leoneht0@gmail.com](mailto:leoneht0@gmail.com))
-+ Darcy Morgan ([darcy.morgan@student.uts.edu.au](darcy.morgan@student.uts.edu.au))
-+ Simon Devitt ([simonjdevitt@gmail.com](mailto:simonjdevitt@gmail.com))
++ Madhav Krishnan Vijayan
++ Hudson Leone
++ Darcy Morgan
++ Simon Devitt
 + Peter Rohde ([dr.rohde@gmail.com](mailto:dr.rohde@gmail.com), [www.peterrohde.org](https://www.peterrohde.org))
 
 # About
 
 Jabalizer is a simulator for quantum Clifford circuits and graph states written in Julia, both of which can be efficiently simulated using the stabilizer formalism. Jabalizer provides generic functions able to operate within both pictures and dynamically convert between them, allowing arbitrary Clifford circuits to be simulated and converted into graph state language, and vice-versa.
+
+Julia modules can be called from Python or run in Jupyter notebooks too. You can learn more about the Julia language at [www.julialang.org](https://www.julialang.org).
 
 # Stabilizer circuits
 
@@ -112,6 +114,17 @@ Viewing this as a matrix note that the _X_ operators appear along the main diago
 
 All stabilizer states can be converted to graph states via local operations, achieved via a tailored Gaussian elimination procedure on the stabilizer tableau. Jabalizer allows an arbitrary stabilizer state to be converted to a locally equivalent graph state and provide the associated adjacency matrix for the respective graph.
 
+# Example code
+
+Here's some simple Jabalizer code that executes the gate sequence used to generate a GHZ state, display the associated set of stabilizers, and then convert it to its locally equivalent graph state, which is then manipulated via several Pauli measurements and finally converted back to stabilizer form.
+
+
+```julia
+using Jabalizer
+
+test = 1
+```
+
 # Acknowledgements
 
-We especially thank [Craig Gidney](https://algassert.com) and co-developers for developing the STIM package which provides the CHP backend upon which Jabalizer is based, and especially for implementing some modifications that provided the functionality necessary for this integration. The technical whitepaper for STIM is available [here](https://arxiv.org/abs/2103.02202).
+We especially thank [Craig Gidney](https://algassert.com) and co-developers for developing the [STIM package](https://github.com/quantumlib/Stim) which provides the CHP backend upon which Jabalizer is based, and especially for implementing some modifications that provided the functionality necessary for this integration. The technical whitepaper for STIM is available [here](https://arxiv.org/abs/2103.02202).
