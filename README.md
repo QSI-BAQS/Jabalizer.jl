@@ -59,17 +59,17 @@ $$ S_3 = IZZ. $$
 
 Evolving stabilizer states can be performed in the Heisenberg picture by conjugating the stabilizers with the unitary operations acting upon the state since for the evolution,
 
-$$ |\psi'\rangle = U |\psi\rangle $$,
+$$ |\psi'\rangle = U |\psi\rangle, $$
 
 we can equivalently write,
 
-$$ |\psi'\rangle = U S_i |\psi\rangle = U S_i U^\dagger U |\psi\rangle = U S_i U^\dagger |\psi'\rangle = S_i' |\psi'\rangle $$,
+$$ |\psi'\rangle = U S_i |\psi\rangle = U S_i U^\dagger U |\psi\rangle = U S_i U^\dagger |\psi'\rangle = S_i' |\psi'\rangle, $$
 
 where,
 
-$$ S_i' = U S_i U^\dagger $$,
+$$ S_i' = U S_i U^\dagger, $$
 
-stabilizes the evolved states $$|\psi'\rangle = U |\psi\rangle $$.
+stabilizes the evolved states $$|\psi'\rangle = U |\psi\rangle. $$
 
 Thus the rule for evolving states in the stabilizer formalism is to simply update each of the _n_ stabilizers via
 
