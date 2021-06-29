@@ -380,3 +380,150 @@ end
 
 
 end
+
+
+@testset "Measurement Gate tests" begin
+
+# Z measurement test
+
+# Test Mz on |0>
+state = Jabalizer.ZeroState(1)
+z = Jabalizer.MeasureZ(state, 1)
+
+Jabalizer.update_tableau(state)
+
+# expected outout tableau
+tab = [0 1 0]
+
+@test z == 0
+@test Jabalizer.ToTableau(state) == tab
+
+# test Mz on |1>
+Jabalizer.X(state, 1)
+z = Jabalizer.MeasureZ(state, 1)
+
+Jabalizer.update_tableau(state)
+# expected outout tableau
+tab = [0 1 2]
+
+@test z == 1
+@test Jabalizer.ToTableau(state) == tab
+
+
+# Xmeasurement test
+
+# test Mx on |+>
+state = Jabalizer.ZeroState(1)
+Jabalizer.H(state, 1)
+x = Jabalizer.MeasureX(state, 1)
+
+Jabalizer.update_tableau(state)
+
+# expected outout tableau
+tab = [1 0 0]
+
+@test x == 0
+@test Jabalizer.ToTableau(state) == tab
+
+# test Mx on |->
+state = Jabalizer.ZeroState(1)
+Jabalizer.X(state, 1)
+Jabalizer.H(state, 1)
+x = Jabalizer.MeasureX(state, 1)
+
+Jabalizer.update_tableau(state)
+# expected outout tableau
+tab = [1 0 2]
+
+@test x == 1
+@test Jabalizer.ToTableau(state) == tab
+
+
+# Y measurement test
+
+# test My on |+>_y
+state = Jabalizer.ZeroState(1)
+Jabalizer.H(state, 1)
+Jabalizer.P(state, 1)
+
+y = Jabalizer.MeasureY(state, 1)
+
+Jabalizer.update_tableau(state)
+
+# expected outout tableau
+tab = [1 1 0]
+
+@test y == 0
+@test Jabalizer.ToTableau(state) == tab
+
+# test My on |->_y
+state = Jabalizer.ZeroState(1)
+Jabalizer.X(state, 1)
+Jabalizer.H(state, 1)
+Jabalizer.P(state, 1)
+
+y = Jabalizer.MeasureY(state, 1)
+
+Jabalizer.update_tableau(state)
+
+# expected outout tableau
+tab = [1 1 2]
+
+@test y == 1
+@test Jabalizer.ToTableau(state) == tab
+
+
+end
+
+@testset "Graph Conversion Tests" begin
+
+# Test GraphToState function
+adjacency = [0 1 0 0 0;
+             1 0 0 1 0;
+             0 0 0 1 0;
+             0 1 1 0 0;
+             0 0 0 0 0 ]
+
+state_1 = Jabalizer.GraphToState(adjacency)
+
+state_2 = Jabalizer.ZeroState(5)
+for i in 1:5
+    Jabalizer.H(state_2, i)
+end
+Jabalizer.CZ(state_2, 1, 2 )
+Jabalizer.CZ(state_2, 2, 4 )
+Jabalizer.CZ(state_2, 3, 4 )
+
+Jabalizer.update_tableau(state_2)
+
+@test Jabalizer.isequal(state_1, state_2)
+
+# Test converting state -> graph -> state
+# Prepare a 6 qubit GHZ state
+n = 6
+state = Jabalizer.ZeroState(n)
+Jabalizer.H(state, 1)
+for i in 1:n-1
+    Jabalizer.CNOT(state, i, i+1)
+end
+Jabalizer.update_tableau(state)
+
+# Convert to graph state using ToGraph
+gstate, adj, lops = Jabalizer.ToGraph(state)
+
+# Generated expected Adjacency matrix
+expected_adj = zeros(Int64,n,n)
+for i in 2:n
+    expected_adj[i, 1] = 1
+    expected_adj[1, i] = 1
+end
+
+# test that adjacency arrays match
+@test adj == expected_adj
+
+# test that the graph state generated from adjacency matrix matches
+# the orginal state
+
+new_gstate = Jabalizer.GraphToState(expected_adj)
+@test Jabalizer.isequal(new_gstate, gstate)
+end
