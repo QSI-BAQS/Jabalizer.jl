@@ -25,17 +25,19 @@ satisfies
 $$ S_i|\psi\rangle = |\psi\rangle. $$
 
 As an example, the Bell state
-$$ \frac{1}{\sqrt{2}}(|0,0\rangle + |1,1\rangle) $$
+$$ \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle) $$
 can equivalently be represented by the two stabilizers
 $$ S_1 = XX, $$
 $$ S_2 = ZZ. $$
 The orthogonal Bell state
-$$ \frac{1}{\sqrt{2}}(|0,1\rangle + |1,0\rangle) $$
+$$ \frac{1}{\sqrt{2}}(|01\rangle + |10\rangle) $$
 differs only slightly with stabilizers,
 $$ S_1 = XX, $$
 $$ S_2 = -ZZ. $$
 
-Similarly, the three-qubit GHZ state can be represented by the three stabilizers,
+Similarly, the three-qubit GHZ state
+$$ \frac{1}{\sqrt{2}}(|000\rangle + |111\rangle) $$
+can be represented by the three stabilizers,
 $$ S_1 = XXX, $$
 $$ S_2 = ZZI, $$
 $$ S_3 = IZZ. $$
