@@ -133,7 +133,7 @@ end
 
 
 
-@testset "State Initialisation Test" begin
+@testset "State initialisation" begin
     n = 10
     state = Jabalizer.ZeroState(n)
     X = zeros(Int64, n, n)
@@ -146,7 +146,7 @@ end
     @test tab == Jabalizer.ToTableau(state)
 end
 
-@testset "Single qubit gate tests" begin
+@testset "Single qubit gates" begin
 
 # X tests
 state = basis_state()
@@ -227,7 +227,7 @@ target_tab = [0 0 0 0  1 0 0 0  0;
 @test target_tab == Jabalizer.ToTableau(state)
 end
 
-@testset "Two qubit gate tests" begin
+@testset "Two qubit gates" begin
 
 
 # CNOT test
@@ -382,7 +382,7 @@ end
 end
 
 
-@testset "Measurement Gate tests" begin
+@testset "Measurements" begin
 
 # Z measurement test
 
@@ -475,7 +475,7 @@ tab = [1 1 2]
 
 end
 
-@testset "Graph Conversion Tests" begin
+@testset "Graph conversion" begin
 
 # Test GraphToState function
 adjacency = [0 1 0 0 0;

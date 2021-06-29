@@ -68,3 +68,11 @@ function print(graphState::GraphState, info::Bool = false)
         println("\nQubit labels: ", graphState.labels)
     end
 end
+
+function GraphToState(graphState::GraphState)::StabilizerState
+    return GraphToState(graphState.A)
+end
+
+function StabilizerState(graphState::GraphState)::StabilizerState
+    return GraphToState(graphState)
+end
