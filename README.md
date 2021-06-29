@@ -114,4 +114,4 @@ All stabilizer states can be converted to graph states via local operations, ach
 
 # Acknowledgements
 
-We especially thank [Craig Gidney](https://algassert.com) and co-developers for developing the STIM package which provides the CHP backend upon which Jabalizer is based. The technical whitepaper for STIM is available [here](https://arxiv.org/abs/2103.02202).
+We especially thank [Craig Gidney](https://algassert.com) and co-developers for developing the STIM package which provides the CHP backend upon which Jabalizer is based, and especially for implementing some modifications that provided the functionality necessary for this integration. The technical whitepaper for STIM is available [here](https://arxiv.org/abs/2103.02202).
