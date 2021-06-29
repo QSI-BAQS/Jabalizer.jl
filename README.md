@@ -27,16 +27,18 @@ $$ S_i|\psi\rangle = |\psi\rangle. $$
 As an example, the Bell state
 $$ \frac{1}{\sqrt{2}}(|0,0\rangle + |1,1\rangle) $$
 can equivalently be represented by the two stabilizers
-$$ S_1 = XX, S_2 = ZZ $$.
+$$ S_1 = XX, $$
+$$ S_2 = ZZ. $$
 The orthogonal Bell state
 $$ \frac{1}{\sqrt{2}}(|0,1\rangle + |1,0\rangle) $$
 differs only slightly with stabilizers,
-$$ S_1 = XX, S_2 = -ZZ $$.
+$$ S_1 = XX, $$
+$$ S_2 = -ZZ. $$
 
 Similarly, the three-qubit GHZ state can be represented by the three stabilizers,
-$$ S_1 = XXX $$,
-$$ S_2 = ZZI $$,
-$$ S_3 = IZZ $$.
+$$ S_1 = XXX, $$
+$$ S_2 = ZZI, $$
+$$ S_3 = IZZ. $$
 
 Evolving stabilizer states can be performed in the Heisenberg picture by conjugating the stabilizers with the unitary operations acting upon the state since for the evolution,
 $$ |\psi'\rangle = U |\psi\rangle $$,
