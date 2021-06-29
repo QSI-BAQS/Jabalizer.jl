@@ -34,8 +34,8 @@ $$ S_3 = IZZ $$.
 Evolving stabilizer states can be performed in the Heisenberg picture by conjugating the stabilizers with the unitary operations acting upon the state since for the evolution,
 $$ |\psi'\rangle = U |\psi\rangle $$,
 we can equivalently write,
-$$ |\psi'\rangle = US_i |\psi\rangle  = U S_i U^\dag U |\psi\rangle = U S_i U^\dag |\psi'\rangle  = S_i' |\psi'\rangle $$,
-where $$ S_i' = U S_i U^\dag $$, stabilizes the evolved states $$ |\psi'\rangle = U |\psi\rangle $$.
+$$ |\psi'\rangle = US_i |\psi\rangle  = U S_i U^\dagger U |\psi\rangle = U S_i U^\dagger |\psi'\rangle  = S_i' |\psi'\rangle $$,
+where $$ S_i' = U S_i U^\dagger $$, stabilizes the evolved states $$ |\psi'\rangle = U |\psi\rangle $$.
 
 The efficiency of classically simulating stabilizer circuits was subsequently improved upon by [Aaronson & Gottesman](https://arxiv.org/abs/quant-ph/0406196) using the so-called CHP approach which tracks both stabilizers and anti-stabilizers, improving the performance of measurements within this model. Jabalizer employs the highly-optimised [STIM simulator](https://github.com/quantumlib/Stim) as its CHP backend.
 
