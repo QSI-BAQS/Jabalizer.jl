@@ -63,7 +63,7 @@ end
 
 function apply_cnot(tab, con, targ)
     """
-    Applies the CNOT operation the given Tableau.
+    Applies the CNOT operation to the given Tableau.
     """
 
     cnot = Dict([0 0 0 1] => [0 1 0 1],
@@ -104,9 +104,32 @@ function apply_cnot(tab, con, targ)
 end
 
 
+function apply_cz(tab, con, targ)
+    """
+    Applies the CZ operation to the given Tableau.
+    """
+    n = Int64((length(tab[1,:]) - 1) / 2)
+
+    # apply hadamard on target
+    for i in 1:n
+        temp_x = tab[i,i]
+        tab[i, targ] = tab[i, n + i]
+        tab[i, n + targ] = temp_x
+    end
+
+    # apply cnot
+    tab = apply_cnot(tab, con, targ)
+
+    # apply hadamard on target
+    for i in 1:n
+        temp_x = tab[i,i]
+        tab[i, i] = tab[i, n + i]
+        tab[i, n + i] = temp_x
+    end
 
 
-# using Main.Jabalizer
+    return tab
+end
 
 
 
@@ -206,22 +229,154 @@ end
 
 @testset "Two qubit gate tests" begin
 
-# CNOT gate
 
+# CNOT test
+
+# Tableau dictionary contains result of applying CNOT to
+# H_2^d H_1^c X_2^b X_1^a | 0 0 > with key [a b c d]
+cnot_output = Dict(
+                # |0 0> => |0 0>
+                [0 0 0 0] => [0 0   1 0   0;
+                              0 0   1 1   0],
+                # |0 +> => |0 +>
+                [0 0 0 1] => [0 0   1 0   0;
+                              0 1   0 0   0],
+                # |+ 0> => |00> + |11>
+                [0 0 1 0] => [1 1   0 0   0;
+                              0 0   1 1   0],
+                # |+ +> => |++>
+                [0 0 1 1] => [1 1   0 0   0;
+                              0 1   0 0   0],
+                # |0 1> => |0 1>
+                [0 1 0 0] => [0 0   1 0   0;
+                              0 0   1 1   2],
+                # |0 -> => |0 1>
+                [0 1 0 1] => [0 0   1 0   0;
+                              0 1   0 0   2],
+                # |0 -> => |0 ->
+                [0 1 1 0] => [1 1   0 0   0;
+                              0 0   1 1   2],
+                # |+ -> => |- ->
+                [0 1 1 1] => [1 1   0 0   0;
+                              0 1   0 0   2],
+                # |1 0> => |1 1>
+                [1 0 0 0] => [0 0   1 0   2;
+                              0 0   1 1   0],
+                # |1 +> => |1 +>
+                [1 0 0 1] => [0 0   1 0   2;
+                              0 1   0 0   0],
+                # |1 +> => |1 +>
+                [1 0 1 0] => [1 1   0 0   2;
+                              0 0   1 1   0],
+                # |- +> => |- +>
+                [1 0 1 1] => [1 1   0 0   2;
+                              0 1   0 0   0],
+                # |1 1> => |1 0>
+                [1 1 0 0] => [0 0   1 0   2;
+                              0 0   1 1   2],
+                # |1 -> => -|1 ->
+                [1 1 0 1] => [0 0   1 0   2;
+                              0 1   0 0   2],
+                # |- 1> => |0 1> - |10>
+                [1 1 1 0] => [1 1   0 0   2;
+                              0 0   1 1   2],
+                # |- -> => |+ ->
+                [1 1 1 1] => [1 1   0 0   2;
+                              0 1   0 0   2],
+)
+
+
+# Loop generates all arrays [a, b, c, d] with a,b,c,d in {0,1}
 for bitarr in Base.Iterators.product(0:1,0:1,0:1,0:1)
-
-    # Initialise to
+    # Initialise state
     state = twoqubit_basis(bitarr)
-    # State Tableau
-    tab = Jabalizer.ToTableau(state)
 
     Jabalizer.CNOT(state, 1, 2)
     Jabalizer.update_tableau(state)
 
-    # manually update tableau
-    tab = apply_cnot(tab, 1, 2)
+    a, b, c, d  = bitarr
 
-    @test tab == Jabalizer.ToTableau(state)
+    # uncomment below block to see which bit sequence failed
+    # println()
+    # println([a,b,c,d])
+    # println()
+
+    @test cnot_output[[a b c d]] == Jabalizer.ToTableau(state)
 end
+
+# CZ test
+
+# Tableau dictionary contains result of applying CZ to
+# H_2^d H_1^c X_2^b X_1^a | 0 0 > with key [a b c d]
+cz_output = Dict(
+                # |0 0> => |0 0>
+                [0 0 0 0] => [0 0   1 0   0;
+                              0 0   0 1   0],
+                # |0 +> => |0 +>
+                [0 0 0 1] => [0 0   1 0   0;
+                              0 1   1 0   0],
+                # |+ 0> => |00> + |11>
+                [0 0 1 0] => [1 0   0 1   0;
+                              0 0   0 1   0],
+                # |+ +> => |++>
+                [0 0 1 1] => [1 0   0 1   0;
+                              0 1   1 0   0],
+                # |0 1> => |0 1>
+                [0 1 0 0] => [0 0   1 0   0;
+                              0 0   0 1   2],
+                # |0 -> => |0 1>
+                [0 1 0 1] => [0 0   1 0   0;
+                              0 1   1 0   2],
+                # |+ 1> => |0 1> + |10>
+                [0 1 1 0] => [1 0   0 1   0;
+                              0 0   0 1   2],
+                # |+ -> => |- ->
+                [0 1 1 1] => [1 0   0 1   0;
+                              0 1   1 0   2],
+                # |1 0> => |1 1>
+                [1 0 0 0] => [0 0   1 0   2;
+                              0 0   0 1   0],
+                # |1 +> => |1 +>
+                [1 0 0 1] => [0 0   1 0   2;
+                              0 1   1 0   0],
+                # |- 0> => |00> - |11>
+                [1 0 1 0] => [1 0   0 1   2;
+                              0 0   0 1   0],
+                # |- +> => |- +>
+                [1 0 1 1] => [1 0   0 1   2;
+                              0 1   1 0   0],
+                # |1 1> => |1 0>
+                [1 1 0 0] => [0 0   1 0   2;
+                              0 0   0 1   2],
+                # |1 -> => -|1 ->
+                [1 1 0 1] => [0 0   1 0   2;
+                              0 1   1 0   2],
+                # |- 1> => |0 1> - |10>
+                [1 1 1 0] => [1 0   0 1   2;
+                              0 0   0 1   2],
+                # |- -> => |+ ->
+                [1 1 1 1] => [1 0   0 1   2;
+                              0 1   1 0   2],
+)
+
+
+# Loop generates all arrays [a, b, c, d] with a,b,c,d in {0,1}
+for bitarr in Base.Iterators.product(0:1,0:1,0:1,0:1)
+    # Initialise state
+    state = twoqubit_basis(bitarr)
+
+    Jabalizer.CZ(state, 1, 2)
+    Jabalizer.update_tableau(state)
+
+    a, b, c, d  = bitarr
+
+    # uncomment below block to see which bit sequence failed
+    # println()
+    # println([a,b,c,d])
+    # println()
+
+    @test cz_output[[a b c d]] == Jabalizer.ToTableau(state)
+end
+
 
 end
