@@ -79,7 +79,11 @@ The efficiency of classically simulating stabilizer circuits was subsequently im
 
 # Graph states
 
-A graph state is defined as a set of _n_ qubits represented as vertices in a graph, where qubits are initialised into the $$ |+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle) $$ state and edges between them represent the application of controlled-phase (CZ) gates. This leads to the general stabilizer representation for graph states,
+A graph state is defined as a set of _n_ qubits represented as vertices in a graph, where qubits are initialised into the
+
+$$ |+\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle) $$
+
+state and edges between them represent the application of controlled-phase (CZ) gates. This leads to the general stabilizer representation for graph states,
 
 $$ S_i = X_i \prod_{j\in n_i} Z_j, $$
 
