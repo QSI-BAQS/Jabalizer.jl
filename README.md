@@ -69,7 +69,9 @@ where,
 
 $$ S_i' = U S_i U^\dagger, $$
 
-stabilizes the evolved states $$|\psi'\rangle = U |\psi\rangle. $$
+stabilizes the evolved state
+
+$$|\psi'\rangle = U |\psi\rangle. $$
 
 Thus the rule for evolving states in the stabilizer formalism is to simply update each of the _n_ stabilizers via
 
