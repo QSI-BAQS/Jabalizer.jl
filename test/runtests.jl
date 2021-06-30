@@ -61,7 +61,13 @@ function twoqubit_basis(arr)
     return state
 end
 
+<<<<<<< HEAD
 @testset "State Initialisation Test" begin
+=======
+
+
+@testset "State initialisation" begin
+>>>>>>> 55f605cd2f00b5355364af5bc26d493239073877
     n = 10
     state = Jabalizer.ZeroState(n)
     X = zeros(Int64, n, n)
@@ -74,7 +80,7 @@ end
     @test tab == Jabalizer.ToTableau(state)
 end
 
-@testset "Single qubit gate tests" begin
+@testset "Single qubit gates" begin
 
 # X tests
 state = basis_state()
@@ -153,7 +159,7 @@ target_tab = [0 0 0 0  1 0 0 0  0;
 @test target_tab == Jabalizer.ToTableau(state)
 end
 
-@testset "Two qubit gate tests" begin
+@testset "Two qubit gates" begin
 
 
 # CNOT test
@@ -306,7 +312,7 @@ end
 end
 
 
-@testset "Measurement Gate tests" begin
+@testset "Measurements" begin
 
 # Z measurement test
 
@@ -392,7 +398,7 @@ tab = [1 1 2]
 
 end
 
-@testset "Graph Conversion Tests" begin
+@testset "Graph conversion" begin
 
 # Test GraphToState function
 adjacency = [0 1 0 0 0;
