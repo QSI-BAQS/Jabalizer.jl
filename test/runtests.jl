@@ -61,13 +61,8 @@ function twoqubit_basis(arr)
     return state
 end
 
-<<<<<<< HEAD
-@testset "State Initialisation Test" begin
-=======
-
-
 @testset "State initialisation" begin
->>>>>>> 55f605cd2f00b5355364af5bc26d493239073877
+
     n = 10
     state = Jabalizer.ZeroState(n)
     X = zeros(Int64, n, n)
