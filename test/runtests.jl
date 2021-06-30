@@ -27,7 +27,7 @@ function basis_state()
     Jabalizer.H(state, 4)
 
     # state = -|01+->
-    Jabalizer.update_tableau(state)
+
     return state
 end
 
@@ -56,82 +56,10 @@ function twoqubit_basis(arr)
     if Bool(d)
         Jabalizer.H(state, 2)
     end
-    Jabalizer.update_tableau(state)
+
 
     return state
 end
-
-function apply_cnot(tab, con, targ)
-    """
-    Applies the CNOT operation to the given Tableau.
-    """
-
-    cnot = Dict([0 0 0 1] => [0 1 0 1],
-                [0 0 1 1] => [0 1 1 1],
-                [1 0 0 0] => [1 0 1 0],
-                [1 0 0 1] => [1 1 1 1],
-                [1 1 0 0] => [1 1 1 0],
-                [1 1 0 1] => [1 0 1 1],
-
-                [0 1 0 1] => [0 0 0 1],
-                [0 1 1 1] => [0 0 1 1],
-                [1 0 1 0] => [1 0 0 0],
-                [1 1 1 1] => [1 0 0 1],
-                [1 1 1 0] => [1 1 0 0],
-                [1 0 1 1] => [1 1 0 1]
-                )
-
-    n = Int64((length(tab[1,:]) - 1) / 2)
-
-    # generates the array [x_1 z_1 x_2 z_2] for the given tableau where
-    # 1 and 2 are the control and target respectively
-
-    for i in 1:n
-        stab = [tab[i, con] tab[i, n + con] tab[i, targ] tab[i, n + targ]]
-
-        # gen the updated stab (defaults to itself if not found)
-        new_stab = get(cnot, stab, stab)
-
-        #update stabilizer
-        tab[i, con], tab[i, n + con], tab[i, targ], tab[i, n + targ] = new_stab
-
-        # update phase
-        if stab in [[1 1 1 1], [1 0 0 1]]
-            tab[i, 2 * n + 1] = (tab[i, 2 * n + 1] + 2) % 4
-        end
-    end
-    return tab
-end
-
-
-function apply_cz(tab, con, targ)
-    """
-    Applies the CZ operation to the given Tableau.
-    """
-    n = Int64((length(tab[1,:]) - 1) / 2)
-
-    # apply hadamard on target
-    for i in 1:n
-        temp_x = tab[i,i]
-        tab[i, targ] = tab[i, n + i]
-        tab[i, n + targ] = temp_x
-    end
-
-    # apply cnot
-    tab = apply_cnot(tab, con, targ)
-
-    # apply hadamard on target
-    for i in 1:n
-        temp_x = tab[i,i]
-        tab[i, i] = tab[i, n + i]
-        tab[i, n + i] = temp_x
-    end
-
-
-    return tab
-end
-
-
 
 @testset "State Initialisation Test" begin
     n = 10
@@ -155,7 +83,6 @@ state = basis_state()
 for i in 1:4
     Jabalizer.X(state, i)
 end
-Jabalizer.update_tableau(state)
 
 
 target_tab = [0 0 0 0  1 0 0 0  2;
@@ -172,7 +99,6 @@ state = basis_state()
 for i in 1:4
     Jabalizer.Y(state, i)
 end
-Jabalizer.update_tableau(state)
 
 target_tab = [0 0 0 0  1 0 0 0  2;
               0 0 0 0  0 1 0 0  0;
@@ -187,7 +113,7 @@ state = basis_state()
 for i in 1:4
     Jabalizer.Z(state, i)
 end
-Jabalizer.update_tableau(state)
+
 
 target_tab = [0 0 0 0  1 0 0 0  0;
               0 0 0 0  0 1 0 0  2;
@@ -202,7 +128,7 @@ state = basis_state()
 for i in 1:4
     Jabalizer.H(state, i)
 end
-Jabalizer.update_tableau(state)
+
 
 target_tab = [1 0 0 0  0 0 0 0  0;
               0 1 0 0  0 0 0 0  2;
@@ -217,7 +143,7 @@ state = basis_state()
 for i in 1:4
     Jabalizer.P(state, i)
 end
-Jabalizer.update_tableau(state)
+
 
 target_tab = [0 0 0 0  1 0 0 0  0;
               0 0 0 0  0 1 0 0  2;
@@ -292,7 +218,6 @@ for bitarr in Base.Iterators.product(0:1,0:1,0:1,0:1)
     state = twoqubit_basis(bitarr)
 
     Jabalizer.CNOT(state, 1, 2)
-    Jabalizer.update_tableau(state)
 
     a, b, c, d  = bitarr
 
@@ -366,7 +291,6 @@ for bitarr in Base.Iterators.product(0:1,0:1,0:1,0:1)
     state = twoqubit_basis(bitarr)
 
     Jabalizer.CZ(state, 1, 2)
-    Jabalizer.update_tableau(state)
 
     a, b, c, d  = bitarr
 
@@ -390,8 +314,6 @@ end
 state = Jabalizer.ZeroState(1)
 z = Jabalizer.MeasureZ(state, 1)
 
-Jabalizer.update_tableau(state)
-
 # expected outout tableau
 tab = [0 1 0]
 
@@ -402,7 +324,6 @@ tab = [0 1 0]
 Jabalizer.X(state, 1)
 z = Jabalizer.MeasureZ(state, 1)
 
-Jabalizer.update_tableau(state)
 # expected outout tableau
 tab = [0 1 2]
 
@@ -417,7 +338,6 @@ state = Jabalizer.ZeroState(1)
 Jabalizer.H(state, 1)
 x = Jabalizer.MeasureX(state, 1)
 
-Jabalizer.update_tableau(state)
 
 # expected outout tableau
 tab = [1 0 0]
@@ -431,7 +351,6 @@ Jabalizer.X(state, 1)
 Jabalizer.H(state, 1)
 x = Jabalizer.MeasureX(state, 1)
 
-Jabalizer.update_tableau(state)
 # expected outout tableau
 tab = [1 0 2]
 
@@ -448,7 +367,6 @@ Jabalizer.P(state, 1)
 
 y = Jabalizer.MeasureY(state, 1)
 
-Jabalizer.update_tableau(state)
 
 # expected outout tableau
 tab = [1 1 0]
@@ -464,7 +382,6 @@ Jabalizer.P(state, 1)
 
 y = Jabalizer.MeasureY(state, 1)
 
-Jabalizer.update_tableau(state)
 
 # expected outout tableau
 tab = [1 1 2]
@@ -494,7 +411,7 @@ Jabalizer.CZ(state_2, 1, 2 )
 Jabalizer.CZ(state_2, 2, 4 )
 Jabalizer.CZ(state_2, 3, 4 )
 
-Jabalizer.update_tableau(state_2)
+#Jabalizer.update_tableau(state_2)
 
 @test Jabalizer.isequal(state_1, state_2)
 
