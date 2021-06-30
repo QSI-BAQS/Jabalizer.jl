@@ -85,7 +85,7 @@ Convert state to tableau form.
 """
 function ToTableau(state::StabilizerState)::Array{Int64}
     tab = Int64[]
-
+    update_tableau(state)
     for s in state.stabilizers
         tab = vcat(tab, ToTableau(s))
     end

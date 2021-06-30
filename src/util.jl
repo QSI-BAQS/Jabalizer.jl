@@ -130,7 +130,7 @@ Convert a state to its graph state equivalent under local operations.
 function ToGraph(state::StabilizerState)
 
     # update the state tableau from the stim simulator
-    # update_tableau(state)
+    update_tableau(state)
     newState = deepcopy(state)
     qubits = state.qubits
     stabs = length(state.stabilizers)
@@ -345,6 +345,8 @@ end
 
 
 function isequal(state_1::StabilizerState, state_2::StabilizerState)
+    update_tableau(state_1)
+    update_tableau(state_2)
     check = []
     for (stab1, stab2) in zip(state_1.stabilizers, state_2.stabilizers)
         push!(check, stab1.X == stab2.X)
