@@ -11,7 +11,7 @@ diagrams" https://arxiv.org/abs/1811.06011
 import cirq
 from . import icm_operation_id as op
 from . import icm_flag_manipulations
-from . wire_manipulation import split_wires, initialise_circuit
+from . wire_manipulation import split_wires, initialise_circuit, correction_seq
 from . import SplitQubit
 
 def icm_circuit(circuit, gates_to_decomp, inverse=False):
@@ -49,6 +49,8 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
     decomposed_list = []
     queue = list(circuit.all_operations())
 
+    t_meas_locs = []
+
     while queue:
         op = queue.pop(0)
 
@@ -85,27 +87,40 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
                              (4, 5))
                 meas_locs = (i for i in range(5))
             else:
-                had_locs = (4,)
+                had_locs = (3, 4)
                 t_locs = ()
-                s_locs = ()
                 cnot_locs = ((0, 1),
                              (1, 2),
-                             (1, 3),
+                             (3, 1),
                              (4, 2),
                              (3, 5),
                              (4, 5))
+                z_locs = (3,)
                 meas_locs = (i for i in range(5))
+
+                # add phase correction for T gates
+                if op.gate == cirq.T:
+                    s_locs = (3, 4)
+                else:
+                    s_locs = ()
 
             # Initialise Block
             decomp.append([cirq.H(wires[i]) for i in had_locs])
             decomp.append([cirq.T(wires[i]) for i in t_locs])
             decomp.append([cirq.S(wires[i]) for i in s_locs])
 
+
             # CNOT Block
             decomp.append([cirq.CNOT(wires[i], wires[j]) for i,j in cnot_locs])
 
+            if inverse:
+                # Z correction
+                decomp.append([cirq.Z(wires[i]) for i in z_locs])
+
             # Measurement Block
             decomp.append([cirq.measure(wires[i]) for i in meas_locs])
+
+            t_meas_locs.append(wires[0])
 
         # decomp for Hadamard
         if not inverse:
@@ -177,7 +192,77 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
 
         decomposed_list.append(decomp)
 
-    return cirq.Circuit(decomposed_list)
+    circuit =  cirq.Circuit(decomposed_list)
+    setattr(circuit, "meas_seq", (t_meas_locs, correction_seq))
+    return circuit
+
+def iicm_circuit(circuit, gates_to_decomp):
+    """
+    Function that converts an input circuit into inverse icm form
+
+    The decomposition sweeps the circuit using the circuit.all_operations()
+    generator method instead of using the intercepting decomposer.
+
+    Input circuit is expected to be have gates [T, T^-1, H, S, S^-1, CNOT] and
+    Pauli gates.
+
+    Parameters
+    ----------
+    circuit : cirq.Circuit
+
+    gates_to_decomp: list
+        list of gates that need to be decomposed
+
+    Returns
+    -------
+    iicm_circuit : cirq.Circuit
+        The decomposed circuit
+    """
+    # skips decomposing H and S, S**-1
+    skip = ((cirq.H, 1), (cirq.S, 0.5),(cirq.S, -0.5))
+    gates_to_decomp = [gate for gate in gates_to_decomp if not (gate, gate.exponent) in skip]
+
+    circuit = initialise_circuit(circuit)
+    icm_flag_manipulations.add_op_ids(circuit, gates_to_decomp)
+
+    decomposed_list = []
+    queue = list(circuit.all_operations())
+
+    t_meas_locs = []
+
+    while queue:
+        op = queue.pop(0)
+
+        decomp = []
+        new_op_id = op.icm_op_id.add_decomp_level()
+
+        # If gate is not in the to be decomposed list, will apply it to
+        # the latest reference.
+
+        if not op.gate in gates_to_decomp:
+            qubits = [q.get_latest_ref(new_op_id) for q in op.qubits]
+            decomp = op.gate.on(*qubits)
+            decomposed_list.append(decomp)
+            continue
+
+        # T and T^-1 decomp
+        if op.gate in (cirq.T**-1, cirq.T):
+            wires = split_wires(op.qubits[0], 2, new_op_id)
+
+            # gate locations for icm and inverse icm
+            decomp.append(cirq.CNOT(wires[0], wires[1]))
+
+            if op.gate in (cirq.T, ):
+                decomp.append(cirq.S(wires[1]))
+            decomp.append(cirq.measure(wires[0]))
+
+            t_meas_locs.append(wires[0])
+
+        decomposed_list.append(decomp)
+
+    circuit =  cirq.Circuit(decomposed_list)
+    setattr(circuit, "meas_seq", t_meas_locs)
+    return circuit
 
 def decomp_to_icm(cirq_operation):
     """

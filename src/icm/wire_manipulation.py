@@ -48,3 +48,18 @@ def initialise_circuit(cirq_circuit):
             new_circ.append(new_op)
 
     return new_circ
+
+def correction_seq(meas_outcome):
+    """
+    Returns the measurement sequence for Z and X after measuring qubit i.
+
+    X = 0
+    Z = 1
+
+    seq (0, 1, 1, 0) means the followings gates should be applied
+    X(i + 1) Z(i + 2) Z(i + 3) X(i + 4)
+    """
+    if meas_outcome:
+        return (1, 0, 0, 1)
+    else:
+        return (0, 1, 1, 0)
