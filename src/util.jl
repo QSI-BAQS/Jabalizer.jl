@@ -150,8 +150,8 @@ function ToGraph(state::StabilizerState)
         # println("lead:",lead_sum)
 
         if lead_sum == 0
-            H(newState, n)
-            swapcols!(tab, n, n + qubits)
+            # H(newState, n) # seems like an old code fragment
+            H(tab, n)
             push!(LOseq, ("H", n))
             tab = sortslices(tab, dims = 1, rev = true)
             lead_sum = sum(tab[n:stabs, n])
@@ -240,6 +240,29 @@ function swapcols!(X::AbstractMatrix, i::Integer, j::Integer)
     end
 end
 
+"""
+    H(tab::Array{Int64}, qubit)
+
+Performs the Hadamard operation on the given tableau
+"""
+
+function H(tab::Array{Int64}, qubit)
+    qubit_no = length(tab[:, 1])
+    for i in 1:qubit_no
+        x = tab[i, qubit]
+        z = tab[i, qubit + qubit_no]
+
+        # Apply phase correction if needed
+        if (x == 1) && (z == 1)
+            tab[i, 2 * qubit_no + 1] = (tab[i, 2 * qubit_no + 1] + 2) % 4
+        end
+
+        #Swap x and z
+        tab[i, qubit] = z
+        tab[i, qubit + qubit_no] = x
+
+    end
+end
 """
     RowAdd(tableau, source, dest)
 
