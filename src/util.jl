@@ -281,9 +281,9 @@ function ExecuteCircuit(state::StabilizerState, gates::Array{})
 end
 
 """
-    isequal(state1, state2)
+    isequal(state_1::StabilizerState, state_2::StabilizerState)
 
-Checks if two stabilizer states are equal. 
+Checks if two stabilizer states are equal.
 """
 function isequal(state_1::StabilizerState, state_2::StabilizerState)
     update_tableau(state_1)
