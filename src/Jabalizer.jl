@@ -10,6 +10,14 @@ import GraphPlot.gplot
 
 export *
 
+
+# Allowing python packages to be precompiled
+using PyCall
+const stim = PyNULL()
+    function __init__()
+        copy!(stim, pyimport_conda("stim", "stim"))
+end
+
 include("stabilizer.jl")
 include("stabilizer_state.jl")
 include("graph_state.jl")

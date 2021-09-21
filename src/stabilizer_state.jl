@@ -1,6 +1,6 @@
-using PyCall
-
-stim = pyimport("stim")
+# using PyCall
+#
+# stim = pyimport("stim")
 
 """
     Stabilizer state type.

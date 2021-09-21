@@ -1,6 +1,9 @@
 using Test
 
-include("../src/Jabalizer.jl")
+using Jabalizer
+# include("../src/Jabalizer.jl")
+#
+# using Main.Jabalizer
 
 function basis_state()
     """
