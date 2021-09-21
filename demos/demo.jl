@@ -1,4 +1,4 @@
-include("../src/jabalizer.jl")
+include("../src/Jabalizer.jl")
 
 using LightGraphs, GraphPlot
 

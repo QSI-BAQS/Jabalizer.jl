@@ -1,7 +1,7 @@
 using Test
 using Random
 
-include("../src/jabalizer.jl")
+include("../src/Jabalizer.jl")
 
 function basis_state()
     """
