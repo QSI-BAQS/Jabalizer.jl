@@ -1,28 +1,49 @@
+using PyCall
+
+stim = pyimport("stim")
+
 """
     Stabilizer state type.
 
 qubits: number of qubits.
 stabilizers: set of state stabilizers.
 labels: qubit labels.
+
+simulator: stim simulator
 """
 mutable struct StabilizerState
     qubits::Int64
     stabilizers::Array{Stabilizer}
     labels::Array{String}
     lost::Array{Int64}
+    simulator::PyObject
 
-    StabilizerState() = new(0, [], [], [])
-    StabilizerState(n::Int64) = new(n, [], [], [])
+    StabilizerState() = new(0, [], [], [], stim.TableauSimulator())
+    StabilizerState(n::Int64) = new(n, [], [], [], stim.TableauSimulator())
 end
+"""
+    ZeroState(n::Int64)
+
+Generates a state of n qubits in the +1 Z eigenstate.
+"""
 
 function ZeroState(n::Int64)
-    return(TableauToState(hcat(zeros(Int64,n,n), Matrix(I,n,n), zeros(Int64,n,1))))
+    state = StabilizerState(n)
+    for i in 0:n-1
+        state.simulator.z(i)
+    end
+    update_tableau(state)
+    return(state)
+    # return(TableauToState(hcat(zeros(Int64,n,n), Matrix(I,n,n), zeros(Int64,n,1))))
 end
 
 # function StabilizerState(graphState::GraphState)
 #     return(GraphToState(graphState))
 # end
 
+
+# This function is problematic with the the
+# stim integration
 """
 Generate stabilizer from tableau
 """
@@ -64,7 +85,7 @@ Convert state to tableau form.
 """
 function ToTableau(state::StabilizerState)::Array{Int64}
     tab = Int64[]
-
+    update_tableau(state)
     for s in state.stabilizers
         tab = vcat(tab, ToTableau(s))
     end
@@ -99,6 +120,7 @@ end
 Print the full stabilizer set of a state to the terminal.
 """
 function print(state::StabilizerState, info::Bool = false, tab::Bool = false)
+    update_tableau(state)
     if info == true
         println(
             "Stabilizers (",
@@ -135,4 +157,23 @@ function gplot(state::StabilizerState; node_dist=5.0)
     # in gplot. The value of C determines distance between connected nodes.
     layout=(args...)->spring_layout(args...; C=node_dist)
     gplot(Graph(graphState.A),nodelabel=1:state.qubits, layout=layout)
+end
+
+function GraphToState(A::Matrix{Int64})::StabilizerState
+    n = size(A,1)
+    state = ZeroState(n)
+
+    for i=1:n
+        H(state,i)
+    end
+
+    for i=1:n
+        for j=(i+1):n
+            if A[i,j]==1
+                CZ(state,i,j)
+            end
+        end
+    end
+    Jabalizer.update_tableau(state)
+    return state
 end
