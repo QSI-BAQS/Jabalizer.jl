@@ -1,0 +1,13 @@
+name = "Jabalizer"
+uuid = "5ba14d91-d028-496b-b148-c0fbc366f709"
+authors = ["Peter Rohde", "Madhav Krishnan Vijayan"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
