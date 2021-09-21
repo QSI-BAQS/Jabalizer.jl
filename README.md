@@ -1,3 +1,12 @@
+# Jabalizer
+
+[![Build Status](https://github.com/madhavkrishnan/Jabalizer.jl/workflows/CI/badge.svg)](https://github.com/madhavkrishnan/Jabalizer.jl/actions)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/madhavkrishnan/Jabalizer.jl?svg=true)](https://ci.appveyor.com/project/madhavkrishnan/Jabalizer-jl)
+[![Coverage](https://codecov.io/gh/madhavkrishnan/Jabalizer.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/madhavkrishnan/Jabalizer.jl)
+[![Coverage](https://coveralls.io/repos/github/madhavkrishnan/Jabalizer.jl/badge.svg?branch=master)](https://coveralls.io/github/madhavkrishnan/Jabalizer.jl?branch=master)
+
+
+
 <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 
 # Contents
@@ -159,7 +168,7 @@ Produces the output:
  1  0  0  0  0  0
  1  0  0  0  0  0
 ```
- 
+
 <p align="center"><img src="https://user-images.githubusercontent.com/4382522/123879677-b45f7f80-d984-11eb-8590-67a3714eec71.png" width="50%"></p>
 
 # Acknowledgements
