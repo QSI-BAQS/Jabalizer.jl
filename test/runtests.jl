@@ -1,5 +1,4 @@
 using Test
-using Random
 
 include("../src/Jabalizer.jl")
 
