@@ -35,13 +35,9 @@ Jabalizer can be installed like any Julia package. Clone this repo to your local
 ```
 git clone https://github.com/madhavkrishnan/Jabalizer.git
 ```
-checkout the package_dev branch
-```
-git checkout package_dev
-```
 type `]` in the Julia REPL (make sure you are in the directory where you cloned Jabalizer) to enter the pkg mode and enter
 ```
-pkg> add Jabalizer
+pkg> add Jabalizer#package_dev
 ```
 
 
