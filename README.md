@@ -28,6 +28,23 @@ Jabalizer is a simulator for quantum Clifford circuits and graph states written 
 
 Julia modules can be called from Python or run in Jupyter notebooks too. You can learn more about the Julia language at [www.julialang.org](https://www.julialang.org).
 
+# Installation
+
+Jabalizer can be installed like any Julia package. Clone this repo to your local system using
+
+```
+git clone https://github.com/madhavkrishnan/Jabalizer.git
+```
+checkout the package_dev branch
+```
+git checkout package_dev
+```
+type `]` in the Julia REPL (make sure you are in the directory where you cloned Jabalizer) to enter the pkg mode and enter
+```
+pkg> add Jabalizer
+```
+
+
 # Stabilizer circuits
 
 While simulating arbitrary quantum circuits is classically inefficient with exponential resource overhead, via the [Gottesman-Knill theorem](https://arxiv.org/abs/quant-ph/9807006) it is known that circuits comprising only Clifford operations (ones that commute with the Pauli group) can be efficiently simulated using the stabilizer formalism. In the stabilizer formalism an _n_-qubit state is defined as the simultaneous positive eigenstate of _n_ 'stabilizers', each of which is an _n_-fold tensor product of Pauli operators (_I_,_X_,_Y_,_Z_) and a sign (+/-). That is, for each stabilizer $$ S_i $$ (for $$ i\in 1\dots n $$) the state,
