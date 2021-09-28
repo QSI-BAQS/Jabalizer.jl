@@ -3,7 +3,7 @@ __precompile__(true)
 module Jabalizer
 
 using LightGraphs, GraphPlot, LinearAlgebra
-using Documenter
+using Documenter, PyCall
 
 import Base: *, print, string
 import GraphPlot.gplot
