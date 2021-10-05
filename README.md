@@ -39,7 +39,10 @@ type `]` in the Julia REPL (make sure you are in the directory where you cloned 
 ```
 pkg> add Jabalizer#package_dev
 ```
-
+The module can be tested using,
+```
+pkg> test Jabalizer
+```
 
 # Stabilizer circuits
 
