@@ -1,7 +1,7 @@
 name = "Jabalizer"
 uuid = "5ba14d91-d028-496b-b148-c0fbc366f709"
 authors = ["Peter Rohde", "Madhav Krishnan Vijayan"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
