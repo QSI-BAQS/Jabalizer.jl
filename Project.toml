@@ -1,0 +1,23 @@
+name = "Jabalizer"
+uuid = "5ba14d91-d028-496b-b148-c0fbc366f709"
+authors = ["Peter Rohde", "Madhav Krishnan Vijayan"]
+version = "0.1.1"
+
+[deps]
+Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+GraphPlot = "a2cc645c-3eea-5389-862e-a155d0052231"
+LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

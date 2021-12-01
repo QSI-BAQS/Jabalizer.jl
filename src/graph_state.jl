@@ -69,9 +69,9 @@ function print(graphState::GraphState, info::Bool = false)
     end
 end
 
-function GraphToState(graphState::GraphState)::StabilizerState
-    return GraphToState(graphState.A)
-end
+# function GraphToState(graphState::GraphState)::StabilizerState
+#     return GraphToState(graphState.A)
+# end
 
 function StabilizerState(graphState::GraphState)::StabilizerState
     return GraphToState(graphState)

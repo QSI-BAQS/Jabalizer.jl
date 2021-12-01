@@ -1,3 +1,12 @@
+# Jabalizer
+
+[![Build Status](https://github.com/madhavkrishnan/Jabalizer.jl/workflows/CI/badge.svg)](https://github.com/madhavkrishnan/Jabalizer.jl/actions)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/madhavkrishnan/Jabalizer.jl?svg=true)](https://ci.appveyor.com/project/madhavkrishnan/Jabalizer-jl)
+[![Coverage](https://codecov.io/gh/madhavkrishnan/Jabalizer.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/madhavkrishnan/Jabalizer.jl)
+[![Coverage](https://coveralls.io/repos/github/madhavkrishnan/Jabalizer.jl/badge.svg?branch=master)](https://coveralls.io/github/madhavkrishnan/Jabalizer.jl?branch=master)
+
+
+
 <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 
 # Contents
@@ -18,6 +27,26 @@
 Jabalizer is a simulator for quantum Clifford circuits and graph states written in Julia, both of which can be efficiently simulated using the stabilizer formalism. Jabalizer provides generic functions able to operate within both pictures and dynamically convert between them, allowing arbitrary Clifford circuits to be simulated and converted into graph state language, and vice-versa.
 
 Julia modules can be called from Python or run in Jupyter notebooks too. You can learn more about the Julia language at [www.julialang.org](https://www.julialang.org).
+
+# Installation
+
+Jabalizer can be installed like any Julia package. Clone this repo to your local system using
+
+```
+git clone https://github.com/madhavkrishnan/Jabalizer.git
+```
+Checkout the package_dev branch with
+```
+git checkout package_dev
+```
+type `]` in the Julia REPL (make sure you are in the directory where you cloned Jabalizer not inside the Jabalizer repo) to enter the pkg mode and enter
+```
+pkg> add Jabalizer#package_dev
+```
+The module can be tested using,
+```
+pkg> test Jabalizer
+```
 
 # Stabilizer circuits
 
@@ -159,7 +188,7 @@ Produces the output:
  1  0  0  0  0  0
  1  0  0  0  0  0
 ```
- 
+
 <p align="center"><img src="https://user-images.githubusercontent.com/4382522/123879677-b45f7f80-d984-11eb-8590-67a3714eec71.png" width="50%"></p>
 
 # Acknowledgements

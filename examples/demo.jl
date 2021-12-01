@@ -1,6 +1,6 @@
-include("../src/jabalizer.jl")
-
-using LightGraphs, GraphPlot
+# include("../src/Jabalizer.jl")
+using Jabalizer
+# using LightGraphs, GraphPlot
 
 # Prepare a 6-qubit GHZ state
 n = 6
@@ -11,7 +11,6 @@ Jabalizer.CNOT(state,1,3)
 Jabalizer.CNOT(state,1,4)
 Jabalizer.CNOT(state,1,5)
 Jabalizer.CNOT(state,1,6)
-
 # Display the stabilizer tableau
 Jabalizer.update_tableau(state)
 tab = Jabalizer.ToTableau(state)
