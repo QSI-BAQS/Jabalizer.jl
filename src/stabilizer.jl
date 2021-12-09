@@ -105,7 +105,12 @@ function string(stabilizer::Stabilizer)
         str = string(str, thisPauli)
     end
 
-    return string(str, " (", (0 + 1im)^stabilizer.phase, ")")
+    if stabilizer.phase == 0
+        sign = "+"
+    else
+        sign = "-"
+    end
+    return string(sign, str)
 end
 
 """

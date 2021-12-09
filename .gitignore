@@ -1,1 +1,5 @@
 .idea
+*.jl.*.cov
+*.jl.cov
+*.jl.mem
+/Manifest.toml

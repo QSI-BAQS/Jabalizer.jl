@@ -30,14 +30,14 @@ end
 
 Convert adjacency matrix to state.
 """
-function GraphToState(A::Array{Int64})
-    qubits = length(A[:, 1])
-    id = Array{Int64}(I, qubits, qubits)
-    phase = zeros(Int64, qubits, 1)
-    tab = hcat(id, A, phase)
-    state = StabilizerState(tab)
-    return (state)
-end
+# function GraphToState(A::Array{Int64})
+#     qubits = length(A[:, 1])
+#     id = Array{Int64}(I, qubits, qubits)
+#     phase = zeros(Int64, qubits, 1)
+#     tab = hcat(id, A, phase)
+#     state = StabilizerState(tab)
+#     return (state)
+# end
 
 """
     gplot(graphState)
@@ -67,4 +67,12 @@ function print(graphState::GraphState, info::Bool = false)
     if info == true
         println("\nQubit labels: ", graphState.labels)
     end
+end
+
+# function GraphToState(graphState::GraphState)::StabilizerState
+#     return GraphToState(graphState.A)
+# end
+
+function StabilizerState(graphState::GraphState)::StabilizerState
+    return GraphToState(graphState)
 end

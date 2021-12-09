@@ -3,12 +3,17 @@ __precompile__(true)
 module Jabalizer
 
 using LightGraphs, GraphPlot, LinearAlgebra
-using Documenter
+using Documenter, PyCall
 
 import Base: *, print, string
 import GraphPlot.gplot
 
 export *
+
+const stim = PyNULL()
+    function __init__()
+        copy!(stim, pyimport("stim"))
+end
 
 include("stabilizer.jl")
 include("stabilizer_state.jl")
