@@ -5,15 +5,34 @@ module Jabalizer
 using LightGraphs, GraphPlot, LinearAlgebra
 using Documenter, PyCall
 
-import Base: *, print, string
+import Base: *, print, string, isequal 
 import GraphPlot.gplot
 
 export *
 
 const stim = PyNULL()
-    function __init__()
-        copy!(stim, pyimport("stim"))
+const cirq = PyNULL()
+
+function __init__()
+    copy!(stim, pyimport("stim"))
+    copy!(cirq, pyimport("cirq"))
 end
+
+
+# const cirq = PyNULL()
+#     function __init__()
+#         copy!(cirq, pyimport("cirq"))
+#     end
+# end
+# const cirq = PyNULL()
+#     function __init__()
+#         copy!(cirq, pyimport("cirq"))
+# end
+
+# const cirq = PyNULL()
+#     function __init__()
+#         copy!(cirq, pyimport("cirq"))
+# end
 
 include("stabilizer.jl")
 include("stabilizer_state.jl")
@@ -25,7 +44,7 @@ include("graph_gates.jl")
 include("stabilizer_measurements.jl")
 include("graph_measurements.jl")
 include("channels.jl")
-include("execute_cirq.jl")
+include("execute_cirq_2.jl")
 
 end
 
