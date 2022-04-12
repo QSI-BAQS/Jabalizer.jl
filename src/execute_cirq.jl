@@ -38,7 +38,7 @@ circuit to the stabilizer state.
                 throw(error("Unsupported operation $(op.gate)"))
             else
                 # determines indicies of the qubit the gate is acting on
-                qindex = [findfirst(isequal(q), qubits) for q in op.qubits]
+                qindex = [findfirst(Base.isequal(q), qubits) for q in op.qubits]
                 # Applies the Jabilizer gate corresponding to the Cirq gate.
                 gate_map[op.gate](state, qindex...)
             end

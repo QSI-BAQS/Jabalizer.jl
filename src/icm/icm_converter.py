@@ -249,13 +249,16 @@ def iicm_circuit(circuit, gates_to_decomp):
         if op.gate in (cirq.T**-1, cirq.T):
             wires = split_wires(op.qubits[0], 2, new_op_id)
 
-            # gate locations for icm and inverse icm
+            # Add CNOTS
             decomp.append(cirq.CNOT(wires[0], wires[1]))
 
-            if op.gate in (cirq.T, ):
-                decomp.append(cirq.S(wires[1]))
+            # if op.gate in (cirq.T, ):
+            #     #decomp.append(cirq.S(wires[1]))
+
+            # Add measurement gate
             decomp.append(cirq.measure(wires[0]))
 
+            # Track measured qubits 
             t_meas_locs.append(wires[0])
 
         decomposed_list.append(decomp)
