@@ -16,7 +16,7 @@
 
 # Developers
 
-+ Madhav Krishnan Vijayan
++ Madhav Krishnan Vijayan ([mkv.215@gmail.com](mailto:mkv.215@gmail.com))
 + Hudson Leone
 + Darcy Morgan
 + Simon Devitt
@@ -33,15 +33,15 @@ Julia modules can be called from Python or run in Jupyter notebooks too. You can
 Jabalizer can be installed like any Julia package. Clone this repo to your local system using
 
 ```
-git clone https://github.com/madhavkrishnan/Jabalizer.git
+git clone https://github.com/QSI-BAQS/Jabalizer.git
 ```
-Checkout the package_dev branch with
+Checkout the required branch_name with (skip if installing the master branch)
 ```
-git checkout package_dev
+git checkout branch_name
 ```
 type `]` in the Julia REPL (make sure you are in the directory where you cloned Jabalizer not inside the Jabalizer repo) to enter the pkg mode and enter
 ```
-pkg> add Jabalizer#package_dev
+pkg> add Jabalizer#branch_name
 ```
 The module can be tested using,
 ```
