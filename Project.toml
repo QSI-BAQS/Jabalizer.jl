@@ -14,12 +14,12 @@ PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
+Debugger = "0.6, 0.7"
+Documenter = ">= 0.26.0"
+GraphPlot = ">= 0.4.1"
+LightGraphs = "1"
 PyCall = "1"
 StatsBase = "0.33"
-LightGraphs = "1"
-GraphPlot = ">= 0.4.1"
-Debugger = "0.6"
-Documenter = ">= 0.26.0"
 julia = "1.5"
 
 [extras]
