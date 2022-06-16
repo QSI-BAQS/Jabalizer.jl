@@ -118,7 +118,7 @@ end
 
 Print a stabilizer to terminal.
 """
-function print(stabilizer::Stabilizer, info::Bool = false, tab::Bool = false)
+function print(stabilizer::Stabilizer, info::Bool=false, tab::Bool=false)
     if info == true
         println("Stabilizer for ", stabilizer.qubits, " qubits:")
     end

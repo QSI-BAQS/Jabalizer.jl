@@ -5,7 +5,7 @@ module Jabalizer
 using LightGraphs, GraphPlot, LinearAlgebra
 using Documenter, PyCall
 
-import Base: *, print, string, isequal 
+import Base: *, print, string, isequal
 import GraphPlot.gplot
 
 export *
@@ -38,13 +38,13 @@ include("stabilizer.jl")
 include("stabilizer_state.jl")
 include("graph_state.jl")
 include("util.jl")
-include("preparation.jl")
+# include("preparation.jl")
 include("stabilizer_gates.jl")
-include("graph_gates.jl")
-include("stabilizer_measurements.jl")
-include("graph_measurements.jl")
-include("channels.jl")
-include("execute_cirq_2.jl")
+# include("graph_gates.jl")
+# include("stabilizer_measurements.jl")
+# include("graph_measurements.jl")
+# include("channels.jl")
+include("execute_cirq.jl")
 
 end
 

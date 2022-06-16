@@ -14,8 +14,8 @@ simulator: stim simulator
 mutable struct StabilizerState
     qubits::Int64
     stabilizers::Array{Stabilizer}
-    labels::Array{String}
-    lost::Array{Int64}
+    labels::Array{String} # TODO: might not be needed anymore
+    lost::Array{Int64} # TODO: might not be needed anymore
     simulator::PyObject
 
     StabilizerState() = new(0, [], [], [], stim.TableauSimulator())
@@ -33,12 +33,12 @@ function ZeroState(n::Int64)
         state.simulator.z(i)
     end
     update_tableau(state)
-    return(state)
+    return (state)
     # return(TableauToState(hcat(zeros(Int64,n,n), Matrix(I,n,n), zeros(Int64,n,1))))
 end
 
 # function StabilizerState(graphState::GraphState)
-#     return(GraphToState(graphState))
+#     return (GraphToState(graphState))
 # end
 
 
@@ -64,19 +64,19 @@ function TableauToState(tab::Array{Int64})::StabilizerState
     return state
 end
 
-"""
-Get the index of a qubit by number.
-"""
-function GetQubitLabel(state::StabilizerState, qubit::Int64)
-    return qubit
-end
+# """
+# Get the index of a qubit by number.
+# """
+# function GetQubitLabel(state::StabilizerState, qubit::Int64)
+#     return qubit
+# end
 
-"""
-Get the index of a qubit by label.
-"""
-function GetQubitLabel(state::StabilizerState, qubit::String)
-    return findfirst(x -> x == qubit, state.labels)
-end
+# """
+# Get the index of a qubit by label.
+# """
+# function GetQubitLabel(state::StabilizerState, qubit::String)
+#     return findfirst(x -> x == qubit, state.labels)
+# end
 
 """
     ToTableau(state)
@@ -119,7 +119,7 @@ end
 
 Print the full stabilizer set of a state to the terminal.
 """
-function print(state::StabilizerState, info::Bool = false, tab::Bool = false)
+function print(state::StabilizerState, info::Bool=false, tab::Bool=false)
     update_tableau(state)
     if info == true
         println(
@@ -155,22 +155,22 @@ function gplot(state::StabilizerState; node_dist=5.0)
     graphState = GraphState(state)
     # Creates an anonymous function to allow changing the layout params
     # in gplot. The value of C determines distance between connected nodes.
-    layout=(args...)->spring_layout(args...; C=node_dist)
-    gplot(Graph(graphState.A),nodelabel=1:state.qubits, layout=layout)
+    layout = (args...) -> spring_layout(args...; C=node_dist)
+    gplot(Graph(graphState.A), nodelabel=1:state.qubits, layout=layout)
 end
 
 function GraphToState(A::Matrix{Int64})::StabilizerState
-    n = size(A,1)
+    n = size(A, 1)
     state = ZeroState(n)
 
-    for i=1:n
-        H(state,i)
+    for i = 1:n
+        H(state, i)
     end
 
-    for i=1:n
-        for j=(i+1):n
-            if A[i,j]==1
-                CZ(state,i,j)
+    for i = 1:n
+        for j = (i+1):n
+            if A[i, j] == 1
+                CZ(state, i, j)
             end
         end
     end

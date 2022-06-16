@@ -1,6 +1,7 @@
 import cirq
 import icm.icm_operation_id as opid
 
+
 class SplitQubit(cirq.NamedQubit):
 
     # Static nr_ancilla
@@ -16,7 +17,6 @@ class SplitQubit(cirq.NamedQubit):
         # that generated the split
         self.threshold = opid.OperationId()
 
-
     def get_latest_ref(self, operation_id):
 
         # this wire has not been split
@@ -26,9 +26,11 @@ class SplitQubit(cirq.NamedQubit):
         n_ref = self
         stuck = 0
         while n_ref.children != (None, None):
-            stuck+= 1
+            stuck += 1
             if stuck == 1000:
-                print(f"Error: I got stuck updating reference for qubit {self.name} with operation with id : {operation_id.numbers}, exiting loop")
+                print(
+                    f"Error: I got stuck updating reference for qubit {self.name} with operation with id : {operation_id.numbers}, exiting loop"
+                )
                 break
             # Decide based on the threshold
             if n_ref.threshold >= operation_id:
@@ -37,7 +39,6 @@ class SplitQubit(cirq.NamedQubit):
                 n_ref = n_ref.children[1]
 
         return n_ref
-
 
     def split_this_wire(self, operation_id):
         # It can happen that the reference is too old
@@ -51,7 +52,7 @@ class SplitQubit(cirq.NamedQubit):
 
         # It is a new wire, that is introduced and gets a new name
         SplitQubit.nr_ancilla += 1
-        n_child_1 = SplitQubit("›:anc_{0}".format(SplitQubit.nr_ancilla))
+        n_child_1 = SplitQubit("anc_{0}".format(SplitQubit.nr_ancilla))
 
         # Update the children tuple of this wire
         current_wire.children = (n_child_0, n_child_1)

@@ -1,6 +1,7 @@
 import cirq
 from . import SplitQubit
 
+
 def split_wires(qubit, n, opid):
     """
     Split a qubit n times
@@ -12,12 +13,13 @@ def split_wires(qubit, n, opid):
 
     wires = [qubit]
 
-    for i in range(n-1):
+    for i in range(n - 1):
         new_wires = wires[-1].split_this_wire(opid)
         wires[-1] = new_wires[0]
         wires.append(new_wires[1])
 
     return wires
+
 
 def initialise_circuit(cirq_circuit):
     """
@@ -48,6 +50,7 @@ def initialise_circuit(cirq_circuit):
             new_circ.append(new_op)
 
     return new_circ
+
 
 def correction_seq(meas_outcome):
     """

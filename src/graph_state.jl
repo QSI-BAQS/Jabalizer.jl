@@ -11,7 +11,7 @@ mutable struct GraphState
 
     GraphState() = new(0, [], [], [])
     GraphState(A::Array{Int64}) =
-    new(length(A[:, 1]), A, [], zeros(length(A[:, 1])))
+        new(length(A[:, 1]), A, [], zeros(length(A[:, 1])))
     GraphState(state::StabilizerState) =
         new(state.qubits, ToGraph(state)[2], state.labels)
 end
@@ -25,11 +25,11 @@ function GraphToState(graphState::GraphState)
     return (GraphToState(graphState.A))
 end
 
-"""
-    GraphToState(A)
+# """
+#     GraphToState(A)
 
-Convert adjacency matrix to state.
-"""
+# Convert adjacency matrix to state.
+# """
 # function GraphToState(A::Array{Int64})
 #     qubits = length(A[:, 1])
 #     id = Array{Int64}(I, qubits, qubits)
@@ -48,8 +48,8 @@ function gplot(graphState::GraphState; node_dist=5.0)
 
     # Creates an anonymous function to allow changing the layout params
     # in gplot. The value of C determines distance between connected nodes.
-    layout=(args...)->spring_layout(args...; C=node_dist)
-    gplot(Graph(graphState.A), nodelabel = 1:graphState.qubits)
+    layout = (args...) -> spring_layout(args...; C=node_dist)
+    gplot(Graph(graphState.A), nodelabel=1:graphState.qubits)
 end
 
 """
@@ -57,7 +57,7 @@ end
 
 Print a GraphState to the terminal.
 """
-function print(graphState::GraphState, info::Bool = false)
+function print(graphState::GraphState, info::Bool=false)
     if info == true
         println("Adjacency matrix for ", graphState.qubits, " qubits:\n")
     end
@@ -73,6 +73,4 @@ end
 #     return GraphToState(graphState.A)
 # end
 
-function StabilizerState(graphState::GraphState)::StabilizerState
-    return GraphToState(graphState)
-end
+StabilizerState(graphState::GraphState) = GraphToState(graphState)

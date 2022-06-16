@@ -30,17 +30,17 @@ function stim_tableau(stim_sim::PyObject)::Array{Int64}
             end
             # Z replacement
             if get(tab_arr[i], j - 1, "index not found") == 3
-                tableau[i, j + qubits] = 1
+                tableau[i, j+qubits] = 1
             end
 
             # Y replacement
             if get(tab_arr[i], j - 1, "index not found") == 2
                 tableau[i, j] = 1
-                tableau[i , j + qubits] = 1
+                tableau[i, j+qubits] = 1
             end
         end
     end
-    return(tableau)
+    return (tableau)
 end
 
 """
@@ -77,17 +77,17 @@ function ToGraph(state::StabilizerState)
     stabs = length(state.stabilizers)
     LOseq = [] # Sequence of local operations performed
 
-    tab = sortslices(ToTableau(newState), dims = 1, rev = true)
+    tab = sortslices(ToTableau(newState), dims=1, rev=true)
 
     # Make X-block upper triangular
     for n in 1:stabs
-        tab = sortslices(tab, dims = 1, rev = true)
+        tab = sortslices(tab, dims=1, rev=true)
         lead_sum = sum(tab[n:stabs, n])
 
         if lead_sum == 0
             H(tab, n)
             push!(LOseq, ("H", n))
-            tab = sortslices(tab, dims = 1, rev = true)
+            tab = sortslices(tab, dims=1, rev=true)
             lead_sum = sum(tab[n:stabs, n])
         end
 
@@ -108,24 +108,24 @@ function ToGraph(state::StabilizerState)
     end
 
     # Phase correction
-    for n=1:qubits
-        if tab[n,2*qubits+1] != 0
-            tab[n,2*qubits+1] = 0
+    for n = 1:qubits
+        if tab[n, 2*qubits+1] != 0
+            tab[n, 2*qubits+1] = 0
             push!(LOseq, ("Z", n))
         end
     end
 
     # Y correct
     for n = 1:qubits
-    # Check if there is a Y on the diagonal
-    if tab[n,n] == 1 && tab[n, qubits + n] == 1
-        # Change Y to X
-        tab[n, qubits + n] = 0
-        push!(LOseq, ("P",n))
+        # Check if there is a Y on the diagonal
+        if tab[n, n] == 1 && tab[n, qubits+n] == 1
+            # Change Y to X
+            tab[n, qubits+n] = 0
+            push!(LOseq, ("P", n))
+        end
     end
-end
 
-    newState = GraphToState(tab[:,qubits+1:2*qubits])
+    newState = GraphToState(tab[:, qubits+1:2*qubits])
 
     # Adjacency matrix
     A = tab[:, (qubits+1):(2*qubits)]
@@ -141,18 +141,18 @@ end
 
     if phases != 0
         println("Error: invalid graph conversion (non-zero phase).")
-        println("phases=",phases)
+        println("phases=", phases)
     end
 
     return (newState, A, LOseq)
 end
 
-# Potentially unused function
-function swapcols!(X::AbstractMatrix, i::Integer, j::Integer)
-    @inbounds for k = 1:size(X,1)
-        X[k,i], X[k,j] = X[k,j], X[k,i]
-    end
-end
+# # Potentially unused function
+# function swapcols!(X::AbstractMatrix, i::Integer, j::Integer)
+#     @inbounds for k = 1:size(X,1)
+#         X[k,i], X[k,j] = X[k,j], X[k,i]
+#     end
+# end
 
 """
     H(tab::Array{Int64}, qubit)
@@ -163,16 +163,16 @@ function H(tab::Array{Int64}, qubit)
     qubit_no = length(tab[:, 1])
     for i in 1:qubit_no
         x = tab[i, qubit]
-        z = tab[i, qubit + qubit_no]
+        z = tab[i, qubit+qubit_no]
 
         # Apply phase correction if needed
         if (x == 1) && (z == 1)
-            tab[i, 2 * qubit_no + 1] = (tab[i, 2 * qubit_no + 1] + 2) % 4
+            tab[i, 2*qubit_no+1] = (tab[i, 2*qubit_no+1] + 2) % 4
         end
 
         #Swap x and z
         tab[i, qubit] = z
-        tab[i, qubit + qubit_no] = x
+        tab[i, qubit+qubit_no] = x
 
     end
 end
@@ -249,51 +249,51 @@ function PauliProd(left::Char, right::Char)
     end
 end
 
-"""
-    ExecuteCircuit(state, gates)
+# """
+#     ExecuteCircuit(state, gates)
 
-Execute a gate sequence.
-"""
-function ExecuteCircuit(state::StabilizerState, gates::Array{})
-    for gate in gates
-        if gate[1] == "I"
-            Id(state, gate[2])
-        elseif gate[1] == "X"
-            X(state, gate[2])
-        elseif gate[1] == "Y"
-            Y(state, gate[2])
-        elseif gate[1] == "Z"
-            Z(state, gate[2])
-        elseif gate[1] == "H"
-            H(state, gate[2])
-        elseif gate[1] == "P"
-            P(state, gate[2])
-        elseif gate[1] == "CNOT"
-            CNOT(state, gate[2], gate[3])
-        elseif gate[1] == "CZ"
-            CZ(state, gate[2], gate[3])
-        elseif gate[1] == "SWAP"
-            SWAP(state, gate[2], gate[3])
-        else
-            println("Warning: unknown gate.")
-        end
-    end
-end
+# Execute a gate sequence.
+# """
+# function ExecuteCircuit(state::StabilizerState, gates::Array{})
+#     for gate in gates
+#         if gate[1] == "I"
+#             Id(state, gate[2])
+#         elseif gate[1] == "X"
+#             X(state, gate[2])
+#         elseif gate[1] == "Y"
+#             Y(state, gate[2])
+#         elseif gate[1] == "Z"
+#             Z(state, gate[2])
+#         elseif gate[1] == "H"
+#             H(state, gate[2])
+#         elseif gate[1] == "P"
+#             P(state, gate[2])
+#         elseif gate[1] == "CNOT"
+#             CNOT(state, gate[2], gate[3])
+#         elseif gate[1] == "CZ"
+#             CZ(state, gate[2], gate[3])
+#         elseif gate[1] == "SWAP"
+#             SWAP(state, gate[2], gate[3])
+#         else
+#             println("Warning: unknown gate.")
+#         end
+#     end
+# end
 
-"""
-    isequal(state_1::StabilizerState, state_2::StabilizerState)
+# """
+#     isequal(state_1::StabilizerState, state_2::StabilizerState)
 
-Checks if two stabilizer states are equal.
-"""
-function isequal(state_1::StabilizerState, state_2::StabilizerState)
-    update_tableau(state_1)
-    update_tableau(state_2)
-    check = []
-    for (stab1, stab2) in zip(state_1.stabilizers, state_2.stabilizers)
-        push!(check, stab1.X == stab2.X)
-        push!(check, stab1.Z == stab2.Z)
-        push!(check, stab1.phase == stab2.phase)
-    end
+# Checks if two stabilizer states are equal.
+# """
+# function isequal(state_1::StabilizerState, state_2::StabilizerState)
+#     update_tableau(state_1)
+#     update_tableau(state_2)
+#     check = []
+#     for (stab1, stab2) in zip(state_1.stabilizers, state_2.stabilizers)
+#         push!(check, stab1.X == stab2.X)
+#         push!(check, stab1.Z == stab2.Z)
+#         push!(check, stab1.phase == stab2.phase)
+#     end
 
-    return all(check)
-end
+#     return all(check)
+# end

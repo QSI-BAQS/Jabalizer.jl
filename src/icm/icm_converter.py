@@ -11,8 +11,9 @@ diagrams" https://arxiv.org/abs/1811.06011
 import cirq
 from . import icm_operation_id as op
 from . import icm_flag_manipulations
-from . wire_manipulation import split_wires, initialise_circuit, correction_seq
+from .wire_manipulation import split_wires, initialise_circuit, correction_seq
 from . import SplitQubit
+
 
 def icm_circuit(circuit, gates_to_decomp, inverse=False):
     """
@@ -39,9 +40,11 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
         The decomposed circuit
     """
     # skips decomposing H and S, S**-1 for inverse icm
-    skip = ((cirq.H, 1), (cirq.S, 0.5),(cirq.S, -0.5))
+    skip = ((cirq.H, 1), (cirq.S, 0.5), (cirq.S, -0.5))
     if inverse:
-        gates_to_decomp = [gate for gate in gates_to_decomp if not (gate, gate.exponent) in skip]
+        gates_to_decomp = [
+            gate for gate in gates_to_decomp if not (gate, gate.exponent) in skip
+        ]
 
     circuit = initialise_circuit(circuit)
     icm_flag_manipulations.add_op_ids(circuit, gates_to_decomp)
@@ -68,10 +71,10 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
 
         # T and T^-1 decomp
         if op.gate in (cirq.T**-1, cirq.T):
-    #         decomposed_list.append(op)
-    #         continue
+            #         decomposed_list.append(op)
+            #         continue
             # list that holds all wires
-    #         new_op_id = op.icm_op_id.add_decomp_level()
+            #         new_op_id = op.icm_op_id.add_decomp_level()
             wires = split_wires(op.qubits[0], 6, new_op_id)
 
             # gate locations for icm and inverse icm
@@ -79,22 +82,12 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
                 had_locs = (1, 3, 4)
                 t_locs = (1,)
                 s_locs = (3,)
-                cnot_locs = ((1, 0),
-                             (1, 2),
-                             (3, 1),
-                             (4, 2),
-                             (3, 5),
-                             (4, 5))
+                cnot_locs = ((1, 0), (1, 2), (3, 1), (4, 2), (3, 5), (4, 5))
                 meas_locs = (i for i in range(5))
             else:
                 had_locs = (3, 4)
                 t_locs = ()
-                cnot_locs = ((0, 1),
-                             (1, 2),
-                             (3, 1),
-                             (4, 2),
-                             (3, 5),
-                             (4, 5))
+                cnot_locs = ((0, 1), (1, 2), (3, 1), (4, 2), (3, 5), (4, 5))
                 z_locs = (3,)
                 meas_locs = (i for i in range(5))
 
@@ -109,9 +102,8 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
             decomp.append([cirq.T(wires[i]) for i in t_locs])
             decomp.append([cirq.S(wires[i]) for i in s_locs])
 
-
             # CNOT Block
-            decomp.append([cirq.CNOT(wires[i], wires[j]) for i,j in cnot_locs])
+            decomp.append([cirq.CNOT(wires[i], wires[j]) for i, j in cnot_locs])
 
             if inverse:
                 # Z correction
@@ -128,10 +120,10 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
 
                 # initialise
                 wires = [op.qubits[0]]
-        #         new_op_id = op.icm_op_id.add_decomp_level()
+                #         new_op_id = op.icm_op_id.add_decomp_level()
 
                 # gate locations
-                cnot_locs = ((1,0), (2, 0), (3, 0))
+                cnot_locs = ((1, 0), (2, 0), (3, 0))
                 had_locs = (1, 2, 3)
                 s_locs = had_locs
                 meas_locs = had_locs
@@ -139,19 +131,25 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
                 # split the qubit
                 for i in range(3):
                     SplitQubit.nr_ancilla += 1
-                    child = SplitQubit("›:anc_{0}".format(SplitQubit.nr_ancilla))
+                    child = SplitQubit("anc_{0}".format(SplitQubit.nr_ancilla))
+                    print(child)
                     wires.append(child)
-        #             new_wires = wires[0].split_this_wire(new_op_id)
-        #             wires[0] = new_wires[0]
-        #             wires.append(new_wires[1])
+                #             new_wires = wires[0].split_this_wire(new_op_id)
+                #             wires[0] = new_wires[0]
+                #             wires.append(new_wires[1])
 
                 # Initialise Block
                 decomp.append([cirq.H(wires[i]) for i in had_locs])
                 decomp.append([cirq.S(wires[i]) for i in s_locs])
-        #         print(decomp[-1])
+                #         print(decomp[-1])
 
                 # CNOT Block
-                decomp.append([cirq.CNOT(wires[i], wires[j].get_latest_ref(new_op_id)) for i,j in cnot_locs])
+                decomp.append(
+                    [
+                        cirq.CNOT(wires[i], wires[j].get_latest_ref(new_op_id))
+                        for i, j in cnot_locs
+                    ]
+                )
 
                 # Measurement Block
                 decomp.append([cirq.measure(wires[i]) for i in meas_locs])
@@ -161,18 +159,18 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
 
             # initialise
             wires = [op.qubits[0]]
-    #         new_op_id = op.icm_op_id.add_decomp_level()
+            #         new_op_id = op.icm_op_id.add_decomp_level()
 
             # gate locations for icm
-            cnot_locs = ((1,0),)
+            cnot_locs = ((1, 0),)
             had_locs = (1,)
             s_locs = had_locs
             meas_locs = had_locs
 
-
             # split the qubit
             SplitQubit.nr_ancilla += 1
-            child = SplitQubit("›:anc_{0}".format(SplitQubit.nr_ancilla))
+            child = SplitQubit("anc_{0}".format(SplitQubit.nr_ancilla))
+            print(child)
             wires.append(child)
 
             # Initialise Block
@@ -180,7 +178,12 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
             decomp.append([cirq.S(wires[i]) for i in s_locs])
 
             # CNOT Block
-            decomp.append([cirq.CNOT(wires[i], wires[j].get_latest_ref(new_op_id)) for i,j in cnot_locs])
+            decomp.append(
+                [
+                    cirq.CNOT(wires[i], wires[j].get_latest_ref(new_op_id))
+                    for i, j in cnot_locs
+                ]
+            )
 
             # Measurement Block
             decomp.append([cirq.measure(wires[i]) for i in meas_locs])
@@ -189,12 +192,12 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
         #     qubits = [q.get_latest_ref(new_op_id) for q in op.qubits]
         #     decomp = op.gate.on(*qubits)
 
-
         decomposed_list.append(decomp)
 
-    circuit =  cirq.Circuit(decomposed_list)
+    circuit = cirq.Circuit(decomposed_list)
     setattr(circuit, "meas_seq", (t_meas_locs, correction_seq))
     return circuit
+
 
 def iicm_circuit(circuit, gates_to_decomp):
     """
@@ -219,8 +222,10 @@ def iicm_circuit(circuit, gates_to_decomp):
         The decomposed circuit
     """
     # skips decomposing H and S, S**-1
-    skip = ((cirq.H, 1), (cirq.S, 0.5),(cirq.S, -0.5))
-    gates_to_decomp = [gate for gate in gates_to_decomp if not (gate, gate.exponent) in skip]
+    skip = ((cirq.H, 1), (cirq.S, 0.5), (cirq.S, -0.5))
+    gates_to_decomp = [
+        gate for gate in gates_to_decomp if not (gate, gate.exponent) in skip
+    ]
 
     circuit = initialise_circuit(circuit)
     icm_flag_manipulations.add_op_ids(circuit, gates_to_decomp)
@@ -258,14 +263,15 @@ def iicm_circuit(circuit, gates_to_decomp):
             # Add measurement gate
             decomp.append(cirq.measure(wires[0]))
 
-            # Track measured qubits 
+            # Track measured qubits
             t_meas_locs.append(wires[0])
 
         decomposed_list.append(decomp)
 
-    circuit =  cirq.Circuit(decomposed_list)
+    circuit = cirq.Circuit(decomposed_list)
     setattr(circuit, "meas_seq", t_meas_locs)
     return circuit
+
 
 def decomp_to_icm(cirq_operation):
     """
@@ -327,7 +333,9 @@ def keep_icm(cirq_operation):
         AND
         * is not marked for decomposition
     """
-    if not icm_flag_manipulations.is_op_with_op_id(cirq_operation, [cirq_operation.gate]):
+    if not icm_flag_manipulations.is_op_with_op_id(
+        cirq_operation, [cirq_operation.gate]
+    ):
         keep = True
 
     if keep:
@@ -338,6 +346,7 @@ def keep_icm(cirq_operation):
         cirq_operation._qubits = tuple(nqubits)
 
     return keep
+
 
 def keep_clifford(op):
     """
@@ -353,11 +362,15 @@ def keep_clifford(op):
     #                cirq.Y,
     #                cirq.ZPowGate)):
 
-    if isinstance(op.gate, (cirq.XPowGate,
-                            cirq.YPowGate,
-                            cirq.ZPowGate,
-                            cirq.HPowGate,
-                            cirq.CNotPowGate,
-                            cirq.SwapPowGate
-                            )):
+    if isinstance(
+        op.gate,
+        (
+            cirq.XPowGate,
+            cirq.YPowGate,
+            cirq.ZPowGate,
+            cirq.HPowGate,
+            cirq.CNotPowGate,
+            cirq.SwapPowGate,
+        ),
+    ):
         return True

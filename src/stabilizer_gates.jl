@@ -7,8 +7,7 @@ Here's an equation:
 
 This is the binomial coefficient.
 """
-function Id(stabilizer::Stabilizer, qubit::Int64)
-end
+function Id(stabilizer::Stabilizer, qubit::Int64) end
 
 
 """
@@ -153,7 +152,7 @@ end
 Apply P gate to a state on qubit.
 """
 function P(state::StabilizerState, qubit)
-	state.simulator.s(qubit-1)
+    state.simulator.s(qubit - 1)
     # for s in state.stabilizers
     #     P(s, GetQubitLabel(state, qubit))
     # end
@@ -165,7 +164,7 @@ end
 Apply X gate to a State.
 """
 function X(state::StabilizerState, qubit)
-	state.simulator.x(qubit-1)
+    state.simulator.x(qubit - 1)
     # for s in state.stabilizers
     #     X(s, GetQubitLabel(state, qubit))
     # end
@@ -177,7 +176,7 @@ end
 Apply Y gate to a State.
 """
 function Y(state::StabilizerState, qubit)
-	state.simulator.y(qubit-1)
+    state.simulator.y(qubit - 1)
     # for s in state.stabilizers
     #     Y(s, GetQubitLabel(state, qubit))
     # end
@@ -189,7 +188,7 @@ end
 Apply Z gate to a State.
 """
 function Z(state::StabilizerState, qubit)
-	state.simulator.z(qubit-1)
+    state.simulator.z(qubit - 1)
     # for s in state.stabilizers
     #     Z(s, GetQubitLabel(state, qubit))
     # end
@@ -201,7 +200,7 @@ end
 Apply H gate to a State.
 """
 function H(state::StabilizerState, qubit)
-    state.simulator.h(qubit-1)
+    state.simulator.h(qubit - 1)
     # for s in state.stabilizers
     #     H(s, GetQubitLabel(state, qubit))
     # end
@@ -214,7 +213,7 @@ end
 Apply CNOT gate to a State.
 """
 function CNOT(state::StabilizerState, control, target)
-    state.simulator.cnot(control-1, target-1)
+    state.simulator.cnot(control - 1, target - 1)
     # for s in state.stabilizers
     #     CNOT(s, GetQubitLabel(state, control), GetQubitLabel(state, target))
     # end
@@ -226,7 +225,7 @@ end
 Apply CZ gate to a State.
 """
 function CZ(state::StabilizerState, control, target)
-    state.simulator.cz(control-1, target-1)
+    state.simulator.cz(control - 1, target - 1)
     # for s in state.stabilizers
     #     CZ(s, GetQubitLabel(state, control), GetQubitLabel(state, target))
     # end
@@ -238,7 +237,7 @@ end
 Apply SWAP gate to a State.
 """
 function SWAP(state::StabilizerState, qubit1, qubit2)
-    state.simulator.swap(qubit1-1, qubit2-1)
+    state.simulator.swap(qubit1 - 1, qubit2 - 1)
     # for s in state.stabilizers
     #     SWAP(s, GetQubitLabel(state, qubit1), GetQubitLabel(state, qubit2))
     # end
