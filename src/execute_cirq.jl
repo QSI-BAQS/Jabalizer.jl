@@ -1,13 +1,4 @@
 using PyCall
-# cirq = pyimport("cirq")
-
-# # Add icm directory to import path
-# source = @__FILE__
-# py"""
-# import os, sys
-# sys.path.insert(0, os.path.dirname($source))
-# """
-# icm = pyimport("icm")
 
 function execute_cirq_circuit(state::Jabalizer.StabilizerState, circuit::PyObject)
     """

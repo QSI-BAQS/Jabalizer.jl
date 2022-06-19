@@ -37,9 +37,6 @@ function ZeroState(n::Int64)
     # return(TableauToState(hcat(zeros(Int64,n,n), Matrix(I,n,n), zeros(Int64,n,1))))
 end
 
-# function StabilizerState(graphState::GraphState)
-#     return (GraphToState(graphState))
-# end
 
 
 # This function is problematic with the the
