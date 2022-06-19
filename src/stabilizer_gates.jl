@@ -1,3 +1,7 @@
+# TODO: Wouldn't it be better if these:
+# a) were returning a new stabilizer instead of modifying in place?
+# b) all have some common typing/interface?
+
 """
 Here's some inline maths: \$\\sqrt[n]{1 + x + x^2 + \\ldots}\$.
 

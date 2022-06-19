@@ -61,6 +61,8 @@ function TableauToState(tab::Array{Int64})::StabilizerState
     return state
 end
 
+# TODO: Are these still needed?
+
 # """
 # Get the index of a qubit by number.
 # """
@@ -156,6 +158,8 @@ function gplot(state::StabilizerState; node_dist=5.0)
     gplot(Graph(graphState.A), nodelabel=1:state.qubits, layout=layout)
 end
 
+
+# TODO: This is confusing, as it takes adjacency matrix and not graph.
 function GraphToState(A::Matrix{Int64})::StabilizerState
     n = size(A, 1)
     state = ZeroState(n)

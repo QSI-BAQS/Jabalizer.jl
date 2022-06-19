@@ -1,3 +1,7 @@
+# TODO: It's better to avoid having general use `util` files
+# We should move these functions to appropriate modules
+
+# TODO: shouldn't Jabalizer Tableau be its own type?
 """
     stim_tableau(stim_sim::PyObject)::Array{Int64}
 
@@ -147,19 +151,20 @@ function ToGraph(state::StabilizerState)
     return (newState, A, LOseq)
 end
 
-# # Potentially unused function
+# # TODO Potentially unused function
 # function swapcols!(X::AbstractMatrix, i::Integer, j::Integer)
 #     @inbounds for k = 1:size(X,1)
 #         X[k,i], X[k,j] = X[k,j], X[k,i]
 #     end
 # end
 
+# TODO: Why this is the only operation we have for tabs?
 """
     H(tab::Array{Int64}, qubit)
 
 Performs the Hadamard operation on the given tableau
 """
-function H(tab::Array{Int64}, qubit)
+function H(tab::Array{Int64}, qubit) # TODO: I'd say `tab` should be renamed to `tableau` (in other places as well)
     qubit_no = length(tab[:, 1])
     for i in 1:qubit_no
         x = tab[i, qubit]
@@ -222,6 +227,9 @@ function PauliToTab(pauli::Char)
     end
 end
 
+
+# TODO: Performing these on strings look weird to me.
+# It seems to me there's some better data structure for this.
 """
     PauliProd(left, right)
 

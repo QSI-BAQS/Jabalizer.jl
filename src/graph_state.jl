@@ -5,9 +5,9 @@ Type for a stabilizer state constrained to graph form.
 """
 mutable struct GraphState
     qubits::Int64
-    A::Array{Int64}
-    labels::Array{String}
-    lost::Array{Int64}
+    A::Array{Int64} # TODO: Rename "A" to something more verbose, e.g. "adj_matrix".
+    labels::Array{String} #TODO: might not be needed anymore (lost as well)
+    lost::Array{Int64} # TODO: Class attributes should be described in the docstring
 
     GraphState() = new(0, [], [], [])
     GraphState(A::Array{Int64}) =
