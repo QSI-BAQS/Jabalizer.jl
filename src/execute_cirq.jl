@@ -1,14 +1,15 @@
 using PyCall
 
-# TODO: This function should not change the state of the input StabilizerState, 
-# but rather return a new one.
 # TODO: This would probably work better if instead of ingesting cirq objects we were ingesting QASM3.0 objects.
+# TODO: This seems to be a lot of work though, so it's probably better to stick to Cirq for now.
+# TODO: the "isinstance" checks might don't work in certain cases, due to the way gates are defined in cirq.
 function execute_cirq_circuit(state::Jabalizer.StabilizerState, circuit::PyObject)
     """
     Takes a stabilizer state and cirq circuit as input and applying the
     circuit to the stabilizer state.
     """
     # Mapping of cirq gates to Jabalizer gates.
+    # TODO: this seems to be inefficient, there is probably a better way to do that.
     gate_map = Dict(cirq.I => Jabalizer.Id,
         cirq.H => Jabalizer.H,
         cirq.X => Jabalizer.X,

@@ -151,14 +151,8 @@ function ToGraph(state::StabilizerState)
     return (newState, A, LOseq)
 end
 
-# # TODO Potentially unused function
-# function swapcols!(X::AbstractMatrix, i::Integer, j::Integer)
-#     @inbounds for k = 1:size(X,1)
-#         X[k,i], X[k,j] = X[k,j], X[k,i]
-#     end
-# end
-
 # TODO: Why this is the only operation we have for tabs?
+# TODO: Madhav – could you provide some extra context in the docstring.
 """
     H(tab::Array{Int64}, qubit)
 

@@ -28,6 +28,7 @@ end
     # TODO: Add the following tests:
     # 1. Check if the conversion works
     # TODO: what should be some test cases here?
+    # E.g. star graph -> GHZ state
 end
 
 

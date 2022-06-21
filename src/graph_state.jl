@@ -16,6 +16,7 @@ mutable struct GraphState
         new(state.qubits, ToGraph(state)[2], state.labels)
 end
 
+# TODO: rename to GraphStateToState (or just to_state, even better idea!)
 """
     GraphToState(graphState)
 

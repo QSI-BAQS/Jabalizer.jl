@@ -1,5 +1,3 @@
-__precompile__(true)
-
 module Jabalizer
 
 using LightGraphs, GraphPlot, LinearAlgebra
@@ -26,5 +24,6 @@ include("graph_state.jl")
 include("util.jl")
 include("stabilizer_gates.jl")
 include("execute_cirq.jl")
+include("stabilizer_measurements.jl")
 
 end

@@ -38,30 +38,3 @@ end
     # 1. Check if PauliProd works well
     # TODO: What should the test cases be?
 end
-
-"""
-    PauliProd(left, right)
-
-Product of two Pauli operators.
-"""
-function PauliProd(left::Char, right::Char)
-    if left == 'X' && right == 'Z'
-        return ('Y', 3)
-    elseif left == 'X' && right == 'Y'
-        return ('Z', 1)
-    elseif left == 'Z' && right == 'X'
-        return ('Y', 1)
-    elseif left == 'Z' && right == 'Y'
-        return ('X', 3)
-    elseif left == 'Y' && right == 'Z'
-        return ('X', 1)
-    elseif left == 'Y' && right == 'X'
-        return ('Z', 3)
-    elseif left == 'I'
-        return (right, 0)
-    elseif right == 'I'
-        return (left, 0)
-    else
-        return ('I', 0)
-    end
-end

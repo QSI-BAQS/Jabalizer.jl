@@ -61,22 +61,6 @@ function TableauToState(tab::Array{Int64})::StabilizerState
     return state
 end
 
-# TODO: Are these still needed?
-
-# """
-# Get the index of a qubit by number.
-# """
-# function GetQubitLabel(state::StabilizerState, qubit::Int64)
-#     return qubit
-# end
-
-# """
-# Get the index of a qubit by label.
-# """
-# function GetQubitLabel(state::StabilizerState, qubit::String)
-#     return findfirst(x -> x == qubit, state.labels)
-# end
-
 """
     ToTableau(state)
 
@@ -177,4 +161,24 @@ function GraphToState(A::Matrix{Int64})::StabilizerState
     end
     Jabalizer.update_tableau(state)
     return state
+end
+
+
+"""
+    isequal(state_1::StabilizerState, state_2::StabilizerState)
+
+Checks if two stabilizer states are equal.
+"""
+function Base.isequal(state_1::StabilizerState, state_2::StabilizerState)
+    # TODO: it seems that we're updating states during the check for equality, which is weird...
+    update_tableau(state_1)
+    update_tableau(state_2)
+    check = []
+    for (stab1, stab2) in zip(state_1.stabilizers, state_2.stabilizers)
+        push!(check, stab1.X == stab2.X)
+        push!(check, stab1.Z == stab2.Z)
+        push!(check, stab1.phase == stab2.phase)
+    end
+
+    return all(check)
 end
