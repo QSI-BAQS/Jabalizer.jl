@@ -1,6 +1,6 @@
 module Jabalizer
 
-using LightGraphs, GraphPlot, LinearAlgebra
+using Graphs, GraphPlot, LinearAlgebra
 using Documenter, PyCall
 
 import Base: *, print, string, isequal
