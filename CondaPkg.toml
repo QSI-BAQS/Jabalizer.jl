@@ -1,0 +1,7 @@
+[deps]
+python = ">=3.5,<4"
+cirq = ""
+
+[pip.deps]
+stim = ""
+icm = "@../icm"

@@ -22,10 +22,10 @@ end
 
 Convert GraphState to State.
 """
-function GraphToState(graphState::GraphState)
-    return (GraphToState(graphState.A))
-end
+GraphToState(graphState::GraphState) = GraphToState(graphState.A)
 
+# NOTE: this is identical to GraphToState, only one should be needed
+StabilizerState(graphState::GraphState) = GraphToState(graphState)
 
 """
     gplot(graphState)
@@ -45,7 +45,7 @@ end
 
 Print a GraphState to the terminal.
 """
-function print(graphState::GraphState, info::Bool=false)
+function Base.print(graphState::GraphState, info::Bool=false)
     if info == true
         println("Adjacency matrix for ", graphState.qubits, " qubits:\n")
     end
@@ -56,5 +56,3 @@ function print(graphState::GraphState, info::Bool=false)
         println("\nQubit labels: ", graphState.labels)
     end
 end
-
-StabilizerState(graphState::GraphState) = GraphToState(graphState)

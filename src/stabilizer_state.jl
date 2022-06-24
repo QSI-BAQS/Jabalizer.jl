@@ -1,7 +1,3 @@
-# using PyCall
-#
-# stim = pyimport("stim")
-
 """
     Stabilizer state type.
 
@@ -16,17 +12,17 @@ mutable struct StabilizerState
     stabilizers::Array{Stabilizer}
     labels::Array{String} # TODO: might not be needed anymore
     lost::Array{Int64} # TODO: might not be needed anymore
-    simulator::PyObject
+    simulator::Py
 
     StabilizerState() = new(0, [], [], [], stim.TableauSimulator())
     StabilizerState(n::Int64) = new(n, [], [], [], stim.TableauSimulator())
 end
+
 """
     ZeroState(n::Int64)
 
 Generates a state of n qubits in the +1 Z eigenstate.
 """
-
 function ZeroState(n::Int64)
     state = StabilizerState(n)
     for i in 0:n-1
@@ -34,7 +30,6 @@ function ZeroState(n::Int64)
     end
     update_tableau(state)
     return (state)
-    # return(TableauToState(hcat(zeros(Int64,n,n), Matrix(I,n,n), zeros(Int64,n,1))))
 end
 
 
@@ -87,7 +82,7 @@ end
 
 Convert state to string.
 """
-function string(state::StabilizerState)
+function Base.string(state::StabilizerState)
     str = ""
 
     for s in state.stabilizers
@@ -102,7 +97,7 @@ end
 
 Print the full stabilizer set of a state to the terminal.
 """
-function print(state::StabilizerState, info::Bool=false, tab::Bool=false)
+function Base.print(state::StabilizerState, info::Bool=false, tab::Bool=false)
     update_tableau(state)
     if info == true
         println(

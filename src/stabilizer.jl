@@ -48,7 +48,7 @@ end
 
 Conjugate of a stabilizer.
 """
-function adjoint(stabilizer::Stabilizer)::Stabilizer
+function Base.adjoint(stabilizer::Stabilizer)::Stabilizer
     conj = deepcopy(stabilizer)
     conj.phase = (-conj.phase) % 4
     return conj
@@ -59,7 +59,7 @@ end
 
 Multiplication operator for stabilizers.
 """
-function *(left::Stabilizer, right::Stabilizer)::Stabilizer
+function Base.:*(left::Stabilizer, right::Stabilizer)::Stabilizer
     if left.qubits != right.qubits
         return left
     end
@@ -88,7 +88,7 @@ end
 
 Convert stabilizer to string.
 """
-function string(stabilizer::Stabilizer)
+function Base.string(stabilizer::Stabilizer)
     str = ""
 
     for i = 1:stabilizer.qubits
@@ -118,7 +118,7 @@ end
 
 Print a stabilizer to terminal.
 """
-function print(stabilizer::Stabilizer, info::Bool=false, tab::Bool=false)
+function Base.print(stabilizer::Stabilizer, info::Bool=false, tab::Bool=false)
     if info == true
         println("Stabilizer for ", stabilizer.qubits, " qubits:")
     end

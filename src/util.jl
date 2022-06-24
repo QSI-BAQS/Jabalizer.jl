@@ -3,48 +3,39 @@
 
 # TODO: shouldn't Jabalizer Tableau be its own type?
 """
-    stim_tableau(stim_sim::PyObject)::Array{Int64}
+    stim_tableau(stim_sim::Py)::Array{Int64}
 
-Return a Jabilizer tableau from a stim TableauSimulator instance
+Return a Jabalizer tableau from a stim TableauSimulator instance
 
 # Arguments
-- `stim_sim::PyObject`: stim.TableauSimulator from which to compute the Jabalizer tableau
+- `stim_sim::Py`: stim.TableauSimulator from which to compute the Jabalizer tableau
 """
-function stim_tableau(stim_sim::PyObject)::Array{Int64}
+function stim_tableau(stim_sim::Py)::Array{Int64}
 
-    inverse_tableau = stim_sim.current_inverse_tableau()
-    forward_tableau = inverse_tableau^-1
-
-    tab_arr = [forward_tableau.z_output(i - 1) for i in 1:length(forward_tableau)]
-
-    qubits = length(tab_arr)
-    tableau = zeros(Int64, qubits, 2 * qubits + 1)
+    forward_tableau = stim_sim.current_inverse_tableau().inverse()
+    qubits = length(forward_tableau)
+    tab_arr = [forward_tableau.z_output(i - 1) for i in 1:qubits]
+    tableau = zeros(Int, qubits, 2 * qubits + 1)
 
     for i in 1:qubits
         # update sign
-        if tab_arr[i].sign == -1
-            tableau[i, end] = 2
-        end
+        pyconvert(Number, tab_arr[i].sign) == -1 && (tableau[i, end] = 2)
 
-        # Stabalizer replacement
+        # Stabilizer replacement
         for j in 1:qubits
-            # X replacement
-            if get(tab_arr[i], j - 1, "index not found") == 1
+            v = pyconvert(Int, get(tab_arr[i], j - 1, -1))
+            if v == 1           # X replacement
                 tableau[i, j] = 1
-            end
-            # Z replacement
-            if get(tab_arr[i], j - 1, "index not found") == 3
+            elseif v == 3       # Z replacement
                 tableau[i, j+qubits] = 1
-            end
-
-            # Y replacement
-            if get(tab_arr[i], j - 1, "index not found") == 2
+            elseif v == 2       # Y replacement
                 tableau[i, j] = 1
                 tableau[i, j+qubits] = 1
             end
         end
     end
-    return (tableau)
+
+    return tableau
 end
 
 """
