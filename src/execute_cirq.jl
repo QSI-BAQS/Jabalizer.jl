@@ -2,6 +2,22 @@
 # TODO: This seems to be a lot of work though, so it's probably better to stick to Cirq for now.
 # TODO: the "isinstance" checks might don't work in certain cases, due to the way gates are defined in cirq.
 
+const gate_map = Dict()
+
+# This is called by the Jabalizer package's __init__ function
+function _init_gate_map()
+    copy!(gate_map,
+          Dict(cirq.I => Id,
+               cirq.H => H,
+               cirq.X => X,
+               cirq.Y => Y,
+               cirq.Z => Z,
+               cirq.CNOT => CNOT,
+               cirq.SWAP => SWAP,
+               cirq.S => P,
+               cirq.CZ => CZ))
+end
+
 """
 Takes a stabilizer state and cirq circuit as input and applying the
 circuit to the stabilizer state.

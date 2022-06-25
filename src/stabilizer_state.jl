@@ -8,44 +8,46 @@ labels: qubit labels.
 simulator: stim simulator
 """
 mutable struct StabilizerState
-    qubits::Int64
-    stabilizers::Array{Stabilizer}
-    labels::Array{String} # TODO: might not be needed anymore
-    lost::Array{Int64} # TODO: might not be needed anymore
+    qubits::Int
+    stabilizers::Vector{Stabilizer}
+    labels::Vector{String} # TODO: might not be needed anymore
+    lost::Vector{Int} # TODO: might not be needed anymore
     simulator::Py
+    updated::Bool
 
-    StabilizerState() = new(0, [], [], [], stim.TableauSimulator())
-    StabilizerState(n::Int64) = new(n, [], [], [], stim.TableauSimulator())
+    StabilizerState(n::Int) = new(n, Stabilizer[], String[], Int[], stim.TableauSimulator(), true)
+    StabilizerState() = StabilizerState(0)
 end
 
+const Tableau = Matrix{Int}
+
 """
-    ZeroState(n::Int64)
+    ZeroState(n::Int)
 
 Generates a state of n qubits in the +1 Z eigenstate.
 """
-function ZeroState(n::Int64)
+function ZeroState(n::Int)
     state = StabilizerState(n)
     for i in 0:n-1
         state.simulator.z(i)
     end
+    state.updated = false
     update_tableau(state)
-    return (state)
+    return state
 end
 
-
-
-# This function is problematic with the the
-# stim integration
+# This function is problematic with the stim integration
+# This doesn't seem to affect the simulator state at all
 """
 Generate stabilizer from tableau
 """
-function TableauToState(tab::Array{Int64})::StabilizerState
-    qubits = Int64((length(tab[1, :]) - 1) / 2)
-    stabs = Int64(length(tab[:, 1]))
+function TableauToState(tab::AbstractMatrix{Int})::StabilizerState
+    qubits = Int((length(@view tab[1, :]) - 1) / 2)
+    stabs = Int(length(@view tab[:, 1]))
     state = StabilizerState(qubits)
 
     for row = 1:stabs
-        stab = Stabilizer(tab[row, :])
+        stab = Stabilizer(@view tab[row, :])
         push!(state.stabilizers, stab)
     end
 
@@ -61,8 +63,8 @@ end
 
 Convert state to tableau form.
 """
-function ToTableau(state::StabilizerState)::Array{Int64}
-    tab = Int64[]
+function ToTableau(state::StabilizerState)::Tableau
+    tab = Int[]
     update_tableau(state)
     for s in state.stabilizers
         tab = vcat(tab, ToTableau(s))
@@ -139,7 +141,7 @@ end
 
 
 # TODO: This is confusing, as it takes adjacency matrix and not graph.
-function GraphToState(A::Matrix{Int64})::StabilizerState
+function GraphToState(A::AbstractMatrix{Int})::StabilizerState
     n = size(A, 1)
     state = ZeroState(n)
 
@@ -154,7 +156,7 @@ function GraphToState(A::Matrix{Int64})::StabilizerState
             end
         end
     end
-    Jabalizer.update_tableau(state)
+    update_tableau(state)
     return state
 end
 

@@ -8,21 +8,11 @@ import GraphPlot.gplot
 
 const stim = PythonCall.pynew() # initially NULL
 const cirq = PythonCall.pynew() # initially NULL
-const gate_map = Dict()
 
 function __init__()
     PythonCall.pycopy!(stim, pyimport("stim"))
     PythonCall.pycopy!(cirq, pyimport("cirq"))
-    copy!(gate_map,
-          Dict(cirq.I => Jabalizer.Id,
-               cirq.H => Jabalizer.H,
-               cirq.X => Jabalizer.X,
-               cirq.Y => Jabalizer.Y,
-               cirq.Z => Jabalizer.Z,
-               cirq.CNOT => Jabalizer.CNOT,
-               cirq.SWAP => Jabalizer.SWAP,
-               cirq.S => Jabalizer.P,
-               cirq.CZ => Jabalizer.CZ))
+    _init_gate_map()
 end
 
 include("stabilizer.jl")

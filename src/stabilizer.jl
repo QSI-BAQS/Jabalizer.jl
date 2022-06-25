@@ -4,44 +4,41 @@
 Type for a single stabilizer in the n-qubit Pauli group.
 """
 mutable struct Stabilizer
-    qubits::Int64
-    X::Array{Int64}
-    Z::Array{Int64}
-    phase::Int64
+    qubits::Int
+    X::Vector{Int}
+    Z::Vector{Int}
+    phase::Int
 
     """
         Stabilizer()
 
     Constructor for an empty stabilizer.
     """
-    Stabilizer() = new(0, [], [], 0)
+    Stabilizer() = new(0, Int[], Int[], 0)
 
     """
         Stabilizer(n)
 
     Constructor for an n-qubit identity stabilizer.
     """
-    Stabilizer(n::Int64) = new(n, zeros(n), zeros(n), 0)
+    Stabilizer(n::Int) = new(n, zeros(Int, n), zeros(Int, n), 0)
 
     """
         Stabilizer(tableau)
 
     Constructor for a stabilizer from tableau form.
     """
-    Stabilizer(tab::Array{Int64}) = new(
-        Int64((length(tab) - 1) / 2),
-        tab[1:Int64((length(tab) - 1) / 2)],
-        tab[Int64((length(tab) - 1) / 2 + 1):Int64(length(tab) - 1)],
-        last(tab),
-    )
+    function Stabilizer(tab::AbstractVector{Int})
+        len = length(tab) - 1
+        qubits = div(len, 2)
+        new(qubits, tab[1:qubits], tab[qubits+1:end-1], tab[end])
+    end
 end
 
 """
 Convert stabilizer to tableau form.
 """
-function ToTableau(stabilizer::Stabilizer)
-    return vcat(stabilizer.X, stabilizer.Z, stabilizer.phase)
-end
+ToTableau(stabilizer::Stabilizer) = vcat(stabilizer.X, stabilizer.Z, stabilizer.phase)
 
 """
     adjoint(stabilizer)
@@ -60,9 +57,7 @@ end
 Multiplication operator for stabilizers.
 """
 function Base.:*(left::Stabilizer, right::Stabilizer)::Stabilizer
-    if left.qubits != right.qubits
-        return left
-    end
+    left.qubits == right.qubits || return left
 
     qubits = left.qubits
     prod = Stabilizer(qubits)
