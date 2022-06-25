@@ -1,14 +1,30 @@
 
 
 @testset "StabilizerState initialization" begin
-    # TODO: Add the following tests:
-    # 1. Check if initializes an empty StabilizerState if no arguments are provided
-    # 2. Check if initializes StabilizerState if `n` is provided.
+    state = Jabalizer.StabilizerState()
+    @test state.qubits == 0
+    @test state.stabilizers == []
+
+
+    for i in 1:4
+        state = Jabalizer.StabilizerState(i)
+        @test state.qubits == i
+        @test state.stabilizers == []
+    end
+
+    # TODO: Jabalizer.ToTableau(state) doesn't work here, not sure if that's intentional?
 end
 
 @testset "ZeroState initialization" begin
-    # TODO: Add the following tests:
-    # 1. Check if creates the zero state correctly
+    for i in 1:4
+        target_tableau = zeros(Int8, (i, 2 * i + 1))
+        for j in 1:i
+            target_tableau[j, i+j] = 1
+        end
+        state = Jabalizer.ZeroState(i)
+        @test state.qubits == i
+        @test Jabalizer.ToTableau(state) == target_tableau
+    end
 end
 
 
@@ -28,17 +44,6 @@ end
 @testset "StabilizerState to string conversion" begin
     # TODO: Add the following tests:
     # 1. Checks whether the conversions works well
-end
-
-@testset "printing StabilizerState" begin
-    # TODO: Add the following tests:
-    # 1. Some basic example
-    # TODO: How to test print function? Is it even worth testing?
-end
-
-
-@testset "gplot" begin
-    # TODO: Is it even testable?
 end
 
 @testset "Graph to StabilizerState conversion" begin
