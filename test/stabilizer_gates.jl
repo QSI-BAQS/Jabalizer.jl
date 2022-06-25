@@ -1,84 +1,31 @@
 # TODO: Id fails cause I deleted GetQubitLabel. Don't know how to fix it.
 # TODO: 
 
-function two_qubit_basis_state(arr)
-    """
-    Returns the state  H_2^d H_1^c X_2^b X_1^a | 0 0 >, where arr = [a b c d].
-    for arr in {0,1}^4 this generates all the computational and conjugate basis
-    state combinations (e.g. |0 +> for [0 0 0 1] )
-
-    """
-    a, b, c, d = arr
-    state = Jabalizer.ZeroState(2)
-
-    if Bool(a)
-        Jabalizer.X(state, 1)
-    end
-
-    if Bool(b)
-        Jabalizer.X(state, 2)
-    end
-
-    if Bool(c)
-        Jabalizer.H(state, 1)
-    end
-
-    if Bool(d)
-        Jabalizer.H(state, 2)
-    end
-
-
-    return state
-end
-
 """
 Generates one-qubit states used for testing
 """
 function generate_one_qubit_state(state_str)
-    if state_str == "0"
-        return Jabalizer.ZeroState(1)
-    elseif state_str == "1"
-        one_state = Jabalizer.ZeroState(1)
-        Jabalizer.X(one_state, 1)
-        return one_state
-    elseif state_str == "+"
-        plus_state = Jabalizer.ZeroState(1)
-        Jabalizer.H(plus_state, 1)
-        return plus_state
-    elseif state_str == "-"
-        minus_state = Jabalizer.ZeroState(1)
-        Jabalizer.X(minus_state, 1)
-        Jabalizer.H(minus_state, 1)
-        return minus_state
-    end
+
+    state = Jabalizer.ZeroState(1)
+    (state_str == "1" || state_str == "-") && Jabalizer.X(state, 1)
+    (state_str == "+" || state_str == "-") && Jabalizer.H(state, 1)
+    return state
 end
 
-function generate_two_qubit_state(arr)
-    """
-    Returns the state  H_2^d H_1^c X_2^b X_1^a | 0 0 >, where arr = [a b c d].
-    for arr in {0,1}^4 this generates all the computational and conjugate basis
-    state combinations (e.g. |0 +> for [0 0 0 1] )
+"""
+Returns the state  H_2^d H_1^c X_2^b X_1^a | 0 0 >, where arr = [a b c d].
+for arr in {0,1}^4 this generates all the computational and conjugate basis
+state combinations (e.g. |0 +> for [0 0 0 1] )
 
-    """
+"""
+function generate_two_qubit_state(arr)
     a, b, c, d = arr
     state = Jabalizer.ZeroState(2)
 
-    if Bool(a)
-        Jabalizer.X(state, 1)
-    end
-
-    if Bool(b)
-        Jabalizer.X(state, 2)
-    end
-
-    if Bool(c)
-        Jabalizer.H(state, 1)
-    end
-
-    if Bool(d)
-        Jabalizer.H(state, 2)
-    end
-
+    Bool(a) && Jabalizer.X(state, 1)
+    Bool(b) && Jabalizer.X(state, 2)
+    Bool(c) && Jabalizer.H(state, 1)
+    Bool(d) && Jabalizer.H(state, 2)
 
     return state
 end
