@@ -83,6 +83,8 @@ end
 
     # X tests
     state = basis_state()
+    println("My state:")
+    println(state)
 
     # apply X on all qubits
     for i in 1:4
