@@ -1,5 +1,4 @@
 # TODO: Id fails cause I deleted GetQubitLabel. Don't know how to fix it.
-# TODO: 
 
 """
 Generates one-qubit states used for testing

@@ -1,37 +1,32 @@
-# TODO: write tests
-function MeasureZ(state::StabilizerState, qubit::Int64)::Int64
-    # implement the row reduction procedure as per Gottesman
-    # randomly choose outcome
-    # update the state
-    # return outcome
-    outcome = state.simulator.measure(qubit - 1)
-    return outcome
-end
 
-function MeasureX(state::StabilizerState, qubit::Int64)::Int64
-    # Convert to |+>, |-> basis
-    H(state, qubit)
-    # Measure along z (now x)
-    outcome = MeasureZ(state, qubit)
-    # Return to computational basis
-    H(state, qubit)
+measurement_test_cases = (
+    ("0", Jabalizer.MeasureZ, 0, [0 1 0]),
+    ("1", Jabalizer.MeasureZ, 1, [0 1 2]),
+    ("+", Jabalizer.MeasureX, 0, [1 0 0]),
+    ("-", Jabalizer.MeasureX, 1, [1 0 2]),
+    ("+y", Jabalizer.MeasureY, 0, [1 1 0]),
+    ("-y", Jabalizer.MeasureY, 1, [1 1 2]),
+)
 
-    return (outcome)
-end
+init_operations = Dict("0" => [],
+    "1" => [Jabalizer.X],
+    "+" => [Jabalizer.H],
+    "-" => [Jabalizer.X, Jabalizer.H],
+    "+y" => [Jabalizer.H, Jabalizer.P],
+    "-y" => [Jabalizer.X, Jabalizer.H, Jabalizer.P])
+@testset "Measurements" begin
 
-function MeasureY(state::StabilizerState, qubit::Int64)::Int64
+    for (init_state_str, measurement_op, target_output, target_tableau) in measurement_test_cases
+        @testset "Mesaurement $measurement_op on state $init_state_str" begin
+            state = Jabalizer.ZeroState(1)
+            for init_op in init_operations[init_state_str]
+                init_op(state, 1)
+            end
+            measurement = measurement_op(state, 1)
+            @test measurement == target_output
+            @test Jabalizer.ToTableau(state) == target_tableau
+        end
 
-    # Map Y eigenstates to X eigenstates
-    # Note that P^dagger = ZP
-    Z(state, qubit)
-    P(state, qubit)
-    H(state, qubit)
-    # Measure along z (now y)
-    outcome = MeasureZ(state, qubit)
+    end
 
-    # Return to original basis
-    H(state, qubit)
-    P(state, qubit)
-
-    return (outcome)
 end
