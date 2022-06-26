@@ -1,15 +1,14 @@
 #TODO: modify these functions to use dispatching and singleton types
 
-function MeasureZ(state::StabilizerState, qubit::Int64)::Int64
-    # implement the row reduction procedure as per Gottesman
-    # randomly choose outcome
-    # update the state
-    # return outcome
-    outcome = state.simulator.measure(qubit - 1)
-    return outcome
-end
+# implement the row reduction procedure as per Gottesman
+# randomly choose outcome
+# update the state
+# return outcome
 
-function MeasureX(state::StabilizerState, qubit::Int64)::Int64
+MeasureZ(state::StabilizerState, qubit::Int) =
+    pyconvert(Int, state.simulator.measure(qubit - 1))
+
+function MeasureX(state::StabilizerState, qubit::Int)
     # Convert to |+>, |-> basis
     H(state, qubit)
     # Measure along z (now x)
@@ -17,10 +16,10 @@ function MeasureX(state::StabilizerState, qubit::Int64)::Int64
     # Return to computational basis
     H(state, qubit)
 
-    return (outcome)
+    return outcome
 end
 
-function MeasureY(state::StabilizerState, qubit::Int64)::Int64
+function MeasureY(state::StabilizerState, qubit::Int)
 
     # Map Y eigenstates to X eigenstates
     # Note that P^dagger = ZP
@@ -34,5 +33,5 @@ function MeasureY(state::StabilizerState, qubit::Int64)::Int64
     H(state, qubit)
     P(state, qubit)
 
-    return (outcome)
+    return outcome
 end

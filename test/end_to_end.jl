@@ -4,7 +4,7 @@
 
     gates_to_decomp = [cirq.T, cirq.T^-1]
 
-    iicm_circuit = icm.iicm_circuit(circuit, gates_to_decomp)
+    iicm_circuit = icm.icm_circuit(circuit, gates_to_decomp)
 
 
     iicm_length = length(iicm_circuit.all_qubits())

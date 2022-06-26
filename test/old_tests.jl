@@ -1,14 +1,6 @@
-using Test
-
-using Jabalizer
-# include("../src/Jabalizer.jl")
-#
-# using Main.Jabalizer
-
 # TODO: Move some of these tests into more appropriate places.
 
-function basis_state()
-    """
+"""
     Returns a 4 qubit StabilizerState representation of | 0 1 + - >
     with Tableau
 
@@ -16,7 +8,8 @@ function basis_state()
     -IZZZ
     +IIXI
     -IIIX
-    """
+"""
+function basis_state()
     # |0000>
     state = Jabalizer.ZeroState(4)
 
@@ -35,13 +28,13 @@ function basis_state()
     return state
 end
 
-function twoqubit_basis(arr)
-    """
+"""
     Returns the state  H_2^d H_1^c X_2^b X_1^a | 0 0 >, where arr = [a b c d].
     for arr in {0,1}^4 this generates all the computational and conjugate basis
     state combinations (e.g. |0 +> for [0 0 0 1] )
 
-    """
+"""
+function twoqubit_basis(arr)
     a, b, c, d = arr
     state = Jabalizer.ZeroState(2)
 
