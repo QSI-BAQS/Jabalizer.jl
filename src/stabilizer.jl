@@ -78,51 +78,12 @@ function Base.:*(left::Stabilizer, right::Stabilizer)::Stabilizer
     return prod
 end
 
-"""
-    string(stabilizer)
-
-Convert stabilizer to string.
-"""
-function Base.string(stabilizer::Stabilizer)
-    str = ""
-
-    for i = 1:stabilizer.qubits
-        if stabilizer.X[i] == 0 && stabilizer.Z[i] == 0
-            thisPauli = 'I'
-        elseif stabilizer.X[i] == 1 && stabilizer.Z[i] == 0
-            thisPauli = 'X'
-        elseif stabilizer.X[i] == 0 && stabilizer.Z[i] == 1
-            thisPauli = 'Z'
-        elseif stabilizer.X[i] == 1 && stabilizer.Z[i] == 1
-            thisPauli = 'Y'
-        end
-
-        str = string(str, thisPauli)
+function Base.print(io::IO, stabilizer::Stabilizer)
+    print(io, stabilizer.phase == 0 ? '+' : '-')
+    for (x, z) in zip(stabilizer.X, stabilizer.Z)
+        print(io, "IXZY"[((z<<1)|x)+1])
     end
-
-    if stabilizer.phase == 0
-        sign = "+"
-    else
-        sign = "-"
-    end
-    return string(sign, str)
 end
 
-"""
-    print(stabilizer)
-
-Print a stabilizer to terminal.
-"""
-function Base.print(stabilizer::Stabilizer, info::Bool=false, tab::Bool=false)
-    if info == true
-        println("Stabilizer for ", stabilizer.qubits, " qubits:")
-    end
-
-    if tab == false
-        str = string(stabilizer)
-    else
-        str = ToTableau(stabilizer)
-    end
-
-    println(str)
-end
+Base.display(stabilizer::Stabilizer) =
+    println("Stabilizer for ", stabilizer.qubits, " qubits:\n", stabilizer)
