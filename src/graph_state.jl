@@ -4,16 +4,18 @@
 Type for a stabilizer state constrained to graph form.
 """
 mutable struct GraphState
-    qubits::Int64
-    A::Array{Int64} # TODO: Rename "A" to something more verbose, e.g. "adj_matrix".
-    labels::Array{String} #TODO: might not be needed anymore (lost as well)
-    lost::Array{Int64} # TODO: Class attributes should be described in the docstring
+    qubits::Int
+    A::Matrix{Int} # TODO: Rename "A" to something more verbose, e.g. "adj_matrix".
+    labels::Vector{String} #TODO: might not be needed anymore (lost as well)
+    lost::Vector{Int} # TODO: Class attributes should be described in the docstring
 
-    GraphState() = new(0, [], [], [])
-    GraphState(A::Array{Int64}) =
-        new(length(A[:, 1]), A, [], zeros(length(A[:, 1])))
+    GraphState() = new(0, Matrix{Int}(undef,0,0), String[], Int[])
     GraphState(state::StabilizerState) =
         new(state.qubits, ToGraph(state)[2], state.labels)
+    function GraphState(A::AbstractMatrix{Int})
+        qubits = size(A, 1)
+        new(qubits, A, String[], zeros(Int, qubits))
+    end
 end
 
 # TODO: rename to GraphStateToState (or just to_state, even better idea!)
@@ -40,19 +42,10 @@ function gplot(graphState::GraphState; node_dist=5.0)
     gplot(Graph(graphState.A), nodelabel=1:graphState.qubits)
 end
 
-"""
-    print(graphState)
-
-Print a GraphState to the terminal.
-"""
-function Base.print(graphState::GraphState, info::Bool=false)
-    if info == true
-        println("Adjacency matrix for ", graphState.qubits, " qubits:\n")
-    end
-
+function Base.display(graphState::GraphState)
+    println("Adjacency matrix for ", graphState.qubits, " qubits:\n")
     display(graphState.A)
-
-    if info == true
-        println("\nQubit labels: ", graphState.labels)
-    end
+    println("\nQubit labels: ", graphState.labels)
 end
+
+Base.print(io::IO, graphState::GraphState) = print(io, graphState.A)

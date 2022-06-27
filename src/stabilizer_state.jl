@@ -80,51 +80,21 @@ function ToTableau(state::StabilizerState)::Tableau
     return tab
 end
 
-"""
-    string(state)
-
-Convert state to string.
-"""
-function Base.string(state::StabilizerState)
-    str = ""
-
+function Base.print(io::IO, state::StabilizerState)
+    update_tableau(state)
     for s in state.stabilizers
-        str = string(str, string(s), '\n')
+        println(io, s)
     end
-
-    return str
+    nothing
 end
 
-"""
-    print(state)
-
-Print the full stabilizer set of a state to the terminal.
-"""
-function Base.print(state::StabilizerState, info::Bool=false, tab::Bool=false)
+function Base.display(state::StabilizerState)
     update_tableau(state)
-    if info == true
-        println(
-            "Stabilizers (",
-            length(state.stabilizers),
-            " stabilizers, ",
-            state.qubits,
-            " qubits):\n")
-    end
-
-    if tab == false
-        for s in state.stabilizers
-            print(s)
-        end
-    else
-        print(ToTableau(state))
-    end
-
-    println()
-
-    if info == true
-        println("Qubit labels: ", state.labels)
-        println("Lost qubits: ", state.lost)
-    end
+    println("Stabilizers (", length(state.stabilizers), ") stabilizers, ",
+            state.qubits, ") qubits):")
+    println(state)
+    println("Qubit labels: ", state.labels)
+    println("Lost qubits: ", state.lost)
 end
 
 """
@@ -145,17 +115,11 @@ end
 function GraphToState(A::AbstractMatrix{<:Integer})::StabilizerState
     n = size(A, 1)
     state = ZeroState(n)
-
     for i = 1:n
         H(state, i)
     end
-
-    for i = 1:n
-        for j = (i+1):n
-            if A[i, j] == 1
-                CZ(state, i, j)
-            end
-        end
+    for i = 1:n, j = (i+1):n
+        A[i, j] == 1 && CZ(state, i, j)
     end
     update_tableau(state)
     return state
@@ -168,15 +132,12 @@ end
 Checks if two stabilizer states are equal.
 """
 function Base.isequal(state_1::StabilizerState, state_2::StabilizerState)
-    # TODO: it seems that we're updating states during the check for equality, which is weird...
+    # Make sure the Julia representation matches the simulator state
     update_tableau(state_1)
     update_tableau(state_2)
-    check = []
     for (stab1, stab2) in zip(state_1.stabilizers, state_2.stabilizers)
-        push!(check, stab1.X == stab2.X)
-        push!(check, stab1.Z == stab2.Z)
-        push!(check, stab1.phase == stab2.phase)
+        (stab1.X == stab2.X && stab1.Z == stab2.Z && stab1.phase == stab2.phase) ||
+            return false
     end
-
-    return all(check)
+    return true
 end
