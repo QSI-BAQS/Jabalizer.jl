@@ -44,7 +44,7 @@ end
 Update the state tableau with the current state of the stim simulator
 """
 function update_tableau(state::StabilizerState)
-    state.updated && return
+    state.is_updated && return
 
     # Extract the tableau in Jabalizer format
     tableau = stim_tableau(state.simulator)
@@ -57,7 +57,7 @@ function update_tableau(state::StabilizerState)
     state.stabilizers = deepcopy(inbetween_state.stabilizers)
 
     # mark it as updated
-    state.updated = true
+    state.is_updated = true
 end
 
 """

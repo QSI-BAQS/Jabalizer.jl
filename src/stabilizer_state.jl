@@ -1,11 +1,12 @@
 """
-    Stabilizer state type.
+    Stabilizer state type
 
-qubits: number of qubits.
-stabilizers: set of state stabilizers.
-labels: qubit labels.
-
-simulator: stim simulator
+qubits:      number of qubits
+stabilizers: set of state stabilizers
+labels:      qubit labels
+simulator:   simulator state
+is_updated:  flag for whether or not Julia state has
+             been updated to match Stim simulator state
 """
 mutable struct StabilizerState
     qubits::Int
@@ -13,7 +14,7 @@ mutable struct StabilizerState
     labels::Vector{String} # TODO: might not be needed anymore
     lost::Vector{Int} # TODO: might not be needed anymore
     simulator::Py
-    updated::Bool
+    is_updated::Bool
 
     StabilizerState(n::Int) = new(n, Stabilizer[], String[], Int[], stim.TableauSimulator(), true)
     StabilizerState() = StabilizerState(0)
@@ -31,7 +32,7 @@ function ZeroState(n::Int)
     for i in 0:n-1
         state.simulator.z(i)
     end
-    state.updated = false
+    state.is_updated = false
     update_tableau(state)
     return state
 end
@@ -41,7 +42,7 @@ end
 """
 Generate stabilizer from tableau
 """
-function TableauToState(tab::AbstractMatrix{Int})::StabilizerState
+function TableauToState(tab::AbstractMatrix{<:Integer})::StabilizerState
     qubits = Int((length(@view tab[1, :]) - 1) / 2)
     stabs = Int(length(@view tab[:, 1]))
     state = StabilizerState(qubits)
@@ -141,7 +142,7 @@ end
 
 
 # TODO: This is confusing, as it takes adjacency matrix and not graph.
-function GraphToState(A::AbstractMatrix{Int})::StabilizerState
+function GraphToState(A::AbstractMatrix{<:Integer})::StabilizerState
     n = size(A, 1)
     state = ZeroState(n)
 

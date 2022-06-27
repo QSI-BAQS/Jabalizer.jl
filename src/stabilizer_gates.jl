@@ -23,7 +23,7 @@ end
 Apply P gate to a state on qubit.
 """
 function P(state::StabilizerState, qubit)
-    state.updated = false
+    state.is_updated = false
     state.simulator.s(qubit - 1)
 end
 
@@ -33,7 +33,7 @@ end
 Apply X gate to a State.
 """
 function X(state::StabilizerState, qubit)
-    state.updated = false
+    state.is_updated = false
     state.simulator.x(qubit - 1)
 end
 
@@ -43,7 +43,7 @@ end
 Apply Y gate to a State.
 """
 function Y(state::StabilizerState, qubit)
-    state.updated = false
+    state.is_updated = false
     state.simulator.y(qubit - 1)
 end
 
@@ -53,7 +53,7 @@ end
 Apply Z gate to a State.
 """
 function Z(state::StabilizerState, qubit)
-    state.updated = false
+    state.is_updated = false
     state.simulator.z(qubit - 1)
 end
 
@@ -63,7 +63,7 @@ end
 Apply H gate to a State.
 """
 function H(state::StabilizerState, qubit)
-    state.updated = false
+    state.is_updated = false
     state.simulator.h(qubit - 1)
 end
 
@@ -74,7 +74,7 @@ end
 Apply CNOT gate to a State.
 """
 function CNOT(state::StabilizerState, control, target)
-    state.updated = false
+    state.is_updated = false
     state.simulator.cnot(control - 1, target - 1)
 end
 
@@ -84,7 +84,7 @@ end
 Apply CZ gate to a State.
 """
 function CZ(state::StabilizerState, control, target)
-    state.updated = false
+    state.is_updated = false
     state.simulator.cz(control - 1, target - 1)
 end
 
@@ -94,6 +94,6 @@ end
 Apply SWAP gate to a State.
 """
 function SWAP(state::StabilizerState, qubit1, qubit2)
-    state.updated = false
+    state.is_updated = false
     state.simulator.swap(qubit1 - 1, qubit2 - 1)
 end
