@@ -5,8 +5,8 @@ Type for a single stabilizer in the n-qubit Pauli group.
 """
 mutable struct Stabilizer
     qubits::Int
-    X::Vector{Int}
-    Z::Vector{Int}
+    X::BitVector
+    Z::BitVector
     phase::Int
 
     """
@@ -14,21 +14,21 @@ mutable struct Stabilizer
 
     Constructor for an empty stabilizer.
     """
-    Stabilizer() = new(0, Int[], Int[], 0)
+    Stabilizer() = new(0, falses(0), falses(0), 0)
 
     """
         Stabilizer(n)
 
     Constructor for an n-qubit identity stabilizer.
     """
-    Stabilizer(n::Int) = new(n, zeros(Int, n), zeros(Int, n), 0)
+    Stabilizer(n::Int) = new(n, falses(n), falses(n), 0)
 
     """
         Stabilizer(tableau)
 
     Constructor for a stabilizer from tableau form.
     """
-    function Stabilizer(tab::AbstractVector{Int})
+    function Stabilizer(tab::AbstractArray)
         len = length(tab) - 1
         qubits = div(len, 2)
         new(qubits, tab[1:qubits], tab[qubits+1:end-1], tab[end])

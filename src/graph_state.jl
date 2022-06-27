@@ -12,7 +12,7 @@ mutable struct GraphState
     GraphState() = new(0, Matrix{Int}(undef,0,0), String[], Int[])
     GraphState(state::StabilizerState) =
         new(state.qubits, ToGraph(state)[2], state.labels)
-    function GraphState(A::AbstractMatrix{Int})
+    function GraphState(A::AbstractArray{<:Integer})
         qubits = size(A, 1)
         new(qubits, A, String[], zeros(Int, qubits))
     end
@@ -34,7 +34,7 @@ StabilizerState(graphState::GraphState) = GraphToState(graphState)
 
 Plot the graph of a GraphState.
 """
-function gplot(graphState::GraphState; node_dist=5.0)
+function GraphPlot.gplot(graphState::GraphState; node_dist=5.0)
 
     # Creates an anonymous function to allow changing the layout params
     # in gplot. The value of C determines distance between connected nodes.

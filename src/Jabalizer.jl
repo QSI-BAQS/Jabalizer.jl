@@ -4,7 +4,7 @@ using Graphs, GraphPlot, LinearAlgebra
 using Documenter
 using PythonCall
 
-import GraphPlot.gplot
+export Stabilizer, StabilizerState, GraphState
 
 const stim = PythonCall.pynew() # initially NULL
 const cirq = PythonCall.pynew() # initially NULL
