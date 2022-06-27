@@ -4,44 +4,41 @@
 Type for a single stabilizer in the n-qubit Pauli group.
 """
 mutable struct Stabilizer
-    qubits::Int64
-    X::Array{Int64}
-    Z::Array{Int64}
-    phase::Int64
+    qubits::Int
+    X::Vector{Int}
+    Z::Vector{Int}
+    phase::Int
 
     """
         Stabilizer()
 
     Constructor for an empty stabilizer.
     """
-    Stabilizer() = new(0, [], [], 0)
+    Stabilizer() = new(0, Int[], Int[], 0)
 
     """
         Stabilizer(n)
 
     Constructor for an n-qubit identity stabilizer.
     """
-    Stabilizer(n::Int64) = new(n, zeros(n), zeros(n), 0)
+    Stabilizer(n::Int) = new(n, zeros(Int, n), zeros(Int, n), 0)
 
     """
         Stabilizer(tableau)
 
     Constructor for a stabilizer from tableau form.
     """
-    Stabilizer(tab::Array{Int64}) = new(
-        Int64((length(tab) - 1) / 2),
-        tab[1:Int64((length(tab) - 1) / 2)],
-        tab[Int64((length(tab) - 1) / 2 + 1):Int64(length(tab) - 1)],
-        last(tab),
-    )
+    function Stabilizer(tab::AbstractVector{Int})
+        len = length(tab) - 1
+        qubits = div(len, 2)
+        new(qubits, tab[1:qubits], tab[qubits+1:end-1], tab[end])
+    end
 end
 
 """
 Convert stabilizer to tableau form.
 """
-function ToTableau(stabilizer::Stabilizer)
-    return vcat(stabilizer.X, stabilizer.Z, stabilizer.phase)
-end
+ToTableau(stabilizer::Stabilizer) = vcat(stabilizer.X, stabilizer.Z, stabilizer.phase)
 
 """
     adjoint(stabilizer)
@@ -60,9 +57,7 @@ end
 Multiplication operator for stabilizers.
 """
 function Base.:*(left::Stabilizer, right::Stabilizer)::Stabilizer
-    if left.qubits != right.qubits
-        return left
-    end
+    left.qubits == right.qubits || return left
 
     qubits = left.qubits
     prod = Stabilizer(qubits)
@@ -83,51 +78,12 @@ function Base.:*(left::Stabilizer, right::Stabilizer)::Stabilizer
     return prod
 end
 
-"""
-    string(stabilizer)
-
-Convert stabilizer to string.
-"""
-function Base.string(stabilizer::Stabilizer)
-    str = ""
-
-    for i = 1:stabilizer.qubits
-        if stabilizer.X[i] == 0 && stabilizer.Z[i] == 0
-            thisPauli = 'I'
-        elseif stabilizer.X[i] == 1 && stabilizer.Z[i] == 0
-            thisPauli = 'X'
-        elseif stabilizer.X[i] == 0 && stabilizer.Z[i] == 1
-            thisPauli = 'Z'
-        elseif stabilizer.X[i] == 1 && stabilizer.Z[i] == 1
-            thisPauli = 'Y'
-        end
-
-        str = string(str, thisPauli)
+function Base.print(io::IO, stabilizer::Stabilizer)
+    print(io, stabilizer.phase == 0 ? '+' : '-')
+    for (x, z) in zip(stabilizer.X, stabilizer.Z)
+        print(io, "IXZY"[((z<<1)|x)+1])
     end
-
-    if stabilizer.phase == 0
-        sign = "+"
-    else
-        sign = "-"
-    end
-    return string(sign, str)
 end
 
-"""
-    print(stabilizer)
-
-Print a stabilizer to terminal.
-"""
-function Base.print(stabilizer::Stabilizer, info::Bool=false, tab::Bool=false)
-    if info == true
-        println("Stabilizer for ", stabilizer.qubits, " qubits:")
-    end
-
-    if tab == false
-        str = string(stabilizer)
-    else
-        str = ToTableau(stabilizer)
-    end
-
-    println(str)
-end
+Base.display(stabilizer::Stabilizer) =
+    println("Stabilizer for ", stabilizer.qubits, " qubits:\n", stabilizer)

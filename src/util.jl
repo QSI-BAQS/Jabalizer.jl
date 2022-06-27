@@ -3,14 +3,14 @@
 
 # TODO: shouldn't Jabalizer Tableau be its own type?
 """
-    stim_tableau(stim_sim::Py)::Array{Int64}
+    stim_tableau(stim_sim::Py)::Matrix{Int}
 
 Return a Jabalizer tableau from a stim TableauSimulator instance
 
 # Arguments
 - `stim_sim::Py`: stim.TableauSimulator from which to compute the Jabalizer tableau
 """
-function stim_tableau(stim_sim::Py)::Array{Int64}
+function stim_tableau(stim_sim::Py)::Matrix{Int}
 
     forward_tableau = stim_sim.current_inverse_tableau().inverse()
     qubits = length(forward_tableau)
@@ -44,6 +44,7 @@ end
 Update the state tableau with the current state of the stim simulator
 """
 function update_tableau(state::StabilizerState)
+    state.is_updated && return
 
     # Extract the tableau in Jabalizer format
     tableau = stim_tableau(state.simulator)
@@ -55,7 +56,8 @@ function update_tableau(state::StabilizerState)
     state.qubits = inbetween_state.qubits
     state.stabilizers = deepcopy(inbetween_state.stabilizers)
 
-
+    # mark it as updated
+    state.is_updated = true
 end
 
 """
@@ -145,11 +147,11 @@ end
 # TODO: Why this is the only operation we have for tabs?
 # TODO: Madhav – could you provide some extra context in the docstring.
 """
-    H(tab::Array{Int64}, qubit)
+    H(tab::Matrix{Int}, qubit)
 
 Performs the Hadamard operation on the given tableau
 """
-function H(tab::Array{Int64}, qubit) # TODO: I'd say `tab` should be renamed to `tableau` (in other places as well)
+function H(tab::Matrix{Int}, qubit) # TODO: I'd say `tab` should be renamed to `tableau` (in other places as well)
     qubit_no = length(tab[:, 1])
     for i in 1:qubit_no
         x = tab[i, qubit]
@@ -172,8 +174,8 @@ end
 
 Row addition operation for tableaus.
 """
-function RowAdd(tab::Array{Int64}, source::Int64, dest::Int64)
-    prod = Stabilizer(tab[source, :]) * Stabilizer(tab[dest, :])
+function RowAdd(tab::Matrix{Int}, source::Int, dest::Int)
+    prod = Stabilizer(@view tab[source, :]) * Stabilizer(@view tab[dest, :])
     tab[dest, :] = ToTableau(prod)
     return tab
 end
@@ -181,7 +183,7 @@ end
 """
 Convert tableau form of single Pauli operator to char.
 """
-function TabToPauli(X::Int64, Z::Int64)::Char
+function TabToPauli(X::Int, Z::Int)::Char
     if X == 0 && Z == 0
         return 'I'
     elseif X == 1 && Z == 0

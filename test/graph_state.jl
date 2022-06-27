@@ -7,7 +7,8 @@ using Jabalizer
     graph_state = Jabalizer.GraphState() # Why simply GraphState() doesn't work?
 
     @test graph_state.qubits == 0
-    @test graph_state.A == []
+    @test graph_state.A isa AbstractMatrix{Int}
+    @test isempty(graph_state.A)
 
     # Check if initialization from an adjacency matrix works 
     A = [0 1; 1 0]
