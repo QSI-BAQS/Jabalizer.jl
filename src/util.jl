@@ -183,35 +183,17 @@ end
 """
 Convert tableau form of single Pauli operator to char.
 """
-function TabToPauli(X::Int, Z::Int)::Char
-    if X == 0 && Z == 0
-        return 'I'
-    elseif X == 1 && Z == 0
-        return 'X'
-    elseif X == 0 && Z == 1
-        return 'Z'
-    elseif X == 1 && Z == 1
-        return 'Y'
-    else
-        return 'I'
-    end
-end
+TabToPauli(x::Bool, z::Bool) = x ? ifelse(z, 'I', 'Z') : ifelse(z, 'X', 'Y')
 
 """
 Convert Pauli operator from char to tableau form.
 """
-function PauliToTab(pauli::Char)
-    if pauli == 'I'
-        return (0, 0)
-    elseif pauli == 'X'
-        return (1, 0)
-    elseif pauli == 'Z'
-        return (0, 1)
-    elseif pauli == 'Y'
-        return (1, 1)
-    else
-        return (0, 0)
-    end
+function PauliToTab(pauli::AbstractChar)
+    pauli == 'I' && return (0, 0)
+    pauli == 'X' && return (1, 0)
+    pauli == 'Z' && return (0, 1)
+    pauli == 'Y' && return (1, 1)
+    return (0, 0)
 end
 
 
@@ -222,24 +204,19 @@ end
 
 Product of two Pauli operators.
 """
-function PauliProd(left::Char, right::Char)
-    if left == 'X' && right == 'Z'
-        return ('Y', 3)
-    elseif left == 'X' && right == 'Y'
-        return ('Z', 1)
-    elseif left == 'Z' && right == 'X'
-        return ('Y', 1)
-    elseif left == 'Z' && right == 'Y'
-        return ('X', 3)
-    elseif left == 'Y' && right == 'Z'
-        return ('X', 1)
-    elseif left == 'Y' && right == 'X'
-        return ('Z', 3)
+function PauliProd(left::AbstractChar, right::AbstractChar)
+    if left == 'X'
+        right == 'Z' && return ('Y', 3)
+        right == 'Y' && return ('Z', 1)
+    elseif left == 'Z'
+        right == 'X' && return ('Y', 1)
+        right == 'Y' && return ('X', 3)
+    elseif left == 'Y'
+        right == 'Z' && return ('X', 1)
+        right == 'X' && return ('Z', 3)
     elseif left == 'I'
         return (right, 0)
-    elseif right == 'I'
-        return (left, 0)
-    else
-        return ('I', 0)
     end
+    right == 'I' && return (left, 0)
+    return ('I', 0)
 end

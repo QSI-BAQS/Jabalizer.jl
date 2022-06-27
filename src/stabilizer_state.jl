@@ -42,7 +42,7 @@ end
 """
 Generate stabilizer from tableau
 """
-function TableauToState(tab::AbstractMatrix{<:Integer})::StabilizerState
+function TableauToState(tab::AbstractArray{<:Integer})::StabilizerState
     qubits = Int((length(@view tab[1, :]) - 1) / 2)
     stabs = Int(length(@view tab[:, 1]))
     state = StabilizerState(qubits)
@@ -102,7 +102,7 @@ end
 
 Plot the graph equivalent of a state.
 """
-function gplot(state::StabilizerState; node_dist=5.0)
+function GraphPlot.gplot(state::StabilizerState; node_dist=5.0)
     graphState = GraphState(state)
     # Creates an anonymous function to allow changing the layout params
     # in gplot. The value of C determines distance between connected nodes.
@@ -112,7 +112,7 @@ end
 
 
 # TODO: This is confusing, as it takes adjacency matrix and not graph.
-function GraphToState(A::AbstractMatrix{<:Integer})::StabilizerState
+function GraphToState(A::AbstractArray{<:Integer})::StabilizerState
     n = size(A, 1)
     state = ZeroState(n)
     for i = 1:n
