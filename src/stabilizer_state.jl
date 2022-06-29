@@ -44,7 +44,7 @@ Generate stabilizer from tableau
 """
 function TableauToState(tab::AbstractArray{<:Integer})::StabilizerState
     qubits = Int((length(@view tab[1, :]) - 1) / 2)
-    stabs = Int(length(@view tab[:, 1]))
+    stabs = length(@view tab[:, 1])
     state = StabilizerState(qubits)
 
     for row = 1:stabs

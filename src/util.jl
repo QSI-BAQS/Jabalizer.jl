@@ -18,12 +18,14 @@ function stim_tableau(stim_sim::Py)::Matrix{Int}
     tableau = zeros(Int, qubits, 2 * qubits + 1)
 
     for i in 1:qubits
+        ps = tab_arr[i] # Get stim PauliString representation
         # update sign
-        pyconvert(Number, tab_arr[i].sign) == -1 && (tableau[i, end] = 2)
+        pyconvert(Number, ps.sign) == -1 && (tableau[i, end] = 2)
 
         # Stabilizer replacement
         for j in 1:qubits
-            v = pyconvert(Int, get(tab_arr[i], j - 1, -1))
+            v = pyconvert(Int, get(ps, j - 1, -1))
+            # Note: 0123 represent IXYZ (different from the xz representation used here)
             if v == 1           # X replacement
                 tableau[i, j] = 1
             elseif v == 3       # Z replacement
@@ -179,11 +181,11 @@ function RowAdd(tab::Matrix{Int}, source::Int, dest::Int)
     tab[dest, :] = ToTableau(prod)
     return tab
 end
-
+#=
 """
 Convert tableau form of single Pauli operator to char.
 """
-TabToPauli(x::Bool, z::Bool) = x ? ifelse(z, 'I', 'Z') : ifelse(z, 'X', 'Y')
+TabToPauli(x::Bool, z::Bool) = x ? ifelse(z, 'Y', 'X') : ifelse(z, 'Z', 'I')
 
 """
 Convert Pauli operator from char to tableau form.
@@ -220,3 +222,4 @@ function PauliProd(left::AbstractChar, right::AbstractChar)
     right == 'I' && return (left, 0)
     return ('I', 0)
 end
+=#
