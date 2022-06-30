@@ -6,15 +6,12 @@ Type for a stabilizer state constrained to graph form.
 mutable struct GraphState
     qubits::Int
     A::Matrix{Int} # TODO: Rename "A" to something more verbose, e.g. "adj_matrix".
-    labels::Vector{String} #TODO: might not be needed anymore (lost as well)
-    lost::Vector{Int} # TODO: Class attributes should be described in the docstring
 
-    GraphState() = new(0, Matrix{Int}(undef,0,0), String[], Int[])
+    GraphState() = new(0, Matrix{Int}(undef, 0, 0))
     GraphState(state::StabilizerState) =
-        new(state.qubits, ToGraph(state)[2], state.labels)
     function GraphState(A::AbstractArray{<:Integer})
         qubits = size(A, 1)
-        new(qubits, A, String[], zeros(Int, qubits))
+        new(qubits, A)
     end
 end
 
@@ -45,7 +42,6 @@ end
 function Base.display(graphState::GraphState)
     println("Adjacency matrix for ", graphState.qubits, " qubits:\n")
     display(graphState.A)
-    println("\nQubit labels: ", graphState.labels)
 end
 
 Base.print(io::IO, graphState::GraphState) = print(io, graphState.A)

@@ -29,9 +29,9 @@ mutable struct Stabilizer
     Constructor for a stabilizer from tableau form.
     """
     function Stabilizer(tab::AbstractArray)
-        len = length(tab) - 1
-        qubits = div(len, 2)
-        new(qubits, tab[1:qubits], tab[qubits+1:end-1], tab[end])
+        ncols = size(tab, 2)
+        qubits = div(ncols - 1, 2)
+        new(qubits, tab[1:qubits, 1:qubits], tab[1:qubits, qubits+1:end-1], tab[end])
     end
 end
 

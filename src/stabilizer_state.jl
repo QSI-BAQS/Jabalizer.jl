@@ -3,7 +3,6 @@
 
 qubits:      number of qubits
 stabilizers: set of state stabilizers
-labels:      qubit labels
 simulator:   simulator state
 is_updated:  flag for whether or not Julia state has
              been updated to match Stim simulator state
@@ -11,12 +10,10 @@ is_updated:  flag for whether or not Julia state has
 mutable struct StabilizerState
     qubits::Int
     stabilizers::Vector{Stabilizer}
-    labels::Vector{String} # TODO: might not be needed anymore
-    lost::Vector{Int} # TODO: might not be needed anymore
     simulator::Py
     is_updated::Bool
 
-    StabilizerState(n::Int) = new(n, Stabilizer[], String[], Int[], stim.TableauSimulator(), true)
+    StabilizerState(n::Int) = new(n, Stabilizer[], stim.TableauSimulator(), true)
     StabilizerState() = StabilizerState(0)
 end
 
@@ -50,10 +47,6 @@ function TableauToState(tab::AbstractArray{<:Integer})::StabilizerState
     for row = 1:stabs
         stab = Stabilizer(@view tab[row, :])
         push!(state.stabilizers, stab)
-    end
-
-    for n = 1:qubits
-        push!(state.labels, string(n))
     end
 
     return state
@@ -91,10 +84,8 @@ end
 function Base.display(state::StabilizerState)
     update_tableau(state)
     println("Stabilizers (", length(state.stabilizers), ") stabilizers, ",
-            state.qubits, ") qubits):")
+        state.qubits, ") qubits):")
     println(state)
-    println("Qubit labels: ", state.labels)
-    println("Lost qubits: ", state.lost)
 end
 
 """

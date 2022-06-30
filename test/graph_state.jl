@@ -7,7 +7,7 @@ using Jabalizer
     graph_state = GraphState() # Why simply GraphState() doesn't work?
 
     @test graph_state.qubits == 0
-    @test graph_state.A isa AbstractMatrix{Int}
+    @test graph_state.A isa AbstractMatrix{<:Integer}
     @test isempty(graph_state.A)
 
     # Check if initialization from an adjacency matrix works 
@@ -17,21 +17,12 @@ using Jabalizer
     @test graph_state.qubits == 2
     @test graph_state.A == A
 
-    # TODO: this fails, probably due to a bug in GraphState
-    # Check if initialization from a stabilizer state works
-    # stabilizer_state = StabilizerState(4)
-    # graph_state = GraphState(stabilizer_state)
-    # A = [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]
-    # println("My state:")
-    # println(graph_state)
-    # println(graph_state.A)
-
-    # @test graph_state.qubits == 4
-    # @test graph_state.A == A
-
+    stabilizer_state = ZeroState(4)
+    graph_state = GraphState(stabilizer_state)
+    A = [0 0 0 0; 0 0 0 0; 0 0 0 0; 0 0 0 0]
+    @test graph_state.qubits == 4
+    @test graph_state.A == A
 end
-
-
 
 
 @testset "GraphState to State conversion" begin
@@ -53,9 +44,7 @@ end
     # 1. Check if the conversion works
     # TODO: what should be some test cases here?
     # E.g. star graph -> GHZ state
-end
+    @test graph_state.qubits == 4
+    @test graph_state.A == A
 
-
-@testset "StabilizerState to GraphState conversion" begin
-    # TODO: 
 end

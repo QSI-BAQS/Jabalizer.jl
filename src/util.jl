@@ -68,7 +68,7 @@ end
 Convert a state to its graph state equivalent under local operations.
 """
 function ToGraph(state::StabilizerState)
-
+    #TODO: Add a check if state is not empty. If it is, throw an exception.
     # update the state tableau from the stim simulator
     update_tableau(state)
     newState = deepcopy(state)

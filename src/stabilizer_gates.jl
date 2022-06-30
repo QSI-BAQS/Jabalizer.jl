@@ -1,20 +1,9 @@
-# TODO: Wouldn't it be better if these:
-# a) were returning a new stabilizer instead of modifying in place?
-# A: it is easier to modify in place due to integration with stim.
-# b) all have some common typing/interface?
-# Maybe we want to create an abstract type later?
-
-
 """
     Id(state, qubit)
 
 Apply I gate to a State on qubit.
 """
-function Id(state::StabilizerState, qubit)
-    for s in state.stabilizers
-        Id(s, GetQubitLabel(state, qubit))
-    end
-end
+function Id(state::StabilizerState, qubit) end
 
 
 """
