@@ -17,8 +17,7 @@
     Jabalizer.CZ(state_2, 2, 4)
     Jabalizer.CZ(state_2, 3, 4)
 
-    #Jabalizer.update_tableau(state_2)
-    @test Jabalizer.isequal(state_1, state_2)
+    @test isequal(state_1, state_2)
 
     # Test converting state -> graph -> state
     # Prepare a 6 qubit GHZ state
@@ -28,13 +27,12 @@
     for i in 1:n-1
         Jabalizer.CNOT(state, i, i + 1)
     end
-    Jabalizer.update_tableau(state)
 
     # Convert to graph state using ToGraph
     gstate, adj, lops = Jabalizer.ToGraph(state)
 
     # Generated expected Adjacency matrix
-    expected_adj = zeros(Int64, n, n)
+    expected_adj = falses(n, n)
     for i in 2:n
         expected_adj[i, 1] = 1
         expected_adj[1, i] = 1
@@ -47,5 +45,5 @@
     # the orginal state
 
     new_gstate = Jabalizer.GraphToState(expected_adj)
-    @test Jabalizer.isequal(new_gstate, gstate)
+    @test isequal(new_gstate, gstate)
 end

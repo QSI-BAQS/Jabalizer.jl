@@ -18,12 +18,14 @@ function stim_tableau(stim_sim::Py)::Matrix{Int}
     tableau = zeros(Int, qubits, 2 * qubits + 1)
 
     for i in 1:qubits
+        ps = tab_arr[i] # Get stim PauliString representation
         # update sign
-        pyconvert(Number, tab_arr[i].sign) == -1 && (tableau[i, end] = 2)
+        pyconvert(Number, ps.sign) == -1 && (tableau[i, end] = 2)
 
         # Stabilizer replacement
         for j in 1:qubits
-            v = pyconvert(Int, get(tab_arr[i], j - 1, -1))
+            v = pyconvert(Int, get(ps, j - 1, -1))
+            # Note: 0123 represent IXYZ (different from the xz representation used here)
             if v == 1           # X replacement
                 tableau[i, j] = 1
             elseif v == 3       # Z replacement
@@ -179,39 +181,21 @@ function RowAdd(tab::Matrix{Int}, source::Int, dest::Int)
     tab[dest, :] = ToTableau(prod)
     return tab
 end
-
+#=
 """
 Convert tableau form of single Pauli operator to char.
 """
-function TabToPauli(X::Int, Z::Int)::Char
-    if X == 0 && Z == 0
-        return 'I'
-    elseif X == 1 && Z == 0
-        return 'X'
-    elseif X == 0 && Z == 1
-        return 'Z'
-    elseif X == 1 && Z == 1
-        return 'Y'
-    else
-        return 'I'
-    end
-end
+TabToPauli(x::Bool, z::Bool) = x ? ifelse(z, 'Y', 'X') : ifelse(z, 'Z', 'I')
 
 """
 Convert Pauli operator from char to tableau form.
 """
-function PauliToTab(pauli::Char)
-    if pauli == 'I'
-        return (0, 0)
-    elseif pauli == 'X'
-        return (1, 0)
-    elseif pauli == 'Z'
-        return (0, 1)
-    elseif pauli == 'Y'
-        return (1, 1)
-    else
-        return (0, 0)
-    end
+function PauliToTab(pauli::AbstractChar)
+    pauli == 'I' && return (0, 0)
+    pauli == 'X' && return (1, 0)
+    pauli == 'Z' && return (0, 1)
+    pauli == 'Y' && return (1, 1)
+    return (0, 0)
 end
 
 
@@ -222,24 +206,20 @@ end
 
 Product of two Pauli operators.
 """
-function PauliProd(left::Char, right::Char)
-    if left == 'X' && right == 'Z'
-        return ('Y', 3)
-    elseif left == 'X' && right == 'Y'
-        return ('Z', 1)
-    elseif left == 'Z' && right == 'X'
-        return ('Y', 1)
-    elseif left == 'Z' && right == 'Y'
-        return ('X', 3)
-    elseif left == 'Y' && right == 'Z'
-        return ('X', 1)
-    elseif left == 'Y' && right == 'X'
-        return ('Z', 3)
+function PauliProd(left::AbstractChar, right::AbstractChar)
+    if left == 'X'
+        right == 'Z' && return ('Y', 3)
+        right == 'Y' && return ('Z', 1)
+    elseif left == 'Z'
+        right == 'X' && return ('Y', 1)
+        right == 'Y' && return ('X', 3)
+    elseif left == 'Y'
+        right == 'Z' && return ('X', 1)
+        right == 'X' && return ('Z', 3)
     elseif left == 'I'
         return (right, 0)
-    elseif right == 'I'
-        return (left, 0)
-    else
-        return ('I', 0)
     end
+    right == 'I' && return (left, 0)
+    return ('I', 0)
 end
+=#

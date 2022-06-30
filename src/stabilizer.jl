@@ -5,8 +5,8 @@ Type for a single stabilizer in the n-qubit Pauli group.
 """
 mutable struct Stabilizer
     qubits::Int
-    X::Vector{Int}
-    Z::Vector{Int}
+    X::BitVector
+    Z::BitVector
     phase::Int
 
     """
@@ -14,14 +14,14 @@ mutable struct Stabilizer
 
     Constructor for an empty stabilizer.
     """
-    Stabilizer() = new(0, Int[], Int[], 0)
+    Stabilizer() = new(0, falses(0), falses(0), 0)
 
     """
         Stabilizer(n)
 
     Constructor for an n-qubit identity stabilizer.
     """
-    Stabilizer(n::Int) = new(n, zeros(Int, n), zeros(Int, n), 0)
+    Stabilizer(n::Int) = new(n, falses(n), falses(n), 0)
 
     """
         Stabilizer(tableau)
@@ -51,6 +51,32 @@ function Base.adjoint(stabilizer::Stabilizer)::Stabilizer
     return conj
 end
 
+const OpI = 0
+const OpX = 1
+const OpZ = 2
+const OpY = 3
+
+_pauli(x::Bool, z::Bool) = (z<<1)|x
+
+function _prod(left::Int, right::Int)
+    if left == OpX
+        right == OpZ && return (1, 1, 3) # (OpY, 3)
+        right == OpY && return (0, 1, 1) # (OpZ, 1)
+        right == OpI && return (1, 0, 0) # (OpX, 0)
+    elseif left == OpZ
+        right == OpX && return (1, 1, 1) # (OpY, 1)
+        right == OpY && return (1, 0, 3) # (OpX, 3)
+        right == OpI && return (0, 1, 0) # (OpZ, 0)
+    elseif left == OpY
+        right == OpZ && return (1, 0, 1) # (OpX, 1)
+        right == OpX && return (0, 1, 3) # (OpZ, 3)
+        right == OpI && return (1, 1, 0) # (OpY, 0)
+    else # left == OpI
+        return (right&1, right>>1, 0)
+    end
+    return (0, 0, 0) # (OpI, 0)
+end
+
 """
     *(left,right)
 
@@ -58,23 +84,14 @@ Multiplication operator for stabilizers.
 """
 function Base.:*(left::Stabilizer, right::Stabilizer)::Stabilizer
     left.qubits == right.qubits || return left
-
     qubits = left.qubits
     prod = Stabilizer(qubits)
     prod.phase = (left.phase + right.phase) % 4
-
     for n = 1:qubits
-        leftPauli = TabToPauli(left.X[n], left.Z[n])
-        rightPauli = TabToPauli(right.X[n], right.Z[n])
-
-        thisPauli = PauliProd(leftPauli, rightPauli)
-        thisTab = PauliToTab(thisPauli[1])
-
-        (prod.X[n], prod.Z[n]) = (thisTab[1], thisTab[2])
-        prod.phase += thisPauli[2]
-        prod.phase %= 4
+        (prod.X[n], prod.Z[n], phase) =
+            _prod(_pauli(left.X[n], left.Z[n]), _pauli(right.X[n], right.Z[n]))
+        prod.phase = (prod.phase + phase) % 4
     end
-
     return prod
 end
 
