@@ -3,16 +3,14 @@
 @testset "StabilizerState initialization" begin
     state = Jabalizer.StabilizerState()
     @test state.qubits == 0
-    @test state.stabilizers == []
+    @test isempty(state.stabilizers)
 
 
     for i in 1:4
         state = Jabalizer.StabilizerState(i)
         @test state.qubits == i
-        @test state.stabilizers == []
+        @test isempty(state.stabilizers)
     end
-
-    # TODO: Jabalizer.ToTableau(state) doesn't work here, not sure if that's intentional?
 end
 
 @testset "ZeroState initialization" begin

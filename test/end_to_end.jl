@@ -15,10 +15,10 @@
 
 
     (g, A, seq) = Jabalizer.ToGraph(state)
-    # Jabalizer.gplot(g)
+    Jabalizer.gplot(g)
 
     # TODO
-    # @test target_tab == Jabalizer.ToTableau(state)
+    @test target_tab == Jabalizer.ToTableau(state)
 
 
 end

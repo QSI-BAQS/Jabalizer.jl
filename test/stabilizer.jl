@@ -27,22 +27,15 @@
         @test stabilizer.Z == [1]
         @test stabilizer.phase == 0
 
-        # TODO: this test is not working, don't know why
-        # state = Jabalizer.ZeroState(2)
-        # tableau = Jabalizer.ToTableau(state)
-        # println(tableau)
-        # tableau = [0 1 1 0 2; 1 0 0 1 2]
-        # println(tableau)
-        # stabilizer = Jabalizer.Stabilizer(tableau)
-
-        # @test stabilizer.qubits == 2
-        # @test stabilizer.X == [0 1; 1 0]
-        # @test stabilizer.Z == [1 0; 0 1]
-        # @test stabilizer.phase == 2
+        tableau = [0 1 1 0 2; 1 0 0 1 2]
+        stabilizer = Jabalizer.Stabilizer(tableau)
+        println(stabilizer)
+        @test stabilizer.qubits == 2
+        @test stabilizer.X == [0 1; 1 0]
+        @test stabilizer.Z == [1 0; 0 1]
+        @test stabilizer.phase == 2
 
     end
-
-
 end
 
 @testset "Stabilizer to Tableu conversion" begin
