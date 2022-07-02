@@ -50,7 +50,7 @@ Conjugate of a stabilizer.
 """
 function Base.adjoint(stabilizer::Stabilizer)::Stabilizer
     conj = deepcopy(stabilizer)
-    conj.phase = (-conj.phase) % 4
+    conj.phase = mod(-conj.phase, 4)
     return conj
 end
 
@@ -72,11 +72,11 @@ function Base.:*(left::Stabilizer, right::Stabilizer)::Stabilizer
     left.qubits == right.qubits || return left
     qubits = left.qubits
     prod = Stabilizer(qubits)
-    prod.phase = (left.phase + right.phase) % 4
+    prod.phase = (left.phase + right.phase) & 3
     for n = 1:qubits
         (prod.X[n], prod.Z[n], phase) =
             _prodtab[((left.X[n]<<3)|(left.Z[n]<<2)|(right.X[n]<<1)|right.Z[n])+1]
-        prod.phase = (prod.phase + phase) % 4
+        prod.phase = (prod.phase + phase) & 3
     end
     return prod
 end
