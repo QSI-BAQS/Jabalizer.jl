@@ -54,7 +54,10 @@ function Base.adjoint(stabilizer::Stabilizer)::Stabilizer
     return conj
 end
 
-# Use a table to calculate the product
+# This table is used to calculate the product by indexing a vector of tuples of the
+# results (X, Z, phase), by the values of the left X, left Z, right X, right Z used
+# as a 4 bit index (left X is most signficant bit, right Z is least significant bit)
+# (+ 1 for Julia 1-based indexing)
 const _prodtab = [(0, 0, 0), (0, 1, 0), (1, 0, 0), (1, 1, 0),
                   (0, 1, 0), (0, 0, 0), (1, 1, 1), (1, 0, 3),
                   (1, 0, 0), (1, 1, 3), (0, 0, 0), (0, 1, 1),
