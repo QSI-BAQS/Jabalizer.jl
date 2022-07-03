@@ -4,7 +4,10 @@ using Graphs, GraphPlot, LinearAlgebra
 using Documenter
 using PythonCall
 
-export Stabilizer, StabilizerState, GraphState
+export Stabilizer, StabilizerState, GraphState, Gates
+
+include("gates.jl")
+using .Gates
 
 const stim = PythonCall.pynew() # initially NULL
 const cirq = PythonCall.pynew() # initially NULL

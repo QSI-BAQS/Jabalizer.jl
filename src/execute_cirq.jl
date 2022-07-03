@@ -22,7 +22,7 @@ end
 Takes a stabilizer state and cirq circuit as input and applying the
 circuit to the stabilizer state.
 """
-function execute_cirq_circuit(state::Jabalizer.StabilizerState, circuit::Py)
+function execute_cirq_circuit(state::StabilizerState, circuit::Py)
     # Mapping of cirq gates to Jabalizer gates.
     # TODO: this seems to be inefficient, there is probably a better way to do that.
     # get ordered array of qubits
@@ -38,7 +38,7 @@ function execute_cirq_circuit(state::Jabalizer.StabilizerState, circuit::Py)
             # determines indicies of the qubit the gate is acting on
             qindex = [findfirst(isequal(q), qubits) for q in op.qubits]
             # Applies the Jabilizer gate corresponding to the Cirq gate.
-            gate_map[op.gate](state, qindex...)
+            gate_map[op.gate](qindex...)(state)
         end
     end
 end

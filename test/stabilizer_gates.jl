@@ -3,11 +3,11 @@
 """
 Generates one-qubit states used for testing
 """
-function generate_one_qubit_state(state_str)
+function generate_one_qubit_state(state_chr)
 
     state = Jabalizer.ZeroState(1)
-    (state_str == "1" || state_str == "-") && Jabalizer.X(state, 1)
-    (state_str == "+" || state_str == "-") && Jabalizer.H(state, 1)
+    (state_chr == '1' || state_chr == '-') && X(1)(state)
+    (state_chr == '+' || state_chr == '-') && H(1)(state)
     return state
 end
 
@@ -21,193 +21,123 @@ function generate_two_qubit_state(arr)
     a, b, c, d = arr
     state = Jabalizer.ZeroState(2)
 
-    Bool(a) && Jabalizer.X(state, 1)
-    Bool(b) && Jabalizer.X(state, 2)
-    Bool(c) && Jabalizer.H(state, 1)
-    Bool(d) && Jabalizer.H(state, 2)
+    Bool(a) && X(1)(state)
+    Bool(b) && X(2)(state)
+    Bool(c) && H(1)(state)
+    Bool(d) && H(2)(state)
 
     return state
 end
 
 # TODO: Jabalizer.I is missing
-one_qubit_test_cases = (
-    ("0", Jabalizer.P, [0 1 0]),
-    ("0", Jabalizer.X, [0 1 2]),
-    ("0", Jabalizer.Y, [0 1 2]),
-    ("0", Jabalizer.Z, [0 1 0]),
-    ("0", Jabalizer.H, [1 0 0]),
-    ("1", Jabalizer.P, [0 1 2]),
-    ("1", Jabalizer.X, [0 1 0]),
-    ("1", Jabalizer.Y, [0 1 0]),
-    ("1", Jabalizer.Z, [0 1 2]),
-    ("1", Jabalizer.H, [1 0 2]),
-    ("+", Jabalizer.P, [1 1 0]),
-    ("+", Jabalizer.X, [1 0 0]),
-    ("+", Jabalizer.Y, [1 0 2]),
-    ("+", Jabalizer.Z, [1 0 2]),
-    ("+", Jabalizer.H, [0 1 0]),
-    ("-", Jabalizer.P, [1 1 2]),
-    ("-", Jabalizer.X, [1 0 2]),
-    ("-", Jabalizer.Y, [1 0 0]),
-    ("-", Jabalizer.Z, [1 0 0]),
-    ("-", Jabalizer.H, [0 1 2]),
-)
+const one_qubit_test_cases =
+    (('0', P, [0 1 0]),
+     ('0', X, [0 1 2]),
+     ('0', Y, [0 1 2]),
+     ('0', Z, [0 1 0]),
+     ('0', H, [1 0 0]),
+     ('1', P, [0 1 2]),
+     ('1', X, [0 1 0]),
+     ('1', Y, [0 1 0]),
+     ('1', Z, [0 1 2]),
+     ('1', H, [1 0 2]),
+     ('+', P, [1 1 0]),
+     ('+', X, [1 0 0]),
+     ('+', Y, [1 0 2]),
+     ('+', Z, [1 0 2]),
+     ('+', H, [0 1 0]),
+     ('-', P, [1 1 2]),
+     ('-', X, [1 0 2]),
+     ('-', Y, [1 0 0]),
+     ('-', Z, [1 0 0]),
+     ('-', H, [0 1 2]))
 
 @testset "One qubit gates" begin
-    for (state_str, op, target_tableau) in one_qubit_test_cases
-        @testset "Gate $op on state $state_str" begin
-            state = generate_one_qubit_state(state_str)
-            op(state, 1)
+    for (state_chr, op, target_tableau) in one_qubit_test_cases
+        @testset "Gate $op on state $state_chr" begin
+            state = generate_one_qubit_state(state_chr)
+            op(1)(state)
             @test target_tableau == Jabalizer.ToTableau(state)
         end
     end
 end
 
+# Tableau dictionary contains result of applying CNOT to
+# H_2^d H_1^c X_2^b X_1^a | 0 0 > with key [a b c d]
+
+const cnot_output =
+    Dict((0,0,0,0) => [0 0 1 0 0; 0 0 1 1 0], # |0 0> => |0 0>
+         (0,0,0,1) => [0 0 1 0 0; 0 1 0 0 0], # |0 +> => |0 +>
+         (0,0,1,0) => [1 1 0 0 0; 0 0 1 1 0], # |+ 0> => |00> + |11>
+         (0,0,1,1) => [1 1 0 0 0; 0 1 0 0 0], # |+ +> => |++>
+         (0,1,0,0) => [0 0 1 0 0; 0 0 1 1 2], # |0 1> => |0 1>
+         (0,1,0,1) => [0 0 1 0 0; 0 1 0 0 2], # |0 -> => |0 1>
+         (0,1,1,0) => [1 1 0 0 0; 0 0 1 1 2], # |0 -> => |0 ->
+         (0,1,1,1) => [1 1 0 0 0; 0 1 0 0 2], # |+ -> => |- ->
+         (1,0,0,0) => [0 0 1 0 2; 0 0 1 1 0], # |1 0> => |1 1>
+         (1,0,0,1) => [0 0 1 0 2; 0 1 0 0 0], # |1 +> => |1 +>
+         (1,0,1,0) => [1 1 0 0 2; 0 0 1 1 0], # |1 +> => |1 +>
+         (1,0,1,1) => [1 1 0 0 2; 0 1 0 0 0], # |- +> => |- +>
+         (1,1,0,0) => [0 0 1 0 2; 0 0 1 1 2], # |1 1> => |1 0>
+         (1,1,0,1) => [0 0 1 0 2; 0 1 0 0 2], # |1 -> => -|1 ->
+         (1,1,1,0) => [1 1 0 0 2; 0 0 1 1 2], # |- 1> => |0 1> - |10>
+         (1,1,1,1) => [1 1 0 0 2; 0 1 0 0 2]) # |- -> => |+ ->
+
+const cz_output =
+    Dict((0,0,0,0) => [0 0 1 0 0; 0 0 0 1 0], # |0 0> => |0 0>
+         (0,0,0,1) => [0 0 1 0 0; 0 1 1 0 0], # |0 +> => |0 +>
+         (0,0,1,0) => [1 0 0 1 0; 0 0 0 1 0], # |+ 0> => |00> + |11>
+         (0,0,1,1) => [1 0 0 1 0; 0 1 1 0 0], # |+ +> => |++>
+         (0,1,0,0) => [0 0 1 0 0; 0 0 0 1 2], # |0 1> => |0 1>
+         (0,1,0,1) => [0 0 1 0 0; 0 1 1 0 2], # |0 -> => |0 1>
+         (0,1,1,0) => [1 0 0 1 0; 0 0 0 1 2], # |+ 1> => |0 1> + |10>
+         (0,1,1,1) => [1 0 0 1 0; 0 1 1 0 2], # |+ -> => |- ->
+         (1,0,0,0) => [0 0 1 0 2; 0 0 0 1 0], # |1 0> => |1 1>
+         (1,0,0,1) => [0 0 1 0 2; 0 1 1 0 0], # |1 +> => |1 +>
+         (1,0,1,0) => [1 0 0 1 2; 0 0 0 1 0], # |- 0> => |00> - |11>
+         (1,0,1,1) => [1 0 0 1 2; 0 1 1 0 0], # |- +> => |- +>
+         (1,1,0,0) => [0 0 1 0 2; 0 0 0 1 2], # |1 1> => |1 0>
+         (1,1,0,1) => [0 0 1 0 2; 0 1 1 0 2], # |1 -> => -|1 ->
+         (1,1,1,0) => [1 0 0 1 2; 0 0 0 1 2], # |- 1> => |0 1> - |10>
+         (1,1,1,1) => [1 0 0 1 2; 0 1 1 0 2]) # |- -> => |+ ->
+
+const swap_output =
+    Dict((0,0,0,0) => [0 0 0 1 0; 0 0 1 0 0],
+         (0,0,0,1) => [0 0 0 1 0; 1 0 0 0 0],
+         (0,0,1,0) => [0 1 0 0 0; 0 0 1 0 0],
+         (0,0,1,1) => [0 1 0 0 0; 1 0 0 0 0],
+         (0,1,0,0) => [0 0 0 1 0; 0 0 1 0 2],
+         (0,1,0,1) => [0 0 0 1 0; 1 0 0 0 2],
+         (0,1,1,0) => [0 1 0 0 0; 0 0 1 0 2],
+         (0,1,1,1) => [0 1 0 0 0; 1 0 0 0 2],
+         (1,0,0,0) => [0 0 0 1 2; 0 0 1 0 0],
+         (1,0,0,1) => [0 0 0 1 2; 1 0 0 0 0],
+         (1,0,1,0) => [0 1 0 0 2; 0 0 1 0 0],
+         (1,0,1,1) => [0 1 0 0 2; 1 0 0 0 0],
+         (1,1,0,0) => [0 0 0 1 2; 0 0 1 0 2],
+         (1,1,0,1) => [0 0 0 1 2; 1 0 0 0 2],
+         (1,1,1,0) => [0 1 0 0 2; 0 0 1 0 2],
+         (1,1,1,1) => [0 1 0 0 2; 1 0 0 0 2])
 
 @testset "Two qubit gates" begin
-    # Tableau dictionary contains result of applying CNOT to
-    # H_2^d H_1^c X_2^b X_1^a | 0 0 > with key [a b c d]
-    cnot_output = Dict(
-        # |0 0> => |0 0>
-        [0 0 0 0] => [0 0 1 0 0
-            0 0 1 1 0],
-        # |0 +> => |0 +>
-        [0 0 0 1] => [0 0 1 0 0
-            0 1 0 0 0],
-        # |+ 0> => |00> + |11>
-        [0 0 1 0] => [1 1 0 0 0
-            0 0 1 1 0],
-        # |+ +> => |++>
-        [0 0 1 1] => [1 1 0 0 0
-            0 1 0 0 0],
-        # |0 1> => |0 1>
-        [0 1 0 0] => [0 0 1 0 0
-            0 0 1 1 2],
-        # |0 -> => |0 1>
-        [0 1 0 1] => [0 0 1 0 0
-            0 1 0 0 2],
-        # |0 -> => |0 ->
-        [0 1 1 0] => [1 1 0 0 0
-            0 0 1 1 2],
-        # |+ -> => |- ->
-        [0 1 1 1] => [1 1 0 0 0
-            0 1 0 0 2],
-        # |1 0> => |1 1>
-        [1 0 0 0] => [0 0 1 0 2
-            0 0 1 1 0],
-        # |1 +> => |1 +>
-        [1 0 0 1] => [0 0 1 0 2
-            0 1 0 0 0],
-        # |1 +> => |1 +>
-        [1 0 1 0] => [1 1 0 0 2
-            0 0 1 1 0],
-        # |- +> => |- +>
-        [1 0 1 1] => [1 1 0 0 2
-            0 1 0 0 0],
-        # |1 1> => |1 0>
-        [1 1 0 0] => [0 0 1 0 2
-            0 0 1 1 2],
-        # |1 -> => -|1 ->
-        [1 1 0 1] => [0 0 1 0 2
-            0 1 0 0 2],
-        # |- 1> => |0 1> - |10>
-        [1 1 1 0] => [1 1 0 0 2
-            0 0 1 1 2],
-        # |- -> => |+ ->
-        [1 1 1 1] => [1 1 0 0 2
-            0 1 0 0 2],
-    )
-    cz_output = Dict(
-        # |0 0> => |0 0>
-        [0 0 0 0] => [0 0 1 0 0
-            0 0 0 1 0],
-        # |0 +> => |0 +>
-        [0 0 0 1] => [0 0 1 0 0
-            0 1 1 0 0],
-        # |+ 0> => |00> + |11>
-        [0 0 1 0] => [1 0 0 1 0
-            0 0 0 1 0],
-        # |+ +> => |++>
-        [0 0 1 1] => [1 0 0 1 0
-            0 1 1 0 0],
-        # |0 1> => |0 1>
-        [0 1 0 0] => [0 0 1 0 0
-            0 0 0 1 2],
-        # |0 -> => |0 1>
-        [0 1 0 1] => [0 0 1 0 0
-            0 1 1 0 2],
-        # |+ 1> => |0 1> + |10>
-        [0 1 1 0] => [1 0 0 1 0
-            0 0 0 1 2],
-        # |+ -> => |- ->
-        [0 1 1 1] => [1 0 0 1 0
-            0 1 1 0 2],
-        # |1 0> => |1 1>
-        [1 0 0 0] => [0 0 1 0 2
-            0 0 0 1 0],
-        # |1 +> => |1 +>
-        [1 0 0 1] => [0 0 1 0 2
-            0 1 1 0 0],
-        # |- 0> => |00> - |11>
-        [1 0 1 0] => [1 0 0 1 2
-            0 0 0 1 0],
-        # |- +> => |- +>
-        [1 0 1 1] => [1 0 0 1 2
-            0 1 1 0 0],
-        # |1 1> => |1 0>
-        [1 1 0 0] => [0 0 1 0 2
-            0 0 0 1 2],
-        # |1 -> => -|1 ->
-        [1 1 0 1] => [0 0 1 0 2
-            0 1 1 0 2],
-        # |- 1> => |0 1> - |10>
-        [1 1 1 0] => [1 0 0 1 2
-            0 0 0 1 2],
-        # |- -> => |+ ->
-        [1 1 1 1] => [1 0 0 1 2
-            0 1 1 0 2],
-    )
-    swap_output = Dict(
-        [0 0 0 0] => [0 0 0 1 0; 0 0 1 0 0],
-        [0 0 0 1] => [0 0 0 1 0; 1 0 0 0 0],
-        [0 0 1 0] => [0 1 0 0 0; 0 0 1 0 0],
-        [0 0 1 1] => [0 1 0 0 0; 1 0 0 0 0],
-        [0 1 0 0] => [0 0 0 1 0; 0 0 1 0 2],
-        [0 1 0 1] => [0 0 0 1 0; 1 0 0 0 2],
-        [0 1 1 0] => [0 1 0 0 0; 0 0 1 0 2],
-        [0 1 1 1] => [0 1 0 0 0; 1 0 0 0 2],
-        [1 0 0 0] => [0 0 0 1 2; 0 0 1 0 0],
-        [1 0 0 1] => [0 0 0 1 2; 1 0 0 0 0],
-        [1 0 1 0] => [0 1 0 0 2; 0 0 1 0 0],
-        [1 0 1 1] => [0 1 0 0 2; 1 0 0 0 0],
-        [1 1 0 0] => [0 0 0 1 2; 0 0 1 0 2],
-        [1 1 0 1] => [0 0 0 1 2; 1 0 0 0 2],
-        [1 1 1 0] => [0 1 0 0 2; 0 0 1 0 2],
-        [1 1 1 1] => [0 1 0 0 2; 1 0 0 0 2],
-    )
-
-    # Loop generates all arrays [a, b, c, d] with a,b,c,d in {0,1}
+    # Loop generates all arrays (a, b, c, d) with a,b,c,d in {0,1}
     for bitarr in Base.Iterators.product(0:1, 0:1, 0:1, 0:1)
         @testset "CNOT for array: $bitarr " begin
             state = generate_two_qubit_state(bitarr)
-            Jabalizer.CNOT(state, 1, 2)
-            a, b, c, d = bitarr
-            @test cnot_output[[a b c d]] == Jabalizer.ToTableau(state)
+            CNOT(1, 2)(state)
+            @test cnot_output[bitarr] == Jabalizer.ToTableau(state)
         end
 
         @testset "CZ for array: $bitarr " begin
             state = generate_two_qubit_state(bitarr)
-            Jabalizer.CZ(state, 1, 2)
-            a, b, c, d = bitarr
-            @test cz_output[[a b c d]] == Jabalizer.ToTableau(state)
+            CZ(1, 2)(state)
+            @test cz_output[bitarr] == Jabalizer.ToTableau(state)
         end
 
         @testset "SWAP for array: $bitarr " begin
             state = generate_two_qubit_state(bitarr)
-            Jabalizer.SWAP(state, 1, 2)
-            a, b, c, d = bitarr
-            @test swap_output[[a b c d]] == Jabalizer.ToTableau(state)
+            SWAP(1, 2)(state)
+            @test swap_output[bitarr] == Jabalizer.ToTableau(state)
         end
-
     end
 end

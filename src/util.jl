@@ -84,7 +84,7 @@ function ToGraph(state::StabilizerState)
         lead_sum = sum(tab[n:stabs, n])
 
         if lead_sum == 0
-            H(tab, n)
+            hadamard!(tab, n)
             push!(LOseq, ("H", n))
             tab = sortslices(tab, dims=1, rev=true)
             lead_sum = sum(tab[n:stabs, n])
@@ -136,11 +136,11 @@ end
 # TODO: Why this is the only operation we have for tabs?
 # TODO: Madhav – could you provide some extra context in the docstring.
 """
-    H(tab::Matrix{Int}, qubit)
+    hadamard!(tab::Matrix{Int}, qubit)
 
 Performs the Hadamard operation on the given tableau
 """
-function H(tab::AbstractArray{<:Integer}, qubit)
+function hadamard!(tab::AbstractArray{<:Integer}, qubit)
     # TODO: I'd say `tab` should be renamed to `tableau` (in other places as well)
     qubit_no = size(tab, 2)>>1
     for i in 1:qubit_no
