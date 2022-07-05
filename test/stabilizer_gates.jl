@@ -5,7 +5,7 @@ Generates one-qubit states used for testing
 """
 function generate_one_qubit_state(state_chr)
 
-    state = Jabalizer.ZeroState(1)
+    state = zero_state(1)
     (state_chr == '1' || state_chr == '-') && X(1)(state)
     (state_chr == '+' || state_chr == '-') && H(1)(state)
     return state
@@ -19,7 +19,7 @@ state combinations (e.g. |0 +> for [0 0 0 1] )
 """
 function generate_two_qubit_state(arr)
     a, b, c, d = arr
-    state = Jabalizer.ZeroState(2)
+    state = zero_state(2)
 
     Bool(a) && X(1)(state)
     Bool(b) && X(2)(state)
@@ -57,7 +57,7 @@ const one_qubit_test_cases =
         @testset "Gate $op on state $state_chr" begin
             state = generate_one_qubit_state(state_chr)
             op(1)(state)
-            @test target_tableau == Jabalizer.ToTableau(state)
+            @test target_tableau == to_tableau(state)
         end
     end
 end
@@ -125,19 +125,19 @@ const swap_output =
         @testset "CNOT for array: $bitarr " begin
             state = generate_two_qubit_state(bitarr)
             CNOT(1, 2)(state)
-            @test cnot_output[bitarr] == Jabalizer.ToTableau(state)
+            @test cnot_output[bitarr] == to_tableau(state)
         end
 
         @testset "CZ for array: $bitarr " begin
             state = generate_two_qubit_state(bitarr)
             CZ(1, 2)(state)
-            @test cz_output[bitarr] == Jabalizer.ToTableau(state)
+            @test cz_output[bitarr] == to_tableau(state)
         end
 
         @testset "SWAP for array: $bitarr " begin
             state = generate_two_qubit_state(bitarr)
             SWAP(1, 2)(state)
-            @test swap_output[bitarr] == Jabalizer.ToTableau(state)
+            @test swap_output[bitarr] == to_tableau(state)
         end
     end
 end

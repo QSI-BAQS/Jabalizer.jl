@@ -39,9 +39,9 @@ mutable struct Stabilizer
 end
 
 """
-Convert stabilizer to tableau form.
+Convert stabilizer to vector form (one row of a tableau)
 """
-ToTableau(stabilizer::Stabilizer) = vcat(stabilizer.X, stabilizer.Z, stabilizer.phase)
+to_tableau_row(stabilizer::Stabilizer) = vcat(stabilizer.X, stabilizer.Z, stabilizer.phase)
 
 """
     adjoint(stabilizer)

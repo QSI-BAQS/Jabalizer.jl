@@ -1,29 +1,21 @@
-# include("../src/Jabalizer.jl")
 using Jabalizer
-# using LightGraphs, GraphPlot
+# using Graphs, GraphPlot
 
 # Prepare a 6-qubit GHZ state
 n = 6
-state = Jabalizer.ZeroState(n)
-Jabalizer.H(state,1)
-Jabalizer.CNOT(state,1,2)
-Jabalizer.CNOT(state,1,3)
-Jabalizer.CNOT(state,1,4)
-Jabalizer.CNOT(state,1,5)
-Jabalizer.CNOT(state,1,6)
+state = zero_state(n)
+state |> H(1) |> CNOT(1,2) |> CNOT(1,3) |> CNOT(1,4) |> CNOT(1,5) |> CNOT(1,6)
 # Display the stabilizer tableau
-Jabalizer.update_tableau(state)
-tab = Jabalizer.ToTableau(state)
+tab = to_tableau(state)
 display(tab)
 
 # Convert to graph state
-graphState = Jabalizer.GraphState(state)
+graph_state = GraphState(state)
 println("Graph adjacency matrix")
-display(graphState.A)
-gplot(Graph(graphState.A))
+display(graph_state.A)
+gplot(Graph(graph_state.A))
 
 # Convert back to stabilizer state
-stabState = Jabalizer.StabilizerState(graphState)
-Jabalizer.update_tableau(stabState)
-tab = Jabalizer.ToTableau(stabState)
+stab_state = StabilizerState(graph_state)
+tab = to_tableau(stab_state)
 display(tab)

@@ -8,17 +8,17 @@
 
 
     iicm_length = length(iicm_circuit.all_qubits())
-    state = Jabalizer.ZeroState(iicm_length)
+    state = zero_state(iicm_length)
 
 
     Jabalizer.execute_cirq_circuit(state, iicm_circuit)
 
 
-    (g, A, seq) = Jabalizer.ToGraph(state)
+    (g, A, seq) = to_graph(state)
     Jabalizer.gplot(g)
 
     # TODO
-    @test target_tab == Jabalizer.ToTableau(state)
+    @test target_tab == to_tableau(state)
 
 
 end

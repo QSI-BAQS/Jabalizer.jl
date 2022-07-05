@@ -52,7 +52,7 @@ function update_tableau(state::StabilizerState)
     tableau = stim_tableau(state.simulator)
 
     # create a new state temporarily
-    inbetween_state = TableauToState(tableau)
+    inbetween_state = tableau_to_state(tableau)
 
     # update the initial state
     state.qubits = inbetween_state.qubits
@@ -63,11 +63,11 @@ function update_tableau(state::StabilizerState)
 end
 
 """
-    ToGraph(state)
+    to_graph(state)
 
-Convert a state to its graph state equivalent under local operations.
+Convert a state to its adjacency graph state equivalent under local operations.
 """
-function ToGraph(state::StabilizerState)
+function to_graph(state::StabilizerState)
     #TODO: Add a check if state is not empty. If it is, throw an exception.
     # update the state tableau from the stim simulator
     update_tableau(state)
@@ -76,7 +76,7 @@ function ToGraph(state::StabilizerState)
     stabs = length(state.stabilizers)
     LOseq = Any[] # Sequence of local operations performed
 
-    tab = sortslices(ToTableau(newState), dims=1, rev=true)
+    tab = sortslices(to_tableau(newState), dims=1, rev=true)
 
     # Make X-block upper triangular
     for n in 1:stabs
@@ -120,7 +120,7 @@ function ToGraph(state::StabilizerState)
         end
     end
 
-    newState = GraphToState(tab[:, qubits+1:2*qubits])
+    newState = graph_to_state(tab[:, qubits+1:2*qubits])
 
     # Adjacency matrix
     A = tab[:, (qubits+1):(2*qubits)]
@@ -158,5 +158,5 @@ Row addition operation for tableaus.
 """
 function _add_row!(tab::Matrix{Int}, source::Int, dest::Int)
     prod = Stabilizer(view(tab, source, :)) * Stabilizer(view(tab, dest, :))
-    tab[dest, :] = ToTableau(prod)
+    tab[dest, :] = to_tableau_row(prod)
 end

@@ -7,13 +7,13 @@
 
 @testset "GraphState to State conversion" begin
     A = [0 1 1 1 1; 1 0 0 0 0; 1 0 0 0 0; 1 0 0 0 0; 1 0 0 0 0]
-    graph_state = Jabalizer.GraphState(A)
+    graph_state = GraphState(A)
 
-    stabilizer_state = Jabalizer.StabilizerState(graph_state)
+    stabilizer_state = StabilizerState(graph_state)
 
     # TODO: test whether StabilizerState is what we expect it to be
 
-    recovered_graph_state = Jabalizer.GraphState(stabilizer_state)
+    recovered_graph_state = GraphState(stabilizer_state)
 
     @test graph_state.qubits == recovered_graph_state.qubits
     @test graph_state.A == recovered_graph_state.A
