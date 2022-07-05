@@ -8,11 +8,8 @@ mutable struct GraphState
     A::Matrix{Int} # TODO: Rename "A" to something more verbose, e.g. "adj_matrix".
 
     GraphState() = new(0, Matrix{Int}(undef, 0, 0))
-    GraphState(state::StabilizerState) =
-    function GraphState(A::AbstractArray{<:Integer})
-        qubits = size(A, 1)
-        new(qubits, A)
-    end
+    GraphState(A::AbstractMatrix{<:Integer}) = new(size(A, 1), A)
+    GraphState(state::StabilizerState) = new(state.qubits, ToGraph(state)[2])
 end
 
 # TODO: rename to GraphStateToState (or just to_state, even better idea!)

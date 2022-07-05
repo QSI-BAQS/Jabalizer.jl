@@ -74,7 +74,7 @@ function ToGraph(state::StabilizerState)
     newState = deepcopy(state)
     qubits = state.qubits
     stabs = length(state.stabilizers)
-    LOseq = [] # Sequence of local operations performed
+    LOseq = Any[] # Sequence of local operations performed
 
     tab = sortslices(ToTableau(newState), dims=1, rev=true)
 
@@ -92,18 +92,14 @@ function ToGraph(state::StabilizerState)
 
         if lead_sum > 1
             for m in (n+1):(n+lead_sum-1)
-                tab = RowAdd(tab, n, m)
+                _add_row!(tab, n, m)
             end
         end
     end
 
     # Make diagonal X-block
-    for n = (stabs-1):-1:1
-        for m = (n+1):stabs
-            if tab[n, m] == 1
-                tab = RowAdd(tab, m, n)
-            end
-        end
+    for n = (stabs-1):-1:1, m = (n+1):stabs
+        tab[n, m] == 1 && _add_row!(tab, m, n)
     end
 
     # Phase correction
@@ -130,18 +126,9 @@ function ToGraph(state::StabilizerState)
     A = tab[:, (qubits+1):(2*qubits)]
     phases = sum(tab[:, 2*qubits+1])
 
-    if A != A'
-        println("Error: invalid graph conversion (non-symmetric).")
-    end
-
-    if tr(A) != 0
-        println("Error: invalid graph conversion (non-zero trace).")
-    end
-
-    if phases != 0
-        println("Error: invalid graph conversion (non-zero phase).")
-        println("phases=", phases)
-    end
+    A == A' || println("Error: invalid graph conversion (non-symmetric).")
+    tr(A) == 0 || println("Error: invalid graph conversion (non-zero trace).")
+    phases == 0 || println("Error: invalid graph conversion (non-zero phase).\nphases=$phases")
 
     return (newState, A, LOseq)
 end
@@ -153,8 +140,9 @@ end
 
 Performs the Hadamard operation on the given tableau
 """
-function H(tab::Matrix{Int}, qubit) # TODO: I'd say `tab` should be renamed to `tableau` (in other places as well)
-    qubit_no = length(tab[:, 1])
+function H(tab::AbstractArray{<:Integer}, qubit)
+    # TODO: I'd say `tab` should be renamed to `tableau` (in other places as well)
+    qubit_no = size(tab, 2)>>1
     for i in 1:qubit_no
         x = tab[i, qubit]
         z = tab[i, qubit+qubit_no]
@@ -167,59 +155,15 @@ function H(tab::Matrix{Int}, qubit) # TODO: I'd say `tab` should be renamed to `
         #Swap x and z
         tab[i, qubit] = z
         tab[i, qubit+qubit_no] = x
-
     end
 end
 
 """
-    RowAdd(tableau, source, dest)
+    _add_row(tableau, source, dest)
 
 Row addition operation for tableaus.
 """
-function RowAdd(tab::Matrix{Int}, source::Int, dest::Int)
-    prod = Stabilizer(@view tab[source, :]) * Stabilizer(@view tab[dest, :])
+function _add_row!(tab::Matrix{Int}, source::Int, dest::Int)
+    prod = Stabilizer(view(tab, source, :)) * Stabilizer(view(tab, dest, :))
     tab[dest, :] = ToTableau(prod)
-    return tab
 end
-#=
-"""
-Convert tableau form of single Pauli operator to char.
-"""
-TabToPauli(x::Bool, z::Bool) = x ? ifelse(z, 'Y', 'X') : ifelse(z, 'Z', 'I')
-
-"""
-Convert Pauli operator from char to tableau form.
-"""
-function PauliToTab(pauli::AbstractChar)
-    pauli == 'I' && return (0, 0)
-    pauli == 'X' && return (1, 0)
-    pauli == 'Z' && return (0, 1)
-    pauli == 'Y' && return (1, 1)
-    return (0, 0)
-end
-
-
-# TODO: Performing these on strings look weird to me.
-# It seems to me there's some better data structure for this.
-"""
-    PauliProd(left, right)
-
-Product of two Pauli operators.
-"""
-function PauliProd(left::AbstractChar, right::AbstractChar)
-    if left == 'X'
-        right == 'Z' && return ('Y', 3)
-        right == 'Y' && return ('Z', 1)
-    elseif left == 'Z'
-        right == 'X' && return ('Y', 1)
-        right == 'Y' && return ('X', 3)
-    elseif left == 'Y'
-        right == 'Z' && return ('X', 1)
-        right == 'X' && return ('Z', 3)
-    elseif left == 'I'
-        return (right, 0)
-    end
-    right == 'I' && return (left, 0)
-    return ('I', 0)
-end
-=#

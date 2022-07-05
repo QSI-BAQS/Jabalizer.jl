@@ -2,7 +2,7 @@
 @testset "Stabilizer initialization" begin
 
     @testset "Empty stabilizer" begin
-        stabilizer = Jabalizer.Stabilizer()
+        stabilizer = Stabilizer()
         @test stabilizer.qubits == 0
         @test stabilizer.X == []
         @test stabilizer.Z == []
@@ -11,7 +11,7 @@
 
     for i in 1:5
         @testset "Empty stabilizer with n = $i" begin
-            stabilizer = Jabalizer.Stabilizer(i)
+            stabilizer = Stabilizer(i)
             @test stabilizer.qubits == i
             @test stabilizer.X == zeros(i)
             @test stabilizer.Z == zeros(i)
@@ -21,18 +21,17 @@
 
     @testset "Stabilizer from tableau" begin
         tableau = [0 1 0]
-        stabilizer = Jabalizer.Stabilizer(tableau)
+        stabilizer = Stabilizer(tableau)
         @test stabilizer.qubits == 1
         @test stabilizer.X == [0]
         @test stabilizer.Z == [1]
         @test stabilizer.phase == 0
 
         tableau = [0 1 1 0 2; 1 0 0 1 2]
-        stabilizer = Jabalizer.Stabilizer(tableau)
-        println(stabilizer)
+        stabilizer = Stabilizer(tableau)
         @test stabilizer.qubits == 2
-        @test stabilizer.X == [0 1; 1 0]
-        @test stabilizer.Z == [1 0; 0 1]
+        @test stabilizer.X == [0, 1]
+        @test stabilizer.Z == [1, 0]
         @test stabilizer.phase == 2
 
     end
@@ -48,7 +47,7 @@ end
 @testset "Stabilizer operations" begin
     # TODO: This is failing
     # tableau = [0 0 1 0 0]
-    # stabilizer = Jabalizer.Stabilizer(tableau)
+    # stabilizer = Stabilizer(tableau)
     # adjoint_stabilizer = adjoint(stabilizer)
     # @test adjoint_stabilizer.qubits == stabilizer.qubits
     # @test adjoint_stabilizer.X == stabilizer.X

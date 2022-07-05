@@ -40,8 +40,8 @@ end
 Generate stabilizer from tableau
 """
 function TableauToState(tab::AbstractArray{<:Integer})::StabilizerState
-    qubits = Int((length(@view tab[1, :]) - 1) / 2)
-    stabs = length(@view tab[:, 1])
+    qubits = size(tab, 2)>>1
+    stabs = size(tab, 1)
     state = StabilizerState(qubits)
 
     for row = 1:stabs
@@ -63,14 +63,10 @@ function ToTableau(state::StabilizerState)::Tableau
     for s in state.stabilizers
         tab = vcat(tab, ToTableau(s))
     end
-
-    tab = Array(transpose(reshape(
-        tab,
-        2 * state.qubits + 1,
-        length(state.stabilizers),
-    )))
-
-    return tab
+    #println(tab)
+    #t2 = [ToTableau(s) for s in state.stabilizers]
+    #println(t2)
+    Array(transpose(reshape(tab, 2 * state.qubits + 1, length(state.stabilizers),)))
 end
 
 function Base.print(io::IO, state::StabilizerState)

@@ -7,7 +7,7 @@ mutable struct Stabilizer
     qubits::Int
     X::BitVector
     Z::BitVector
-    phase::Int
+    phase::Int8
 
     """
         Stabilizer()
@@ -24,14 +24,17 @@ mutable struct Stabilizer
     Stabilizer(n::Int) = new(n, falses(n), falses(n), 0)
 
     """
-        Stabilizer(tableau)
+        Stabilizer(tableau[, row])
 
     Constructor for a stabilizer from tableau form.
     """
-    function Stabilizer(tab::AbstractArray)
-        ncols = size(tab, 2)
-        qubits = div(ncols - 1, 2)
-        new(qubits, tab[1:qubits, 1:qubits], tab[1:qubits, qubits+1:end-1], tab[end])
+    function Stabilizer(tab::AbstractMatrix{<:Integer}, row=1)
+        qubits = size(tab, 2)>>1
+        new(qubits, view(tab, row, 1:qubits), view(tab, row, qubits+1:2*qubits), tab[row, end])
+    end
+    function Stabilizer(vec::AbstractVector{<:Integer})
+        qubits = length(vec)>>1
+        new(qubits, view(vec, 1:qubits), view(vec, qubits+1:2*qubits), vec[end])
     end
 end
 
@@ -51,32 +54,15 @@ function Base.adjoint(stabilizer::Stabilizer)::Stabilizer
     return conj
 end
 
-const OpI = 0
-const OpX = 1
-const OpZ = 2
-const OpY = 3
-
-_pauli(x::Bool, z::Bool) = (z<<1)|x
-
-function _prod(left::Int, right::Int)
-    if left == OpX
-        right == OpZ && return (1, 1, 3) # (OpY, 3)
-        right == OpY && return (0, 1, 1) # (OpZ, 1)
-        right == OpI && return (1, 0, 0) # (OpX, 0)
-    elseif left == OpZ
-        right == OpX && return (1, 1, 1) # (OpY, 1)
-        right == OpY && return (1, 0, 3) # (OpX, 3)
-        right == OpI && return (0, 1, 0) # (OpZ, 0)
-    elseif left == OpY
-        right == OpZ && return (1, 0, 1) # (OpX, 1)
-        right == OpX && return (0, 1, 3) # (OpZ, 3)
-        right == OpI && return (1, 1, 0) # (OpY, 0)
-    else # left == OpI
-        return (right&1, right>>1, 0)
-    end
-    return (0, 0, 0) # (OpI, 0)
-end
-
+# This table is used to calculate the product by indexing a vector of tuples of the
+# results (X, Z, phase), by the values of the left X, left Z, right X, right Z used
+# as a 4 bit index (left X is most signficant bit, right Z is least significant bit)
+# (+ 1 for Julia 1-based indexing)
+const _prodtab = [(0, 0, 0), (0, 1, 0), (1, 0, 0), (1, 1, 0),
+                  (0, 1, 0), (0, 0, 0), (1, 1, 1), (1, 0, 3),
+                  (1, 0, 0), (1, 1, 3), (0, 0, 0), (0, 1, 1),
+                  (1, 1, 0), (1, 0, 1), (0, 1, 3), (0, 0, 0)]
+ 
 """
     *(left,right)
 
@@ -89,7 +75,7 @@ function Base.:*(left::Stabilizer, right::Stabilizer)::Stabilizer
     prod.phase = (left.phase + right.phase) % 4
     for n = 1:qubits
         (prod.X[n], prod.Z[n], phase) =
-            _prod(_pauli(left.X[n], left.Z[n]), _pauli(right.X[n], right.Z[n]))
+            _prodtab[((left.X[n]<<3)|(left.Z[n]<<2)|(right.X[n]<<1)|right.Z[n])+1]
         prod.phase = (prod.phase + phase) % 4
     end
     return prod
