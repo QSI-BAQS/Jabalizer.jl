@@ -86,11 +86,10 @@ end
 Plot the graph equivalent of a state.
 """
 function GraphPlot.gplot(state::StabilizerState; node_dist=5.0)
-    gs = GraphState(state)
     # Creates an anonymous function to allow changing the layout params
     # in gplot. The value of C determines distance between connected nodes.
     layout = (args...) -> spring_layout(args...; C=node_dist)
-    gplot(Graph(gs.A), nodelabel=1:state.qubits, layout=layout)
+    gplot(Graph(GraphState(state).A), nodelabel=1:state.qubits, layout=layout)
 end
 
 
