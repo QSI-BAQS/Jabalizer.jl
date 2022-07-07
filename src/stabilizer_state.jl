@@ -79,8 +79,7 @@ end
 
 function Base.display(state::StabilizerState)
     update_tableau(state)
-    println("Stabilizers (", length(state.stabilizers), ") stabilizers, ",
-        state.qubits, ") qubits):")
+    println("Stabilizers ($(length(state.stabilizers)) stabilizers, $(state.qubits) qubits):")
     println(state)
 end
 
@@ -103,10 +102,10 @@ function GraphToState(A::AbstractArray{<:Integer})::StabilizerState
     n = size(A, 1)
     state = ZeroState(n)
     for i = 1:n
-        H(state, i)
+        H(i)(state)
     end
     for i = 1:n, j = (i+1):n
-        A[i, j] == 1 && CZ(state, i, j)
+        A[i, j] == 1 && CZ(i, j)(state)
     end
     update_tableau(state)
     return state

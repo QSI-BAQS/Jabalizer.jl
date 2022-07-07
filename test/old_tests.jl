@@ -1,21 +1,20 @@
 @testset "Graph conversion" begin
 
     # Test GraphToState function
-    adjacency = [0 1 0 0 0
-        1 0 0 1 0
-        0 0 0 1 0
-        0 1 1 0 0
-        0 0 0 0 0]
+    adjacency =
+        [0 1 0 0 0
+         1 0 0 1 0
+         0 0 0 1 0
+         0 1 1 0 0
+         0 0 0 0 0]
 
     state_1 = Jabalizer.GraphToState(adjacency)
 
     state_2 = Jabalizer.ZeroState(5)
     for i in 1:5
-        Jabalizer.H(state_2, i)
+        H(i)(state_2)
     end
-    Jabalizer.CZ(state_2, 1, 2)
-    Jabalizer.CZ(state_2, 2, 4)
-    Jabalizer.CZ(state_2, 3, 4)
+    state_2 |> CZ(1, 2) |> CZ(2, 4) |> CZ(3, 4)
 
     @test isequal(state_1, state_2)
 
@@ -23,9 +22,9 @@
     # Prepare a 6 qubit GHZ state
     n = 6
     state = Jabalizer.ZeroState(n)
-    Jabalizer.H(state, 1)
+    H(1)(state)
     for i in 1:n-1
-        Jabalizer.CNOT(state, i, i + 1)
+        CNOT(i, i + 1)(state)
     end
 
     # Convert to graph state using ToGraph
