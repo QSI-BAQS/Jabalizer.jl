@@ -20,11 +20,11 @@ end
 const Tableau = Matrix{Int}
 
 """
-    ZeroState(n::Int)
+    zero_state(n::Int)
 
 Generates a state of n qubits in the +1 Z eigenstate.
 """
-function ZeroState(n::Int)
+function zero_state(n::Int)
     state = StabilizerState(n)
     for i in 0:n-1
         state.simulator.z(i)
@@ -39,7 +39,7 @@ end
 """
 Generate stabilizer from tableau
 """
-function TableauToState(tab::AbstractArray{<:Integer})::StabilizerState
+function tableau_to_state(tab::AbstractArray{<:Integer})::StabilizerState
     qubits = size(tab, 2)>>1
     stabs = size(tab, 1)
     state = StabilizerState(qubits)
@@ -53,19 +53,16 @@ function TableauToState(tab::AbstractArray{<:Integer})::StabilizerState
 end
 
 """
-    ToTableau(state)
+    to_tableau(state)
 
 Convert state to tableau form.
 """
-function ToTableau(state::StabilizerState)::Tableau
+function to_tableau(state::StabilizerState)::Tableau
     tab = Int[]
     update_tableau(state)
     for s in state.stabilizers
-        tab = vcat(tab, ToTableau(s))
+        tab = vcat(tab, to_tableau_row(s))
     end
-    #println(tab)
-    #t2 = [ToTableau(s) for s in state.stabilizers]
-    #println(t2)
     Array(transpose(reshape(tab, 2 * state.qubits + 1, length(state.stabilizers),)))
 end
 
@@ -89,18 +86,17 @@ end
 Plot the graph equivalent of a state.
 """
 function GraphPlot.gplot(state::StabilizerState; node_dist=5.0)
-    graphState = GraphState(state)
     # Creates an anonymous function to allow changing the layout params
     # in gplot. The value of C determines distance between connected nodes.
     layout = (args...) -> spring_layout(args...; C=node_dist)
-    gplot(Graph(graphState.A), nodelabel=1:state.qubits, layout=layout)
+    gplot(Graph(GraphState(state).A), nodelabel=1:state.qubits, layout=layout)
 end
 
 
 # TODO: This is confusing, as it takes adjacency matrix and not graph.
-function GraphToState(A::AbstractArray{<:Integer})::StabilizerState
+function graph_to_state(A::AbstractArray{<:Integer})::StabilizerState
     n = size(A, 1)
-    state = ZeroState(n)
+    state = zero_state(n)
     for i = 1:n
         H(i)(state)
     end
@@ -113,11 +109,11 @@ end
 
 
 """
-    isequal(state_1::StabilizerState, state_2::StabilizerState)
+    ==(state_1::StabilizerState, state_2::StabilizerState)
 
 Checks if two stabilizer states are equal.
 """
-function Base.isequal(state_1::StabilizerState, state_2::StabilizerState)
+function Base.:(==)(state_1::StabilizerState, state_2::StabilizerState)
     # Make sure the Julia representation matches the simulator state
     update_tableau(state_1)
     update_tableau(state_2)

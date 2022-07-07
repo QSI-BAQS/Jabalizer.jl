@@ -9,19 +9,10 @@ mutable struct GraphState
 
     GraphState() = new(0, Matrix{Int}(undef, 0, 0))
     GraphState(A::AbstractMatrix{<:Integer}) = new(size(A, 1), A)
-    GraphState(state::StabilizerState) = new(state.qubits, ToGraph(state)[2])
+    GraphState(state::StabilizerState) = new(state.qubits, to_graph(state)[2])
 end
 
-# TODO: rename to GraphStateToState (or just to_state, even better idea!)
-"""
-    GraphToState(graphState)
-
-Convert GraphState to State.
-"""
-GraphToState(graphState::GraphState) = GraphToState(graphState.A)
-
-# NOTE: this is identical to GraphToState, only one should be needed
-StabilizerState(graphState::GraphState) = GraphToState(graphState)
+StabilizerState(graphState::GraphState) = graph_to_state(graphState.A)
 
 """
     gplot(graphState)

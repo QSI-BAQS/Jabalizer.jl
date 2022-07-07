@@ -17,7 +17,7 @@ using Jabalizer
     @test graph_state.qubits == 2
     @test graph_state.A == A
 
-    stabilizer_state = Jabalizer.ZeroState(4)
+    stabilizer_state = zero_state(4)
     graph_state = GraphState(stabilizer_state)
     A = [0 0 0 0; 0 0 0 0; 0 0 0 0; 0 0 0 0]
     @test graph_state.qubits == 4

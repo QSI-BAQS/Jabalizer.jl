@@ -5,6 +5,8 @@ using Documenter
 using PythonCall
 
 export Stabilizer, StabilizerState, GraphState, Gates
+export zero_state, to_tableau, tableau_to_state, to_graph, graph_to_state
+export measure_x, measure_y, measure_z
 
 include("gates.jl")
 using .Gates

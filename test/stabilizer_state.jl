@@ -1,27 +1,27 @@
 
 
 @testset "StabilizerState initialization" begin
-    state = Jabalizer.StabilizerState()
+    state = StabilizerState()
     @test state.qubits == 0
     @test isempty(state.stabilizers)
 
 
     for i in 1:4
-        state = Jabalizer.StabilizerState(i)
+        state = StabilizerState(i)
         @test state.qubits == i
         @test isempty(state.stabilizers)
     end
 end
 
-@testset "ZeroState initialization" begin
+@testset "zero_state initialization" begin
     for i in 1:4
         target_tableau = zeros(Int8, (i, 2 * i + 1))
         for j in 1:i
             target_tableau[j, i+j] = 1
         end
-        state = Jabalizer.ZeroState(i)
+        state = zero_state(i)
         @test state.qubits == i
-        @test Jabalizer.ToTableau(state) == target_tableau
+        @test to_tableau(state) == target_tableau
     end
 end
 

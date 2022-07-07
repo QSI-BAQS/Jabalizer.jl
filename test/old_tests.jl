@@ -8,9 +8,9 @@
          0 1 1 0 0
          0 0 0 0 0]
 
-    state_1 = Jabalizer.GraphToState(adjacency)
+    state_1 = graph_to_state(adjacency)
 
-    state_2 = Jabalizer.ZeroState(5)
+    state_2 = zero_state(5)
     for i in 1:5
         H(i)(state_2)
     end
@@ -21,14 +21,14 @@
     # Test converting state -> graph -> state
     # Prepare a 6 qubit GHZ state
     n = 6
-    state = Jabalizer.ZeroState(n)
+    state = zero_state(n)
     H(1)(state)
     for i in 1:n-1
         CNOT(i, i + 1)(state)
     end
 
-    # Convert to graph state using ToGraph
-    gstate, adj, lops = Jabalizer.ToGraph(state)
+    # Convert to graph state using to_graph
+    gstate, adj, lops = to_graph(state)
 
     # Generated expected Adjacency matrix
     expected_adj = falses(n, n)
@@ -43,6 +43,6 @@
     # test that the graph state generated from adjacency matrix matches
     # the orginal state
 
-    new_gstate = Jabalizer.GraphToState(expected_adj)
+    new_gstate = graph_to_state(expected_adj)
     @test isequal(new_gstate, gstate)
 end
