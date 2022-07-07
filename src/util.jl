@@ -144,17 +144,10 @@ function H(tab::AbstractArray{<:Integer}, qubit)
     # TODO: I'd say `tab` should be renamed to `tableau` (in other places as well)
     qubit_no = size(tab, 2)>>1
     for i in 1:qubit_no
-        x = tab[i, qubit]
-        z = tab[i, qubit+qubit_no]
-
-        # Apply phase correction if needed
-        if (x == 1) && (z == 1)
-            tab[i, 2*qubit_no+1] = (tab[i, 2*qubit_no+1] + 2) % 4
-        end
-
-        #Swap x and z
-        tab[i, qubit] = z
-        tab[i, qubit+qubit_no] = x
+        x, z = tab[i, qubit], tab[i, qubit+qubit_no]
+        x == 1 && z == 1 && (tab[i, end] ⊻= 2) # toggle bit 2 of phase if Y
+        # Swap bits
+        tab[i, qubit], tab[i, qubit+qubit_no] = z, x
     end
 end
 
