@@ -37,9 +37,7 @@ end
 
     @test graph_state.qubits == recovered_graph_state.qubits
     @test graph_state.A == recovered_graph_state.A
-    # TODO: to be replaced with the following once "labels" and "lost" are removed
-    # @test graph_state == recovered_graph_state
-
+    @test graph_state == recovered_graph_state
 
     # 1. Check if the conversion works
     # TODO: what should be some test cases here?

@@ -81,6 +81,9 @@ function Base.:*(left::Stabilizer, right::Stabilizer)::Stabilizer
     return prod
 end
 
+Base.:(==)(s1::Stabilizer, s2::Stabilizer) =
+    s1.qubits == s2.qubits && s1.X == s2.X && s1.Z == s2.Z && s1.phase == s2.phase
+
 function Base.print(io::IO, stabilizer::Stabilizer)
     print(io, stabilizer.phase == 0 ? '+' : '-')
     for (x, z) in zip(stabilizer.X, stabilizer.Z)

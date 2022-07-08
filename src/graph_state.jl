@@ -27,6 +27,8 @@ function GraphPlot.gplot(graphState::GraphState; node_dist=5.0)
     gplot(Graph(graphState.A), nodelabel=1:graphState.qubits)
 end
 
+Base.:(==)(g1::GraphState, g2::GraphState) = g1.qubits == g2.qubits && g1.A == g2.A
+
 function Base.display(graphState::GraphState)
     println("Adjacency matrix for ", graphState.qubits, " qubits:\n")
     display(graphState.A)
