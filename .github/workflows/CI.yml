@@ -5,31 +5,32 @@ on:
   - workflow_dispatch
 jobs:
   test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         version:
           - '1.6'
-          - '1.7'
+          # - '1.7'
         os:
           - ubuntu-latest
-          - windows-latest
-          - macos-latest
+          # - windows-latest
+          # - macos-latest
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - name: Get icm
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: QSI-BAQS/icm
           path: icm
+          token: ${{ secrets.MY_TOKEN || github.token }}
 
       - uses: actions/cache@v1
         env:
