@@ -2,6 +2,7 @@ name: CI
 on:
   - push
   - pull_request
+  - workflow_dispatch
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
@@ -12,10 +13,10 @@ jobs:
         version:
           - '1.6'
           - '1.7'
-          - 'nightly'
         os:
           - ubuntu-latest
           - windows-latest
+          - macos-latest
         arch:
           - x64
     steps:
@@ -24,6 +25,12 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
+      - name: Get icm
+        uses: actions/checkout@v2
+        with:
+          repository: QSI-BAQS/icm
+          path: icm
+
       - uses: actions/cache@v1
         env:
           cache-name: cache-artifacts
