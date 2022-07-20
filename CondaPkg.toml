@@ -1,7 +1,7 @@
 [deps]
 python = ">=3.5,<4"
-cirq = ""
+cirq = "0.13.1"
 
 [pip.deps]
 stim = ""
-icm = "@../icm"
+icm="@git+https://github.com/QSI-BAQS/icm@main"

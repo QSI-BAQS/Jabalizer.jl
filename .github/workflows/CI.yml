@@ -1,10 +1,10 @@
 name: CI
 on:
-  - push
   - pull_request
+  - workflow_dispatch
 jobs:
   test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -12,14 +12,17 @@ jobs:
         version:
           - '1.6'
           - '1.7'
-          - 'nightly'
         os:
           - ubuntu-latest
-          - windows-latest
+          # - windows-latest
+          # - macos-latest
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' 
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
@@ -36,10 +39,3 @@ jobs:
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
-      - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v1
-        with:
-          file: lcov.info
-      - uses: julia-actions/julia-uploadcoveralls@v1
-        env:
-          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
