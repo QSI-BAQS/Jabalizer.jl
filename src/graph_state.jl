@@ -5,7 +5,7 @@ Type for a stabilizer state constrained to graph form.
 """
 mutable struct GraphState
     qubits::Int
-    A::Matrix{Int} # TODO: Rename "A" to something more verbose, e.g. "adj_matrix".
+    A::Matrix{Int}
 
     GraphState() = new(0, Matrix{Int}(undef, 0, 0))
     GraphState(A::AbstractMatrix{<:Integer}) = new(size(A, 1), A)

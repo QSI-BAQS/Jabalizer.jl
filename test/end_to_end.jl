@@ -17,7 +17,6 @@
     (g, A, seq) = to_graph(state)
     Jabalizer.gplot(g)
 
-    # TODO
     @test target_tab == to_tableau(state)
 
 

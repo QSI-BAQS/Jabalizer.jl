@@ -1,5 +1,3 @@
-#TODO: modify these functions to use dispatching and singleton types
-
 # implement the row reduction procedure as per Gottesman
 # randomly choose outcome
 # update the state

@@ -29,11 +29,11 @@ mutable struct Stabilizer
     Constructor for a stabilizer from tableau form.
     """
     function Stabilizer(tab::AbstractMatrix{<:Integer}, row=1)
-        qubits = size(tab, 2)>>1
+        qubits = size(tab, 2) >> 1
         new(qubits, view(tab, row, 1:qubits), view(tab, row, qubits+1:2*qubits), tab[row, end])
     end
     function Stabilizer(vec::AbstractVector{<:Integer})
-        qubits = length(vec)>>1
+        qubits = length(vec) >> 1
         new(qubits, view(vec, 1:qubits), view(vec, qubits+1:2*qubits), vec[end])
     end
 end
@@ -59,10 +59,10 @@ end
 # as a 4 bit index (left X is most signficant bit, right Z is least significant bit)
 # (+ 1 for Julia 1-based indexing)
 const _prodtab = [(0, 0, 0), (0, 1, 0), (1, 0, 0), (1, 1, 0),
-                  (0, 1, 0), (0, 0, 0), (1, 1, 1), (1, 0, 3),
-                  (1, 0, 0), (1, 1, 3), (0, 0, 0), (0, 1, 1),
-                  (1, 1, 0), (1, 0, 1), (0, 1, 3), (0, 0, 0)]
- 
+    (0, 1, 0), (0, 0, 0), (1, 1, 1), (1, 0, 3),
+    (1, 0, 0), (1, 1, 3), (0, 0, 0), (0, 1, 1),
+    (1, 1, 0), (1, 0, 1), (0, 1, 3), (0, 0, 0)]
+
 """
     *(left,right)
 
