@@ -1,7 +1,3 @@
-# TODO: This would probably work better if instead of ingesting cirq objects we were ingesting QASM3.0 objects.
-# TODO: This seems to be a lot of work though, so it's probably better to stick to Cirq for now.
-# TODO: the "isinstance" checks might don't work in certain cases, due to the way gates are defined in cirq.
-
 const gate_map = Dict()
 
 # This is called by the Jabalizer package's __init__ function

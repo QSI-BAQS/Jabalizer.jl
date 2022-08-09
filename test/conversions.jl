@@ -28,10 +28,7 @@ const graph_state_test_cases = (
 
             recovered_graph_state = GraphState(stabilizer_state)
 
-            @test graph_state.qubits == recovered_graph_state.qubits
-            @test graph_state.A == recovered_graph_state.A
-            # # TODO: to be replaced with the following once the equality for GraphState works properly
-            # @test graph_state == recovered_graph_state
+            @test graph_state == recovered_graph_state
 
         end
     end

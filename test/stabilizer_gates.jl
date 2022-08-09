@@ -1,5 +1,3 @@
-# TODO: Id fails cause I deleted GetQubitLabel. Don't know how to fix it.
-
 """
 Generates one-qubit states used for testing
 """
@@ -29,7 +27,6 @@ function generate_two_qubit_state(arr)
     return state
 end
 
-# TODO: Jabalizer.I is missing
 const one_qubit_test_cases =
     (('0', P, [0 1 0]),
      ('0', X, [0 1 2]),

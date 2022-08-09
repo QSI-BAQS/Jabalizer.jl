@@ -27,7 +27,7 @@ end
 
 @testset "GraphState to State conversion" begin
     A = [0 1 1 1 1; 1 0 0 0 0; 1 0 0 0 0; 1 0 0 0 0; 1 0 0 0 0]
-    graph_state = GraphState(A)    # TODO: Add the following tests
+    graph_state = GraphState(A)
 
     stabilizer_state = StabilizerState(graph_state)
 
@@ -39,9 +39,6 @@ end
     @test graph_state.A == recovered_graph_state.A
     @test graph_state == recovered_graph_state
 
-    # 1. Check if the conversion works
-    # TODO: what should be some test cases here?
-    # E.g. star graph -> GHZ state
     @test graph_state.qubits == 5
     @test graph_state.A == A
 

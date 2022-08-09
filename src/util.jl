@@ -1,7 +1,3 @@
-# TODO: It's better to avoid having general use `util` files
-# We should move these functions to appropriate modules
-
-# TODO: shouldn't Jabalizer Tableau be its own type?
 """
     stim_tableau(stim_sim::Py)::Matrix{Int}
 
@@ -142,7 +138,7 @@ Performs the Hadamard operation on the given tableau
 """
 function hadamard!(tab::AbstractArray{<:Integer}, qubit)
     # TODO: I'd say `tab` should be renamed to `tableau` (in other places as well)
-    qubit_no = size(tab, 2)>>1
+    qubit_no = size(tab, 2) >> 1
     for i in 1:qubit_no
         x, z = tab[i, qubit], tab[i, qubit+qubit_no]
         x == 1 && z == 1 && (tab[i, end] ⊻= 2) # toggle bit 2 of phase if Y

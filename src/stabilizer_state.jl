@@ -40,7 +40,7 @@ end
 Generate stabilizer from tableau
 """
 function tableau_to_state(tab::AbstractArray{<:Integer})::StabilizerState
-    qubits = size(tab, 2)>>1
+    qubits = size(tab, 2) >> 1
     stabs = size(tab, 1)
     state = StabilizerState(qubits)
 
@@ -93,7 +93,6 @@ function GraphPlot.gplot(state::StabilizerState; node_dist=5.0)
 end
 
 
-# TODO: This is confusing, as it takes adjacency matrix and not graph.
 function graph_to_state(A::AbstractArray{<:Integer})::StabilizerState
     n = size(A, 1)
     state = zero_state(n)
