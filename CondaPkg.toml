@@ -4,4 +4,3 @@ cirq = "0.13.1"
 
 [pip.deps]
 stim = ""
-icm="@git+https://github.com/QSI-BAQS/icm@main"
