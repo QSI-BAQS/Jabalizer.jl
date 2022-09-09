@@ -48,7 +48,7 @@ The module can be tested using,
 pkg> test Jabalizer
 ```
 # Technical Manuscript
-A working draft of the manuscript can be found [here](https://www.overleaf.com/read/mkprsmprxnfn). This is as yet unpublished so please ask the authors for permission before sharing it. 
+TODO
 
 # Stabilizer circuits
 
