@@ -21,6 +21,7 @@ function __init__()
     _init_gate_map()
 end
 
+include("cirq_io.jl")
 include("icm.jl")
 include("stabilizer.jl")
 include("stabilizer_state.jl")

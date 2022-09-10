@@ -1,5 +1,10 @@
 const ICMGate = Tuple{String,Vector{String}}
 
+
+"""
+Perfoms gates decomposition to provide a circuit in the icm format.
+Reference: https://arxiv.org/abs/1509.02004
+"""
 function compile(circuit::Vector{ICMGate}, gates_to_decompose::Vector{String}, with_measurements::Bool=false)
     qubit_dict = Dict()  # mapping from qubit to it's compiled version
     compiled_circuit::Vector{ICMGate} = []
@@ -14,7 +19,7 @@ function compile(circuit::Vector{ICMGate}, gates_to_decompose::Vector{String}, w
 
                 qubit_dict[qubit] = new_qubit_name
                 push!(compiled_circuit, ("CNOT", [qubit, new_qubit_name]))
-                @static if with_measurements
+                if with_measurements
                     push!(compiled_circuit, ("$(gate[1])_measurement", [qubit]))
                     push!(compiled_circuit, ("Gate_Conditioned_on_$(qubit)_Measurement",
                         [new_qubit_name]))
