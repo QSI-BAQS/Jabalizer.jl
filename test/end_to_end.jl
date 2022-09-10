@@ -1,3 +1,5 @@
+using Jabalizer
+
 @testset "E2E Jabalizer test" begin
 
     circuit = Vector{Tuple{String,Vector{String}}}(
