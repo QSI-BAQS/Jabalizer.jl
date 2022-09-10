@@ -21,6 +21,9 @@
 + Darcy Morgan
 + Simon Devitt
 + Peter Rohde ([dr.rohde@gmail.com](mailto:dr.rohde@gmail.com), [www.peterrohde.org](https://www.peterrohde.org))
++ Michał Stęchły([michal.stechly@zapatacomputing.com](mailto:michal.stechly@zapatacomputing.com))
++ Scott Jones
++ Athena Caesura
 
 # About
 
@@ -154,17 +157,17 @@ using Jabalizer
 
 # Prepare a 6-qubit GHZ state
 n = 6
-state = ZeroState(n)
-H(state,1)
-CNOT(state,1,2)
-CNOT(state,1,3)
-CNOT(state,1,4)
-CNOT(state,1,5)
-CNOT(state,1,6)
+state = zero_state(n)
+Jabalizer.H(1)(state)
+Jabalizer.CNOT(1,2)(state)
+Jabalizer.CNOT(1,3)(state)
+Jabalizer.CNOT(1,4)(state)
+Jabalizer.CNOT(1,5)(state)
+Jabalizer.CNOT(1,6)(state)
 
 # Display the stabilizer tableau
-update_tableau(state)
-tab = ToTableau(state)
+Jabalizer.update_tableau(state)
+tab = Jabalizer.to_tableau(state)
 display(tab)
 
 # Convert to graph state
@@ -174,7 +177,7 @@ graphState = GraphState(state)
 display(graphState.A)
 
 # Plot graph
-gplot(Graph(graphState.A))
+Jabalizer.gplot(Jabalizer.Graph(graphState.A))
 
 # Convert back to stabilizer state
 stabState = StabilizerState(graphState)
@@ -183,6 +186,15 @@ stabState = StabilizerState(graphState)
 Produces the output:
 
 ```julia
+
+6×13 Matrix{Int64}:
+ 1  1  1  1  1  1  0  0  0  0  0  0  0
+ 0  0  0  0  0  0  1  1  0  0  0  0  0
+ 0  0  0  0  0  0  1  0  1  0  0  0  0
+ 0  0  0  0  0  0  1  0  0  1  0  0  0
+ 0  0  0  0  0  0  1  0  0  0  1  0  0
+ 0  0  0  0  0  0  1  0  0  0  0  1  0
+
 6×6 Matrix{Int64}:
  0  1  1  1  1  1
  1  0  0  0  0  0
