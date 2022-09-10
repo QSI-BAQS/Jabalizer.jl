@@ -156,3 +156,15 @@ function _add_row!(tab::Matrix{Int}, source::Int, dest::Int)
     prod = Stabilizer(view(tab, source, :)) * Stabilizer(view(tab, dest, :))
     tab[dest, :] = to_tableau_row(prod)
 end
+
+
+"""
+Returns number of qubits in the icm-compatible circuit.
+"""
+function count_qubits(circuit::Vector{ICMGate})
+    qubit_ids = Set()
+    for gate in circuit
+        union!(qubit_ids, Set(gate[2]))
+    end
+    return length(qubit_ids)
+end

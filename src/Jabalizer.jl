@@ -1,6 +1,7 @@
 module Jabalizer
 
 using Graphs, GraphPlot, LinearAlgebra
+using JSON
 using Documenter
 using PythonCall
 
@@ -20,13 +21,14 @@ function __init__()
     _init_gate_map()
 end
 
+include("cirq_io.jl")
 include("icm.jl")
 include("stabilizer.jl")
 include("stabilizer_state.jl")
 include("graph_state.jl")
 include("util.jl")
 include("stabilizer_gates.jl")
-include("execute_cirq.jl")
+include("execute_circuit.jl")
 include("stabilizer_measurements.jl")
 
 end

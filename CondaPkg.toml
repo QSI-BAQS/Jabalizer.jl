@@ -1,6 +1,6 @@
 [deps]
 python = ">=3.5,<4"
-cirq = "0.13.1"
+cirq = "1.0.0"
 
 [pip.deps]
 stim = ""
