@@ -13,15 +13,15 @@ function compile(circuit::Vector{ICMGate}, gates_to_decompose::Vector{String}, w
         compiled_qubits = [get(qubit_dict, qubit, qubit) for qubit in gate[2]]
 
         if gate[1] in gates_to_decompose
-            for qubit in compiled_qubits
+            for (original_qubit, compiled_qubit) in zip(gate[2], compiled_qubits)
                 new_qubit_name = "anc_$(ancilla_num)"
                 ancilla_num += 1
 
-                qubit_dict[qubit] = new_qubit_name
-                push!(compiled_circuit, ("CNOT", [qubit, new_qubit_name]))
+                qubit_dict[original_qubit] = new_qubit_name
+                push!(compiled_circuit, ("CNOT", [compiled_qubit, new_qubit_name]))
                 if with_measurements
-                    push!(compiled_circuit, ("$(gate[1])_measurement", [qubit]))
-                    push!(compiled_circuit, ("Gate_Conditioned_on_$(qubit)_Measurement",
+                    push!(compiled_circuit, ("$(gate[1])_measurement", [compiled_qubit]))
+                    push!(compiled_circuit, ("Gate_Conditioned_on_$(compiled_qubit)_Measurement",
                         [new_qubit_name]))
                 end
             end
