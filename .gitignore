@@ -5,3 +5,6 @@
 /Manifest.toml
 .DS_Store
 __pycache__/
+.CondaPkg/
+.vscode/
+.ipynb_checkpoints/
