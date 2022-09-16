@@ -9,27 +9,28 @@
 
 <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 
-# Contents
-
-* Table of contents
-{:toc}
-
 # Developers
 
 + Madhav Krishnan Vijayan ([mkv.215@gmail.com](mailto:mkv.215@gmail.com))
-+ Hudson Leone
-+ Darcy Morgan
 + Simon Devitt
 + Peter Rohde ([dr.rohde@gmail.com](mailto:dr.rohde@gmail.com), [www.peterrohde.org](https://www.peterrohde.org))
++ Alexandru Paler
++ Casey Myers
++ Jason Gavriel
 + Michał Stęchły([michal.stechly@zapatacomputing.com](mailto:michal.stechly@zapatacomputing.com))
 + Scott Jones
 + Athena Caesura
 
 # About
 
-Jabalizer is a simulator for quantum Clifford circuits and graph states written in Julia, both of which can be efficiently simulated using the stabilizer formalism. Jabalizer provides generic functions able to operate within both pictures and dynamically convert between them, allowing arbitrary Clifford circuits to be simulated and converted into graph state language, and vice-versa.
+Jabalizer is a quantum graph state compiler for quantum circuits written in Julia. It has the functionailty to manipulate stabilizer states and graph states and provides generic functions able to operate within both pictures and dynamically convert between them, allowing arbitrary Clifford circuits to be simulated and converted into graph state language, and vice-versa. 
 
-Julia modules can be called from Python or run in Jupyter notebooks too. You can learn more about the Julia language at [www.julialang.org](https://www.julialang.org).
+Jabalizer also provides functionality to convert Clifford + T gate circuits to an aglorithm specific graph state using the ``icm`` module. The computation can now be implmented by passing this graph state and a measurement procedure to a quantum backend. 
+
+You can learn more about the Julia language at [www.julialang.org](https://www.julialang.org).
+
+# Technical Manuscript
+A techical paper on Jabalizer can be found here [https://arxiv.org/abs/2209.07345](https://arxiv.org/abs/2209.07345)
 
 # Installation
 
@@ -38,24 +39,19 @@ Jabalizer can be installed like any Julia package. Clone this repo to your local
 ```
 git clone https://github.com/QSI-BAQS/Jabalizer.git
 ```
-Checkout the required branch_name with (skip if installing the master branch)
-```
-git checkout branch_name
-```
+
 type `]` in the Julia REPL (make sure you are in the directory where you cloned Jabalizer not inside the Jabalizer repo) to enter the pkg mode and enter
 ```
-pkg> add Jabalizer#branch_name
+pkg> add ./Jabalizer#branch_name
 ```
 The module can be tested using,
 ```
 pkg> test Jabalizer
 ```
-# Technical Manuscript
-TODO
 
 # Stabilizer circuits
 
-While simulating arbitrary quantum circuits is classically inefficient with exponential resource overhead, via the [Gottesman-Knill theorem](https://arxiv.org/abs/quant-ph/9807006) it is known that circuits comprising only Clifford operations (ones that commute with the Pauli group) can be efficiently simulated using the stabilizer formalism. In the stabilizer formalism an _n_-qubit state is defined as the simultaneous positive eigenstate of _n_ 'stabilizers', each of which is an _n_-fold tensor product of Pauli operators (_I_,_X_,_Y_,_Z_) and a sign (+/-). That is, for each stabilizer $$ S_i $$ (for $$ i\in 1\dots n $$) the state,
+While simulating arbitrary quantum circuits is classically inefficient with exponential resource overhead, via the [Gottesman-Knill theorem](https://arxiv.org/abs/quant-ph/9807006) it is known that circuits comprising only Clifford operations (ones that commute with the Pauli group) can be efficiently simulated using the stabilizer formalism. In the stabilizer formalism an _n_-qubit state is defined as the simultaneous positive eigenstate of _n_ 'stabilizers', each of which is an _n_-fold tensor product of Pauli operators (_I_,_X_,_Y_,_Z_) and a sign (+/-). That is, for each stabilizer $S_i$ (for $i\in 1\dots n$) the state,
 
 $$ |\psi\rangle $$
 
