@@ -1,13 +1,11 @@
 # Jabalizer
 
-[![Build Status](https://github.com/madhavkrishnan/Jabalizer.jl/workflows/CI/badge.svg)](https://github.com/madhavkrishnan/Jabalizer.jl/actions)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/madhavkrishnan/Jabalizer.jl?svg=true)](https://ci.appveyor.com/project/madhavkrishnan/Jabalizer-jl)
-[![Coverage](https://codecov.io/gh/madhavkrishnan/Jabalizer.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/madhavkrishnan/Jabalizer.jl)
-[![Coverage](https://coveralls.io/repos/github/madhavkrishnan/Jabalizer.jl/badge.svg?branch=master)](https://coveralls.io/github/madhavkrishnan/Jabalizer.jl?branch=master)
+[![Build Status](https://github.com/QSI-BAQS/Jabalizer.jl/workflows/CI/badge.svg)](https://github.com/madhavkrishnan/Jabalizer.jl/actions)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/QSI-BAQS/Jabalizer.jl?svg=true)](https://ci.appveyor.com/project/madhavkrishnan/Jabalizer-jl)
+[![Coverage](https://codecov.io/gh/QSI-BAQS/Jabalizer.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/QSI-BAQS/Jabalizer.jl)
+[![Coverage](https://coveralls.io/repos/github/QSI-BAQS/Jabalizer.jl/badge.svg?branch=master)](https://coveralls.io/github/QSI-BAQS/Jabalizer.jl?branch=main)
 
 
-
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 
 # Developers
 
