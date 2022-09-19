@@ -17,7 +17,7 @@ println("\nGraph adjacency matrix")
 display(graph_state.A)
 
 # This requires some kind of plotting backend.
-# Tested with plot pane in Atom.
+# Works with Atom and VScode.
 display(Jabalizer.gplot(graph_state))
 
 # Convert back to stabilizer state
