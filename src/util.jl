@@ -64,99 +64,102 @@ end
 Convert a state to its adjacency graph state equivalent under local operations.
 """
 function to_graph(state::StabilizerState)
+
     #TODO: Add a check if state is not empty. If it is, throw an exception.
     # update the state tableau from the stim simulator
     update_tableau(state)
-    newState = deepcopy(state)
     qubits = state.qubits
-    stabs = length(state.stabilizers)
-    LOseq = Any[] # Sequence of local operations performed
-
-    tab = sortslices(to_tableau(newState), dims=1, rev=true)
+    svec = deepcopy(state.stabilizers)
+    # Sequence of local operations performed
+    op_seq = Tuple{String, Int}[]
 
     # Make X-block upper triangular
-    for n in 1:stabs
-        tab = sortslices(tab, dims=1, rev=true)
-        lead_sum = sum(tab[n:stabs, n])
+    for n in 1:qubits
+        sort!(svec, rev=true)
+        lead_sum = calc_sum(svec, qubits, n)
 
         if lead_sum == 0
-            hadamard!(tab, n)
-            push!(LOseq, ("H", n))
-            tab = sortslices(tab, dims=1, rev=true)
-            lead_sum = sum(tab[n:stabs, n])
+            # Perform Hadamard operation
+            for stab in svec
+                x, z = stab.X[n], stab.Z[n]
+                x == 1 && z == 1 && (stab.phase ⊻= 2) # toggle bit 2 of phase if Y
+                # Swap bits
+                stab.X[n], stab.Z[n] = z, x
+            end
+            push!(op_seq, ("H", n))
+            sort!(svec, rev=true)
+            lead_sum = calc_sum(svec, qubits, n)
         end
 
         if lead_sum > 1
             for m in (n+1):(n+lead_sum-1)
-                _add_row!(tab, n, m)
+                _add_row!(svec, n, m)
             end
         end
     end
 
     # Make diagonal X-block
-    for n = (stabs-1):-1:1, m = (n+1):stabs
-        tab[n, m] == 1 && _add_row!(tab, m, n)
+    for n = (qubits-1):-1:1, m = (n+1):qubits
+        svec[n].X[m] == 1 && _add_row!(svec, m, n)
     end
-
-    # Phase correction
-    for n = 1:qubits
-        if tab[n, 2*qubits+1] != 0
-            tab[n, 2*qubits+1] = 0
-            push!(LOseq, ("Z", n))
-        end
-    end
-
-    # Y correct
-    for n = 1:qubits
-        # Check if there is a Y on the diagonal
-        if tab[n, n] == 1 && tab[n, qubits+n] == 1
-            # Change Y to X
-            tab[n, qubits+n] = 0
-            push!(LOseq, ("P", n))
-        end
-    end
-
-    newState = graph_to_state(tab[:, qubits+1:2*qubits])
 
     # Adjacency matrix
-    A = tab[:, (qubits+1):(2*qubits)]
-    phases = sum(tab[:, 2*qubits+1])
+    A = Array{Int}(undef, qubits, qubits)
 
-    A == A' || println("Error: invalid graph conversion (non-symmetric).")
-    tr(A) == 0 || println("Error: invalid graph conversion (non-zero trace).")
-    phases == 0 || println("Error: invalid graph conversion (non-zero phase).\nphases=$phases")
+    for n = 1:qubits
+        stab = svc[n]
 
-    return (newState, A, LOseq)
-end
+        # Phase correction
+        if stab.phase != 0
+            stab.phase = 0
+            push!(op_seq, ("Z", n))
+        end
 
-# TODO: Why this is the only operation we have for tabs?
-# TODO: Madhav – could you provide some extra context in the docstring.
-"""
-    hadamard!(tab::Matrix{Int}, qubit)
+        # Y correct
+        if stab.X[n] == 1 && stab.Z[n] == 1
+            # Change Y to X
+            stab.Z[n] = 0
+            push!(op_seq, ("P", n))
+        end
 
-Performs the Hadamard operation on the given tableau
-"""
-function hadamard!(tab::AbstractArray{<:Integer}, qubit)
-    # TODO: I'd say `tab` should be renamed to `tableau` (in other places as well)
-    qubit_no = size(tab, 2) >> 1
-    for i in 1:qubit_no
-        x, z = tab[i, qubit], tab[i, qubit+qubit_no]
-        x == 1 && z == 1 && (tab[i, end] ⊻= 2) # toggle bit 2 of phase if Y
-        # Swap bits
-        tab[i, qubit], tab[i, qubit+qubit_no] = z, x
+        # Copy Z to adjacency matrix
+        A[n, :] .= stab.Z
+
+        # Check diagonal for any non-zero values
+        A[n, n] == 0 ||
+            println("Error: invalid graph conversion (non-zero trace).")
     end
+
+    issymmetric(A) || println("Error: invalid graph conversion (non-symmetric).")
+
+    return (graph_to_state(A), A, op_seq)
+end
+
+function calc_sum(svec, qubits, bit)
+    tot = 0
+    for i = bit:qubits
+        tot += svec[i].X[bit]
+    end
+    tot
 end
 
 """
-    _add_row(tableau, source, dest)
+    _add_row!(tableau, source, dest)
 
-Row addition operation for tableaus.
+Row addition operation
 """
-function _add_row!(tab::Matrix{Int}, source::Int, dest::Int)
-    prod = Stabilizer(view(tab, source, :)) * Stabilizer(view(tab, dest, :))
-    tab[dest, :] = to_tableau_row(prod)
+function _add_row!(svec::Vector{Stabilizer}, source::Int, dest::Int)
+    left = svec[source]
+    right = svec[dest]
+    # Calculate product of source & dest rows
+    right.phase = (left.phase + right.phase) & 3
+    for n = 1:length(svec)
+        (right.X[n], right.Z[n], phase) =
+            _prodtab[((left.X[n]<<3)|(left.Z[n]<<2)|(right.X[n]<<1)|right.Z[n])+1]
+        right.phase = (right.phase + phase) & 3
+    end
+    return
 end
-
 
 """
 Returns number of qubits in the icm-compatible circuit.
