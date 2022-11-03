@@ -107,7 +107,7 @@ function to_graph(state::StabilizerState)
     A = Array{Int}(undef, qubits, qubits)
 
     for n = 1:qubits
-        stab = svc[n]
+        stab = svec[n]
 
         # Phase correction
         if stab.phase != 0
