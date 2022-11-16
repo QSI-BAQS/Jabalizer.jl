@@ -58,6 +58,39 @@ function update_tableau(state::StabilizerState)
     state.is_updated = true
 end
 
+function Base.rand(::Type{StabilizerState}, qubits::Int)
+    forward_tableau = stim.Tableau.random(qubits).inverse()
+    state = StabilizerState(qubits)
+    state.simulator.set_inverse_tableau(forward_tableau)
+    svec = state.stabilizers
+
+    for i in 1:qubits
+        stab = Stabilizer(qubits)
+        push!(svec, stab)
+        ps = forward_tableau.z_output(i - 1)
+        # update sign
+        stab.phase = pyconvert(Number, ps.sign) == -1 ? 2 : 0
+
+        # Stabilizer replacement
+        for j in 1:qubits
+            v = pyconvert(Int, get(ps, j - 1, -1))
+            # Note: 0123 represent IXYZ (different from the xz representation used here)
+            if v == 1           # X replacement
+                stab.X[j] = 1
+            elseif v == 3       # Z replacement
+                stab.Z[j] = 1
+            elseif v == 2       # Y replacement
+                stab.X[j] = 1
+                stab.Z[j] = 1
+            end
+        end
+    end
+
+    # mark it as updated
+    state.is_updated = true
+    return state
+end
+
 """
     to_graph(state)
 
