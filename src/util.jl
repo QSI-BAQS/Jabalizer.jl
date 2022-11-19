@@ -1,3 +1,7 @@
+using TimerOutputs
+
+const to = TimerOutput()
+
 """
     stim_tableau(stim_sim::Py)::Matrix{Int}
 
@@ -138,7 +142,7 @@ function to_graph(state::StabilizerState)
     # Make X-block upper triangular
     for n in 1:qubits
         debug_graph && (savesvec = deepcopy(svec))
-        sort!(svec, rev=true)
+        @timeit to "sort" sort!(svec, rev=true)
         # check if any rows changed
         if debug_graph && svec != savesvec
             println("\nchange from sort")
@@ -146,43 +150,53 @@ function to_graph(state::StabilizerState)
                 println(svec[i], svec[i] == savesvec[i] ? " == " : " != ", savesvec[i])
             end
         end
-        lead_sum = calc_sum(svec, qubits, n)
+        @timeit to "calc_sum 1" lead_sum = calc_sum(svec, qubits, n)
 
         if lead_sum == 0
             # Perform Hadamard operation
+            @timeit to "hadamard" begin
             for stab in svec
                 x, z = stab.X[n], stab.Z[n]
-                x == 1 && z == 1 && (stab.phase ⊻= 2) # toggle bit 2 of phase if Y
-                # Swap bits
-                stab.X[n], stab.Z[n] = z, x
+                if xor(x, z) == 1
+                    # Swap bits
+                    stab.X[n], stab.Z[n] = z, x
+                elseif x == 1 && z == 1
+                    stab.phase ⊻= 2 # toggle bit 2 of phase if Y
+                end
             end
             push!(op_seq, ("H", n))
+            end
             debug_graph && (savesvec = deepcopy(svec))
-            sort!(svec, rev=true)
+            @timeit to "sort H" sort!(svec, rev=true)
             if debug_graph && svec != savesvec
                 println("\nchange from sort")
                 for i = 1:qubits
                     println(svec[i], svec[i] == savesvec[i] ? " == " : " != ", savesvec[i])
                 end
             end
-            lead_sum = calc_sum(svec, qubits, n)
+            @timeit to "calc_sum 2" lead_sum = calc_sum(svec, qubits, n)
         end
 
         if lead_sum > 1
+            @timeit to "add row loop" begin
             for m in (n+1):(n+lead_sum-1)
                 _add_row!(svec, n, m)
+            end
             end
         end
     end
 
     # Make diagonal X-block
+    @timeit to "make diagonal" begin
     for n = (qubits-1):-1:1, m = (n+1):qubits
         svec[n].X[m] == 1 && _add_row!(svec, m, n)
+    end
     end
 
     # Adjacency matrix
     A = Array{Int}(undef, qubits, qubits)
 
+    @timeit to "phase correction and checks" begin
     for n = 1:qubits
         stab = svec[n]
 
@@ -206,6 +220,7 @@ function to_graph(state::StabilizerState)
         A[n, n] == 0 ||
             println("Error: invalid graph conversion (non-zero trace).")
     end
+    end
 
     if !issymmetric(A)
         println("Error: invalid graph conversion (non-symmetric).")
@@ -216,7 +231,8 @@ function to_graph(state::StabilizerState)
         show(state)
         println()
     end
-
+    show(to)
+    println()
     return (graph_to_state(A), A, op_seq)
 end
 
