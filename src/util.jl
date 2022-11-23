@@ -122,7 +122,41 @@ function Base.rand(::Type{StabilizerState}, qubits::Int)
     return state
 end
 
-const debug_graph = false
+debug_graph = true
+function set_debug(val) ; global debug_graph = val != 0 ; end
+export set_debug
+
+function find_eq(v1, v2, i, qubits)
+    while i <= qubits
+        v1[i] == v2[i] && return i
+        i += 1
+    end
+    i
+end
+function find_ne(v1, v2, i, qubits)
+    while i <= qubits
+        v1[i] != v2[i] && return i
+        i += 1
+    end
+    i
+end
+
+function disp_diff(msg, sv1, sv2, n, qubits)
+    println("\n", msg, ": n = ", n)
+    print("    ")
+    count = 0
+    i = 1
+    while i <= qubits
+        # Skip to first value not equal
+        i = find_ne(sv1, sv2, i, qubits)
+        i > qubits && break
+        eq = find_eq(sv1, sv2, i, qubits)
+        count += (eq - i + 1)
+        print(" ", i)
+        i == eq || (print(":", eq - 1); i = eq)
+    end
+    println("  Count = ", count)
+end
 
 """
     to_graph(state)
@@ -133,27 +167,28 @@ function to_graph(state::StabilizerState)
 
     #TODO: Add a check if state is not empty. If it is, throw an exception.
     # update the state tableau from the stim simulator
-    update_tableau(state)
+    @timeit to "update_tableau" update_tableau(state)
     qubits = state.qubits
     svec = deepcopy(state.stabilizers)
     # Sequence of local operations performed
     op_seq = Tuple{String, Int}[]
+    #@timeit to "sort" sort!(svec, rev=true)
+    @time sort!(svec, rev=true)
+    #=
+    debug_graph && (savesvec = deepcopy(svec))
+    # check if any rows changed
+    debug_graph && svec != savesvec && disp_diff("sort", svec, savesvec, 1, qubits)
+    =#
 
     # Make X-block upper triangular
     for n in 1:qubits
-        debug_graph && (savesvec = deepcopy(svec))
-        @timeit to "sort" sort!(svec, rev=true)
-        # check if any rows changed
-        if debug_graph && svec != savesvec
-            println("\nchange from sort")
-            for i = 1:qubits
-                println(svec[i], svec[i] == savesvec[i] ? " == " : " != ", savesvec[i])
-            end
-        end
-        @timeit to "calc_sum 1" lead_sum = calc_sum(svec, qubits, n)
+        #@timeit to "calc_sum 1" (lead_sum = calc_sum(svec, qubits, n))
+        #@time (lead_sum = calc_sum(svec, qubits, n))
+        lead_sum = calc_sum(svec, qubits, n)
 
         if lead_sum == 0
             # Perform Hadamard operation
+            println("Hadamard: ", n)
             @timeit to "hadamard" begin
             for stab in svec
                 x, z = stab.X[n], stab.Z[n]
@@ -166,23 +201,38 @@ function to_graph(state::StabilizerState)
             end
             push!(op_seq, ("H", n))
             end
-            debug_graph && (savesvec = deepcopy(svec))
-            @timeit to "sort H" sort!(svec, rev=true)
-            if debug_graph && svec != savesvec
-                println("\nchange from sort")
-                for i = 1:qubits
-                    println(svec[i], svec[i] == savesvec[i] ? " == " : " != ", savesvec[i])
+            #debug_graph && (savesvec = deepcopy(svec))
+            #@timeit to "sort H" sort!(svec, rev=true)
+            @time sort!(view(svec, n, rev=true)
+            #=
+            if debug_graph
+                if svec == savesvec
+                    println("sort H - no change")
+                else
+                    disp_diff("sort H", svec, savesvec, n, qubits)
                 end
             end
-            @timeit to "calc_sum 2" lead_sum = calc_sum(svec, qubits, n)
+            =#
+            #@timeit to "calc_sum 2" lead_sum = calc_sum(svec, qubits, n)
+            #@time (lead_sum = calc_sum(svec, qubits, n))
+            lead_sum = calc_sum(svec, qubits, n))
         end
 
         if lead_sum > 1
-            @timeit to "add row loop" begin
+            println("add rows(", lead_sum, "): ", n+1, ":", n+lead_sum-1)
+            #@timeit to "add row loop" begin
+            print("    ")
+            @time begin
             for m in (n+1):(n+lead_sum-1)
                 _add_row!(svec, n, m)
             end
             end
+            # debug_graph && (savesvec = deepcopy(svec))
+            #@timeit to "sort 2" sort!(svec, rev=true)
+            print("\n    sort")
+            @time sort!(svec, rev=true)
+            # check if any rows changed
+            # debug_graph && svec != savesvec && disp_diff("sort", svec, savesvec, n, qubits)
         end
     end
 
@@ -236,12 +286,130 @@ function to_graph(state::StabilizerState)
     return (graph_to_state(A), A, op_seq)
 end
 
+function to_graph_1(state::StabilizerState)
+
+    #TODO: Add a check if state is not empty. If it is, throw an exception.
+    # update the state tableau from the stim simulator
+    update_tableau(state)
+    qubits = state.qubits
+    svec = deepcopy(state.stabilizers)
+    # Sequence of local operations performed
+    op_seq = Tuple{String, Int}[]
+    @timeit to "sort" sort!(svec, rev=true)
+    #=
+    debug_graph && (savesvec = deepcopy(svec))
+    # check if any rows changed
+    debug_graph && svec != savesvec && disp_diff("sort", svec, savesvec, 1, qubits)
+    =#
+
+    # Make X-block upper triangular
+    for n in 1:qubits
+        @timeit to "calc_sum 1" (lead_sum = calc_sum(svec, qubits, n))
+
+        if lead_sum == 0
+            # Perform Hadamard operation
+            @timeit to "hadamard" begin
+            for stab in svec
+                x, z = stab.X[n], stab.Z[n]
+                if xor(x, z) == 1
+                    # Swap bits
+                    stab.X[n], stab.Z[n] = z, x
+                elseif x == 1 && z == 1
+                    stab.phase ⊻= 2 # toggle bit 2 of phase if Y
+                end
+            end
+            push!(op_seq, ("H", n))
+            end
+            debug_graph && (savesvec = deepcopy(svec))
+            @timeit to "sort H" sort!(svec, rev=true)
+            if debug_graph
+                if svec == savesvec
+                    println("sort H - no change")
+                else
+                    disp_diff("sort H", svec, savesvec, n, qubits)
+                end
+            end
+            @timeit to "calc_sum 2" lead_sum = calc_sum(svec, qubits, n)
+        end
+
+        if lead_sum > 1
+            debug_graph && println("add rows(", lead_sum, "): ", n+1, ":", n+lead_sum-1)
+            @timeit to "add row loop" begin
+            for m in (n+1):(n+lead_sum-1)
+                _add_row!(svec, n, m)
+            end
+            end
+            debug_graph && (savesvec = deepcopy(svec))
+            @timeit to "sort 2" sort!(svec, rev=true)
+            # check if any rows changed
+            debug_graph && svec != savesvec && disp_diff("sort", svec, savesvec, n, qubits)
+        end
+    end
+
+    # Make diagonal X-block
+    @timeit to "make diagonal" begin
+    for n = (qubits-1):-1:1, m = (n+1):qubits
+        svec[n].X[m] == 1 && _add_row!(svec, m, n)
+    end
+    end
+
+    # Adjacency matrix
+    A = Array{Int}(undef, qubits, qubits)
+
+    @timeit to "phase correction and checks" begin
+    for n = 1:qubits
+        stab = svec[n]
+
+        # Phase correction
+        if stab.phase != 0
+            stab.phase = 0
+            push!(op_seq, ("Z", n))
+        end
+
+        # Y correct
+        if stab.X[n] == 1 && stab.Z[n] == 1
+            # Change Y to X
+            stab.Z[n] = 0
+            push!(op_seq, ("P", n))
+        end
+
+        # Copy Z to adjacency matrix
+        A[n, :] .= stab.Z
+
+        # Check diagonal for any non-zero values
+        A[n, n] == 0 ||
+            println("Error: invalid graph conversion (non-zero trace).")
+    end
+    end
+
+    if !issymmetric(A)
+        println("Error: invalid graph conversion (non-symmetric).")
+        show(A)
+        println()
+        show(to_tableau(state))
+        println()
+        show(state)
+        println()
+    end
+    show(to)
+    println()
+    return (graph_to_state(A), A, op_seq)
+end
+
+"""Calculate number of X bits set in column bit"""
 function calc_sum(svec, qubits, bit)
     tot = 0
     for i = bit:qubits
         tot += svec[i].X[bit]
     end
     tot
+end
+
+"""Find first X set below the diagonal in column bit"""
+function find_first_x(svec, qubits, bit)
+    i = bit
+    while (i += 1) <= qubits && svec[i].X[bit] == 0 ; end
+    return i
 end
 
 """
