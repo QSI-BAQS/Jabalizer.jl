@@ -19,7 +19,7 @@
     gs, adj, mseq = Jabalizer.fast_to_graph(state)
 
     A = [0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 1; 0 0 0 1 0]
-    M = [("H", 2), ("H", 5), ("P", 4), ("Z", 4)]
+    M = [("H", 2), ("H", 5), ("Pdag", 4), ("Z", 4)]
 
     @test adj == A
     @test mseq == M

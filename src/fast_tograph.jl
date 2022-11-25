@@ -108,7 +108,7 @@ function fast_to_graph(state::StabilizerState)
         if stab.X[n] == 1 && stab.Z[n] == 1
             # Change Y to X
             stab.Z[n] = 0
-            push!(op_seq, ("P", n))
+            push!(op_seq, ("Pdag", n))
         end
 
         # Phase correction
