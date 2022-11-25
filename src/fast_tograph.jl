@@ -67,6 +67,7 @@ function fast_to_graph(state::StabilizerState)
         # If first X is not on the diagonal
         if locs[1] != n
         _swap_row!(svec,n, locs[1])
+        end
 
         # Remove Xs below the diagonal
         popfirst!(locs)
