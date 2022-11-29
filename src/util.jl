@@ -155,6 +155,15 @@ function disp_diff(msg, sv1, sv2, n, qubits)
     println("  Count = ", count)
 end
 
+#=
+function _disp(svec::Vector{Stabilizer})
+    qubits = length(svec)
+    qubits > 9 && return
+    for i = 1:qubits ; println(svec[i]); end
+end
+=#
+_disp(svec::Vector{Stabilizer}) = nothing
+
 """
     to_graph(state)
 
@@ -170,11 +179,13 @@ function _to_graph(state::StabilizerState)
     # Sequence of local operations performed
     op_seq = Tuple{String, Int}[]
     print("sort!: "); @time sort!(svec, rev=true)
+    _disp(svec)
 
     # Make X-block upper triangular
     for n in 1:qubits
         # Find first X (or Y) below diagonal.
         first_x = find_first_x(svec, qubits, n, n)
+        println("first_x = $first_x")
 
         # if diagonal is zero,
         #    1) perform Hadamard operation if no other X found
@@ -196,17 +207,19 @@ function _to_graph(state::StabilizerState)
                     # Recalculate first_x (should always be non-zero,
                     # since Z column should have at least 1 bit set
                     first_x = find_first_x(svec, qubits, n, n)
-                    print("Hadamard: $n -> $first_x, ")
+                    println("Hadamard: $n -> $first_x")
                 end
+                _disp(svec)
             end
-            # If we are not already at end (i.e. n == qubits), swap rows
-            if first_x != 0
+            # If we are not already at end (i.e. n == qubits), and diagonal is still 0, swap rows
+            if first_x != 0 && svec[n].X[n] == 0
                 # Swap rows to bring X to diagonal
                 svec[n], svec[first_x] = svec[first_x], svec[n]
                 print("Swap: $n, $first_x -> ")
                 # Recalculate first_x after swap, starting after first_x row (which now has 0 X)
                 first_x = find_first_x(svec, qubits, first_x, n)
                 println(first_x)
+                _disp(svec)
             end
         end
 
@@ -215,30 +228,29 @@ function _to_graph(state::StabilizerState)
         if first_x != 0
             print("add rows: $n, $first_x\t")
             @time begin
-                stab = svec[n]
                 for m in first_x:qubits
-                    stab.X[m] == 0 || _add_row!(svec, n, m)
+                    svec[m].X[n] == 0 || _add_row!(svec, n, m)
                 end
             end
+            println()
         end
+        _disp(svec)
     end
-    show(svec)
-    println()
 
     # Make diagonal X-block
     print("Make diagonal: ")
     @time begin
     for n = (qubits-1):-1:1, m = (n+1):qubits
-        svec[n].X[m] == 0 && _add_row!(svec, m, n)
+        svec[n].X[m] == 1 && _add_row!(svec, m, n)
     end
     end
-    show(svec)
-    println()
+    _disp(svec)
 
     # Adjacency matrix
     A = Array{Int}(undef, qubits, qubits)
 
-    @timeit to "phase correction and checks" begin
+    #@timeit to "phase correction and checks" begin
+    @time begin
     for n = 1:qubits
         stab = svec[n]
 
@@ -266,12 +278,14 @@ function _to_graph(state::StabilizerState)
 
     if !issymmetric(A)
         println("Error: invalid graph conversion (non-symmetric).")
-        show(A)
-        println()
-        show(to_tableau(state))
-        println()
-        show(state)
-        println()
+        if qubits < 10
+            show(A)
+            println()
+            show(to_tableau(state))
+            println()
+            show(state)
+            println()
+        end
     end
     show(to)
     println()
@@ -325,8 +339,7 @@ function to_graph_1(state::StabilizerState)
                 end
             end
             @timeit to "calc_sum 2" lead_sum = calc_sum(svec, qubits, n)
-            show(svec)
-            println()
+            _disp(svec)
         end
 
         if lead_sum > 1
@@ -340,8 +353,7 @@ function to_graph_1(state::StabilizerState)
             @timeit to "sort 2" sort!(svec, rev=true)
             # check if any rows changed
             debug_graph && svec != savesvec && disp_diff("sort", svec, savesvec, n, qubits)
-            show(svec)
-            println()
+            _disp(svec)
         end
     end
 
@@ -351,6 +363,7 @@ function to_graph_1(state::StabilizerState)
         svec[n].X[m] == 1 && _add_row!(svec, m, n)
     end
     end
+    _disp(svec)
 
     # Adjacency matrix
     A = Array{Int}(undef, qubits, qubits)
