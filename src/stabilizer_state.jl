@@ -94,6 +94,7 @@ end
 
 
 function graph_to_state(A::AbstractArray{<:Integer})::StabilizerState
+    print("graph_to_state: "); @time begin
     n = size(A, 1)
     state = zero_state(n)
     for i = 1:n
@@ -102,7 +103,8 @@ function graph_to_state(A::AbstractArray{<:Integer})::StabilizerState
     for i = 1:n, j = (i+1):n
         A[i, j] == 1 && CZ(i, j)(state)
     end
-    update_tableau(state)
+    end
+    print("\tupdate_tableau: "); @time update_tableau(state)
     return state
 end
 
