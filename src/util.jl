@@ -36,12 +36,6 @@ function stim_tableau(stim_sim::Py)::Matrix{Int}
     return tableau
 end
 
-function clear!(stab::Stabilizer)
-    fill!(stab.X.chunks, 0)
-    fill!(stab.Z.chunks, 0)
-    stab
-end
-
 function copyrow!(stab::Stabilizer, ps, row, qubits)
     # update sign
     stab.phase = pyconvert(Number, ps.sign) == -1 ? 2 : 0
@@ -63,8 +57,13 @@ function copyrow!(stab::Stabilizer, ps, row, qubits)
     end
 end
 
-out_time(n,a,b) =
-    println("$n:\t$(round(a/1000000000,digits=3))s, $(round(b/1000000000,digits=3))s")
+function out_time(n, a, tottim, totcnt=0)
+    print("$n:\t$(round(a/1000000000,digits=3))s, ")
+    tim = tottim/1000000000/60
+    print("elapsed time: ", round(tim, digits=2), " min")
+    totcnt == 0 || print(", remaining time: ", round(tim/n*(totcnt-n), digits=2), " min")
+    println()
+end
 
 """
     update_tableau(state::StabilizerState)
@@ -76,48 +75,46 @@ function update_tableau(state::StabilizerState)
 
     # Extract the tableau in Jabalizer format
     stim_sim = state.simulator
-    print("current_inverse_tableau: "); @time tableau = stim_sim.current_inverse_tableau()
-    #print("inverse: "); @time tableau = invtab.inverse()
+    print("current_inverse_tableau: "); @time invtab = stim_sim.current_inverse_tableau()
+    print("inverse: "); @time tableau = invtab.inverse()
+    print("to_numpy: "); @time (x2x, x2z, z2x, z2z, x_signs, z_signs) = tableau.to_numpy()
+    print("convert x: "); @time xmat = pyconvert(BitMatrix, z2x)
+    print("convert z: "); @time zmat = pyconvert(BitMatrix, z2z)
+    print("convert signs: "); @time signs = pyconvert(BitVector, z_signs)
     oldlen = state.qubits
     state.qubits = qubits = length(tableau)
     svec = state.stabilizers
-    cnt = t_zout = t_copy = 0
+    pt = t0 = time_ns()
+    cnt = 0
     print("update stabilizers: "); @time begin
     println()
     if isempty(svec)
         for i in 1:qubits
             stab = Stabilizer(qubits)
             push!(svec, stab)
-            t1 = time_ns()
-            ps = tableau.inverse_z_output(i - 1)
-            t2 = time_ns()
-            t_zout += (t2 - t1)
-            copyrow!(stab, ps, i, qubits)
-            t3 = time_ns()
-            t_copy += (t3 - t2)
-            if (cnt += 1) > 999
-                out_time(i, t_zout, t_copy)
-                cnt = t_zout = t_copy = 0
+            stab.phase = signs[i]<<1
+            stab.X .= xmat[i,:]
+            stab.Z .= zmat[i,:]
+            if (cnt += 1) > 9999
+                tn = time_ns() ; out_time(i, tn-pt, tn-t0, qubits) ; pt = tn
+                cnt = 0
             end
         end
     else
         qubits == oldlen || error("Mismatch qubits $qubits != $oldlen, $(length(svec))")
         for i in 1:qubits
-            t1 = time_ns()
-            ps = tableau.inverse_z_output(i - 1)
-            t2 = time_ns()
-            t_zout += (t2 - t1)
-            copyrow!(clear!(svec[i]), ps, i, qubits)
-            t3 = time_ns()
-            t_copy += (t3 - t2)
-            if (cnt += 1) > 999
-                out_time(i, t_zout, t_copy)
-                cnt = t_zout = t_copy = 0
+            stab = svec[i]
+            stab.phase = signs[i]<<1
+            stab.X .= xmat[i,:]
+            stab.Z .= zmat[i,:]
+            if (cnt += 1) > 9999
+                tn = time_ns() ; out_time(i, tn-pt, tn-t0, qubits) ; pt = tn
+                cnt = 0
             end
         end
     end
+    tn = time_ns() ; out_time(cnt, tn-pt, tn-t0)
     end
-    out_time(cnt, t_zout, t_copy)
 
     # mark it as updated
     state.is_updated = true
@@ -207,10 +204,6 @@ function _to_graph(state::StabilizerState)
     end
     end
 
-    # Adjacency matrix
-    A = Array{Int}(undef, qubits, qubits)
-
-    #@timeit to "phase correction and checks" begin
     print("\tPhase correction and checks: ")
     @time begin
     for n = 1:qubits
@@ -223,21 +216,33 @@ function _to_graph(state::StabilizerState)
         end
 
         # Y correct
-        if stab.X[n] == 1 && stab.Z[n] == 1
-            # Change Y to X
-            stab.Z[n] = 0
-            push!(op_seq, ("P", n))
+        if stab.Z[n] == 1
+            if stab.X[n] == 1
+                # Change Y to X
+                stab.Z[n] = 0
+                push!(op_seq, ("P", n))
+            else
+                # Check diagonal for any non-zero values
+                println("Error: invalid graph conversion (non-zero trace).")
+            end
         end
+    end
+    end
 
+    print("\tCreate Adjacency Matrix")
+    @time begin
+    # Adjacency matrix
+    A = Array{Int}(undef, qubits, qubits)
+
+    for n = 1:qubits
+        stab = svec[n]
         # Copy Z to adjacency matrix
         A[n, :] .= stab.Z
-
-        # Check diagonal for any non-zero values
-        A[n, n] == 0 ||
-            println("Error: invalid graph conversion (non-zero trace).")
     end
     end
 
+    print("\tCheck symmetry")
+    @time begin
     if !issymmetric(A)
         println("Error: invalid graph conversion (non-symmetric).")
         show(A)
@@ -247,6 +252,8 @@ function _to_graph(state::StabilizerState)
         show(state)
         println()
     end
+    end
+
     return (svec, A, op_seq)
 end
 
