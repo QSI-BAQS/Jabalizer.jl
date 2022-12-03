@@ -36,29 +36,8 @@ function stim_tableau(stim_sim::Py)::Matrix{Int}
     return tableau
 end
 
-function copyrow!(stab::Stabilizer, ps, row, qubits)
-    # update sign
-    stab.phase = pyconvert(Number, ps.sign) == -1 ? 2 : 0
-    xs = stab.X
-    zs = stab.Z
-
-    # Stabilizer replacement
-    for j in 1:qubits
-        v = pyconvert(Int, get(ps, j - 1, -1))
-        # Note: 0123 represent IXYZ (different from the xz representation used here)
-        if v == 1           # X replacement
-            xs[j] = 1
-        elseif v == 3       # Z replacement
-            zs[j] = 1
-        elseif v == 2       # Y replacement
-            xs[j] = 1
-            zs[j] = 1
-        end
-    end
-end
-
 function out_time(n, a, tottim, totcnt=0)
-    print("$n:\t$(round(a/1000000000,digits=3))s, ")
+    print("\t$n:\t$(round(a/1000000000,digits=3))s, ")
     tim = tottim/1000000000/60
     print("elapsed time: ", round(tim, digits=2), " min")
     totcnt == 0 || print(", remaining time: ", round(tim/n*(totcnt-n), digits=2), " min")
@@ -75,18 +54,18 @@ function update_tableau(state::StabilizerState)
 
     # Extract the tableau in Jabalizer format
     stim_sim = state.simulator
-    print("current_inverse_tableau: "); @time invtab = stim_sim.current_inverse_tableau()
-    print("inverse: "); @time tableau = invtab.inverse()
-    print("to_numpy: "); @time (x2x, x2z, z2x, z2z, x_signs, z_signs) = tableau.to_numpy()
-    print("convert x: "); @time xmat = pyconvert(BitMatrix, z2x)
-    print("convert z: "); @time zmat = pyconvert(BitMatrix, z2z)
-    print("convert signs: "); @time signs = pyconvert(BitVector, z_signs)
+    print("\tcurrent_inverse_tableau: "); @time invtab = stim_sim.current_inverse_tableau()
+    print("\tinverse: "); @time tableau = invtab.inverse()
+    print("\tto_numpy: "); @time (x2x, x2z, z2x, z2z, x_signs, z_signs) = tableau.to_numpy()
+    print("\tconvert x: "); @time xmat = pyconvert(BitMatrix, z2x)
+    print("\tconvert z: "); @time zmat = pyconvert(BitMatrix, z2z)
+    print("\tconvert signs: "); @time signs = pyconvert(BitVector, z_signs)
     oldlen = state.qubits
     state.qubits = qubits = length(tableau)
     svec = state.stabilizers
     pt = t0 = time_ns()
     cnt = 0
-    print("update stabilizers: "); @time begin
+    print("\tupdate stabilizers: "); @time begin
     println()
     if isempty(svec)
         for i in 1:qubits
@@ -131,15 +110,32 @@ function Base.rand(::Type{StabilizerState}, qubits::Int)
     state.simulator.set_inverse_tableau(tableau)
     svec = state.stabilizers
 
+    x2x, x2z, z2x, z2z, x_signs, z_signs = tableau.to_numpy()
+    xmat = pyconvert(BitMatrix, z2x)
+    zmat = pyconvert(BitMatrix, z2z)
+    signs = pyconvert(BitVector, z_signs)
     for i in 1:qubits
         stab = Stabilizer(qubits)
         push!(svec, stab)
-        copyrow!(stab, tableau.z_output(i - 1), i, qubits)
+        stab.phase = signs[i]<<1
+        stab.X .= xmat[i,:]
+        stab.Z .= zmat[i,:]
     end
 
     # mark it as updated
     state.is_updated = true
     return state
+end
+
+function _is_symmetric(svec::Vector{Stabilizer})
+    qubits = length(svec)
+    for i = 1:qubits-1
+        sz = svec[i].Z
+        for j = i+1:qubits
+            sz[j] == svec[j].Z[i] || return false
+        end
+    end
+    return true
 end
 
 function _to_graph(state::StabilizerState)
@@ -153,6 +149,8 @@ function _to_graph(state::StabilizerState)
     op_seq = Tuple{String, Int}[]
     print("\tsort!: "); @time sort!(svec, rev=true)
 
+    print("\tMake X-block upper triangular: ")
+    @time begin
     # Make X-block upper triangular
     for n in 1:qubits
         # Find first X (or Y) below diagonal.
@@ -195,6 +193,7 @@ function _to_graph(state::StabilizerState)
             end
         end
     end
+    end
 
     # Make diagonal X-block
     print("\tMake diagonal: ")
@@ -229,10 +228,27 @@ function _to_graph(state::StabilizerState)
     end
     end
 
-    print("\tCreate Adjacency Matrix")
+    print("\tCheck symmetry: ")
+    @time begin
+    if !_is_symmetric(svec)
+        println("Error: invalid graph conversion (non-symmetric).")
+        show(to_tableau(state))
+        println()
+        show(state)
+        println()
+    end
+    end
+
+    return (svec, op_seq)
+end
+
+function _create_matrix(svec::Vector{Stabilizer})
+    qubits = length(svec)
+
+    print("\tCreate Adjacency Matrix: ")
     @time begin
     # Adjacency matrix
-    A = Array{Int}(undef, qubits, qubits)
+    A = BitMatrix(undef, qubits, qubits)
 
     for n = 1:qubits
         stab = svec[n]
@@ -240,8 +256,8 @@ function _to_graph(state::StabilizerState)
         A[n, :] .= stab.Z
     end
     end
-
-    print("\tCheck symmetry")
+#=
+    print("\tCheck symmetry: ")
     @time begin
     if !issymmetric(A)
         println("Error: invalid graph conversion (non-symmetric).")
@@ -253,8 +269,8 @@ function _to_graph(state::StabilizerState)
         println()
     end
     end
-
-    return (svec, A, op_seq)
+=#
+    A
 end
 
 """
@@ -263,8 +279,11 @@ end
 Convert a state to its adjacency graph state equivalent under local operations.
 """
 function to_graph(state::StabilizerState)
-    @time (svec, A, op_seq) = _to_graph(state)
-    print("\tgraph_to_state: ") ; @time g = graph_to_state(A)
+    @time begin
+        svec, op_seq = _to_graph(state)
+        A = _create_matrix(svec)
+        print("\tgraph_to_state: ") ; @time g = graph_to_state(A)
+    end
     g, A, op_seq
 end
 
@@ -274,7 +293,7 @@ export adjacency_matrix
 
 Convert a state to its adjacency graph state equivalent under local operations.
 """
-adjacency_matrix(state::StabilizerState) = _to_graph(state)[2]
+adjacency_matrix(state::StabilizerState) = _create_matrix(_to_graph(state)[1])
 
 """Find first X set below the diagonal in column col"""
 function find_first_x(svec, qubits, row, col)
@@ -317,7 +336,7 @@ export writecsv
 """
 Output adjacency matrix in CSV format
 """
-function writecsv(nam, mat::Matrix)
+function writecsv(nam, mat::AbstractMatrix)
     len = size(mat, 1)
     vec = Vector{UInt8}(undef, len*2)
     for i = 2:2:len*2-2
@@ -338,7 +357,7 @@ export writemat
 """
 Output adjacency matrix in internal format
 """
-function writemat(nam, mat::Matrix)
+function writemat(nam, mat::AbstractMatrix)
     len = size(mat, 1)
     vec = Vector{UInt8}(undef, len+1)
     vec[end] = UInt8('\n')
