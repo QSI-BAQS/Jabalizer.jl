@@ -1,3 +1,19 @@
+const debug_out = true
+
+# Debugging timing output (if debug_out is set)
+macro disp_time(msg, ex)
+    if debug_out
+        quote
+            print($(esc(msg)))
+            @time $(esc(ex))
+        end
+    else
+        quote
+            nothing
+        end
+    end
+end
+
 """
     stim_tableau(stim_sim::Py)::Matrix{Int}
 
@@ -54,19 +70,18 @@ function update_tableau(state::StabilizerState)
 
     # Extract the tableau in Jabalizer format
     stim_sim = state.simulator
-    print("\tcurrent_inverse_tableau: "); @time invtab = stim_sim.current_inverse_tableau()
-    print("\tinverse: "); @time tableau = invtab.inverse()
-    print("\tto_numpy: "); @time (x2x, x2z, z2x, z2z, x_signs, z_signs) = tableau.to_numpy()
-    print("\tconvert x: "); @time xmat = pyconvert(BitMatrix, z2x)
-    print("\tconvert z: "); @time zmat = pyconvert(BitMatrix, z2z)
-    print("\tconvert signs: "); @time signs = pyconvert(BitVector, z_signs)
+    @disp_time "\tcurrent_inverse_tableau: " invtab = stim_sim.current_inverse_tableau()
+    @disp_time "\tinverse: " tableau = invtab.inverse()
+    @disp_time "\tto_numpy: " (x2x, x2z, z2x, z2z, x_signs, z_signs) = tableau.to_numpy()
+    @disp_time "\tconvert x: " xmat = pyconvert(BitMatrix, z2x)
+    @disp_time "\tconvert z: " zmat = pyconvert(BitMatrix, z2z)
+    @disp_time "\tconvert signs: " signs = pyconvert(BitVector, z_signs)
     oldlen = state.qubits
     state.qubits = qubits = length(tableau)
     svec = state.stabilizers
     pt = t0 = time_ns()
     cnt = 0
-    print("\tupdate stabilizers: "); @time begin
-    println()
+    @disp_time "\tupdate stabilizers: \n" begin
     if isempty(svec)
         for i in 1:qubits
             stab = Stabilizer(qubits)
@@ -74,7 +89,7 @@ function update_tableau(state::StabilizerState)
             stab.phase = signs[i]<<1
             stab.X .= xmat[i,:]
             stab.Z .= zmat[i,:]
-            if (cnt += 1) > 9999
+            if debug_out && (cnt += 1) > 9999
                 tn = time_ns() ; out_time(i, tn-pt, tn-t0, qubits) ; pt = tn
                 cnt = 0
             end
@@ -86,13 +101,13 @@ function update_tableau(state::StabilizerState)
             stab.phase = signs[i]<<1
             stab.X .= xmat[i,:]
             stab.Z .= zmat[i,:]
-            if (cnt += 1) > 9999
+            if debug_out && (cnt += 1) > 9999
                 tn = time_ns() ; out_time(i, tn-pt, tn-t0, qubits) ; pt = tn
                 cnt = 0
             end
         end
     end
-    tn = time_ns() ; out_time(cnt, tn-pt, tn-t0)
+    debug_out && (tn = time_ns() ; out_time(cnt, tn-pt, tn-t0))
     end
 
     # mark it as updated
@@ -142,15 +157,14 @@ function _to_graph(state::StabilizerState)
 
     #TODO: Add a check if state is not empty. If it is, throw an exception.
     # update the state tableau from the stim simulator
-    print("update_tableau: "); @time update_tableau(state)
+    @disp_time "update_tableau: " update_tableau(state)
     qubits = state.qubits
     svec = deepcopy(state.stabilizers)
     # Sequence of local operations performed
     op_seq = Tuple{String, Int}[]
-    print("\tsort!: "); @time sort!(svec, rev=true)
+    @disp_time "\tsort!: " sort!(svec, rev=true)
 
-    print("\tMake X-block upper triangular: ")
-    @time begin
+    @disp_time "\tMake X-block upper triangular: " begin
     # Make X-block upper triangular
     for n in 1:qubits
         # Find first X (or Y) below diagonal.
@@ -196,15 +210,13 @@ function _to_graph(state::StabilizerState)
     end
 
     # Make diagonal X-block
-    print("\tMake diagonal: ")
-    @time begin
+    @disp_time "\tMake diagonal: " begin
     for n = (qubits-1):-1:1, m = (n+1):qubits
         svec[n].X[m] == 1 && _add_row!(svec, m, n)
     end
     end
 
-    print("\tPhase correction and checks: ")
-    @time begin
+    @disp_time "\tPhase correction and checks: " begin
     for n = 1:qubits
         stab = svec[n]
 
@@ -228,8 +240,7 @@ function _to_graph(state::StabilizerState)
     end
     end
 
-    print("\tCheck symmetry: ")
-    @time begin
+    @disp_time "\tCheck symmetry: " begin
     if !_is_symmetric(svec)
         println("Error: invalid graph conversion (non-symmetric).")
         show(to_tableau(state))
@@ -245,8 +256,6 @@ end
 function _create_matrix(svec::Vector{Stabilizer})
     qubits = length(svec)
 
-    print("\tCreate Adjacency Matrix: ")
-    @time begin
     # Adjacency matrix
     A = BitMatrix(undef, qubits, qubits)
 
@@ -255,21 +264,6 @@ function _create_matrix(svec::Vector{Stabilizer})
         # Copy Z to adjacency matrix
         A[n, :] .= stab.Z
     end
-    end
-#=
-    print("\tCheck symmetry: ")
-    @time begin
-    if !issymmetric(A)
-        println("Error: invalid graph conversion (non-symmetric).")
-        show(A)
-        println()
-        show(to_tableau(state))
-        println()
-        show(state)
-        println()
-    end
-    end
-=#
     A
 end
 
@@ -281,8 +275,8 @@ Convert a state to its adjacency graph state equivalent under local operations.
 function to_graph(state::StabilizerState)
     @time begin
         svec, op_seq = _to_graph(state)
-        A = _create_matrix(svec)
-        print("\tgraph_to_state: ") ; @time g = graph_to_state(A)
+        @disp_time "\tCreate Adjacency Matrix: " A = _create_matrix(svec)
+        @disp_time "\tgraph_to_state: " g = graph_to_state(A)
     end
     g, A, op_seq
 end
@@ -369,5 +363,24 @@ function writemat(nam, mat::AbstractMatrix)
             end
             write(io, vec)
         end
+    end
+end
+
+export writelst
+"""
+Output adjacency list from adjacency matrix in stabilizer Z bits
+"""
+function writelst(nam, svec::Vector{Stabilizer})
+    len = length(svec)
+    open(nam, "w") do io
+        print(io, "# $len")
+        for i = 1:len
+            z = svec[i].Z
+            print(io, '\n', i-1)
+            for j = i+1:len
+                z[j] && print(io, ' ', j-1)
+            end
+        end
+        println(io)
     end
 end
