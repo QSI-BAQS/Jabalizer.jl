@@ -26,6 +26,7 @@ Generates a state of n qubits in the +1 Z eigenstate.
 """
 function zero_state(n::Int)
     state = StabilizerState(n)
+    state.simulator.set_num_qubits(n)
     for i in 0:n-1
         state.simulator.z(i)
     end
@@ -94,7 +95,6 @@ end
 
 
 function graph_to_state(A::AbstractArray{<:Integer})::StabilizerState
-    print("graph_to_state: "); @time begin
     n = size(A, 1)
     state = zero_state(n)
     for i = 1:n
@@ -103,8 +103,7 @@ function graph_to_state(A::AbstractArray{<:Integer})::StabilizerState
     for i = 1:n, j = (i+1):n
         A[i, j] == 1 && CZ(i, j)(state)
     end
-    end
-    print("\tupdate_tableau: "); @time update_tableau(state)
+    update_tableau(state)
     return state
 end
 

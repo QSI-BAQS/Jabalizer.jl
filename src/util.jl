@@ -9,7 +9,7 @@ macro disp_time(msg, ex)
         end
     else
         quote
-            nothing
+            $(esc(ex))
         end
     end
 end
@@ -67,28 +67,23 @@ Update the state tableau with the current state of the stim simulator
 """
 function update_tableau(state::StabilizerState)
     state.is_updated && return
-
     # Extract the tableau in Jabalizer format
     stim_sim = state.simulator
-    @disp_time "\tcurrent_inverse_tableau: " invtab = stim_sim.current_inverse_tableau()
-    @disp_time "\tinverse: " tableau = invtab.inverse()
-    @disp_time "\tto_numpy: " (x2x, x2z, z2x, z2z, x_signs, z_signs) = tableau.to_numpy()
-    @disp_time "\tconvert x: " xmat = pyconvert(BitMatrix, z2x)
-    @disp_time "\tconvert z: " zmat = pyconvert(BitMatrix, z2z)
-    @disp_time "\tconvert signs: " signs = pyconvert(BitVector, z_signs)
+    @disp_time "\tcurrent_inverse_tableau: " tb = stim_sim.current_inverse_tableau()
+    @disp_time "\tinverse: " tb = tb.inverse()
     oldlen = state.qubits
-    state.qubits = qubits = length(tableau)
+    state.qubits = qubits = length(tb)
     svec = state.stabilizers
     pt = t0 = time_ns()
     cnt = 0
     @disp_time "\tupdate stabilizers: \n" begin
     if isempty(svec)
         for i in 1:qubits
-            stab = Stabilizer(qubits)
-            push!(svec, stab)
-            stab.phase = signs[i]<<1
-            stab.X .= xmat[i,:]
-            stab.Z .= zmat[i,:]
+            ps = tb.z_output(i-1)
+            xs, zs = ps.to_numpy()
+            xv = pyconvert(BitVector, xs)
+            zv = pyconvert(BitVector, zs)
+            push!(svec, Stabilizer(xv, zv, pyconvert(Number, ps.sign) == -1 ? 2 : 0))
             if debug_out && (cnt += 1) > 9999
                 tn = time_ns() ; out_time(i, tn-pt, tn-t0, qubits) ; pt = tn
                 cnt = 0
@@ -97,10 +92,12 @@ function update_tableau(state::StabilizerState)
     else
         qubits == oldlen || error("Mismatch qubits $qubits != $oldlen, $(length(svec))")
         for i in 1:qubits
+            ps = tb.z_output(i-1)
+            xs, zs = ps.to_numpy()
             stab = svec[i]
-            stab.phase = signs[i]<<1
-            stab.X .= xmat[i,:]
-            stab.Z .= zmat[i,:]
+            stab.X = pyconvert(BitVector, xs)
+            stab.Z = pyconvert(BitVector, zs)
+            stab.phase = pyconvert(Number, ps.sign) == -1 ? 2 : 0
             if debug_out && (cnt += 1) > 9999
                 tn = time_ns() ; out_time(i, tn-pt, tn-t0, qubits) ; pt = tn
                 cnt = 0
@@ -124,17 +121,12 @@ function Base.rand(::Type{StabilizerState}, qubits::Int)
     state = StabilizerState(qubits)
     state.simulator.set_inverse_tableau(tableau)
     svec = state.stabilizers
-
-    x2x, x2z, z2x, z2z, x_signs, z_signs = tableau.to_numpy()
-    xmat = pyconvert(BitMatrix, z2x)
-    zmat = pyconvert(BitMatrix, z2z)
+    (_, _, z2x, z2z, _, z_signs) = tableau.to_numpy()
     signs = pyconvert(BitVector, z_signs)
     for i in 1:qubits
-        stab = Stabilizer(qubits)
-        push!(svec, stab)
-        stab.phase = signs[i]<<1
-        stab.X .= xmat[i,:]
-        stab.Z .= zmat[i,:]
+        xv = pyconvert(BitVector, z2x[i-1])
+        zv = pyconvert(BitVector, z2z[i-1])
+        push!(svec, Stabilizer(xv, zv, signs[i]<<1))
     end
 
     # mark it as updated
@@ -153,7 +145,15 @@ function _is_symmetric(svec::Vector{Stabilizer})
     return true
 end
 
-function _to_graph(state::StabilizerState)
+export to_stabilizer_graph
+"""
+    to_stabilizer_graph(state)
+
+Convert a state to its adjacency graph state equivalent under local operations.
+
+Returns a vector of Stabilizers, and a vector of operations performed
+"""
+function to_stabilizer_graph(state::StabilizerState)
 
     #TODO: Add a check if state is not empty. If it is, throw an exception.
     # update the state tableau from the stim simulator
@@ -273,8 +273,8 @@ end
 Convert a state to its adjacency graph state equivalent under local operations.
 """
 function to_graph(state::StabilizerState)
-    @time begin
-        svec, op_seq = _to_graph(state)
+    @disp_time "to_graph: " begin
+        svec, op_seq = to_stabilizer_graph(state)
         @disp_time "\tCreate Adjacency Matrix: " A = _create_matrix(svec)
         @disp_time "\tgraph_to_state: " g = graph_to_state(A)
     end
@@ -287,7 +287,7 @@ export adjacency_matrix
 
 Convert a state to its adjacency graph state equivalent under local operations.
 """
-adjacency_matrix(state::StabilizerState) = _create_matrix(_to_graph(state)[1])
+adjacency_matrix(state::StabilizerState) = _create_matrix(to_stabilizer_graph(state)[1])
 
 """Find first X set below the diagonal in column col"""
 function find_first_x(svec, qubits, row, col)
@@ -326,51 +326,11 @@ function count_qubits(circuit::Vector{ICMGate})
     return length(qubit_ids)
 end
 
-export writecsv
-"""
-Output adjacency matrix in CSV format
-"""
-function writecsv(nam, mat::AbstractMatrix)
-    len = size(mat, 1)
-    vec = Vector{UInt8}(undef, len*2)
-    for i = 2:2:len*2-2
-        vec[i] = UInt8(',')
-    end
-    vec[end] = UInt8('\n')
-    open(nam, "w") do io
-        for i = 1:len
-            for j = 1:len
-                vec[j*2-1] = UInt8('0') + mat[i,j]
-            end
-            write(io, vec)
-        end
-    end
-end
-
-export writemat
-"""
-Output adjacency matrix in internal format
-"""
-function writemat(nam, mat::AbstractMatrix)
-    len = size(mat, 1)
-    vec = Vector{UInt8}(undef, len+1)
-    vec[end] = UInt8('\n')
-    open(nam, "w") do io
-        println(io, len)
-        for i = 1:len
-            for j = 1:len
-                vec[j] = UInt8('0') + mat[i,j]
-            end
-            write(io, vec)
-        end
-    end
-end
-
-export writelst
+export write_adjlist
 """
 Output adjacency list from adjacency matrix in stabilizer Z bits
 """
-function writelst(nam, svec::Vector{Stabilizer})
+function write_adjlist(svec::Vector{Stabilizer}, nam)
     len = length(svec)
     open(nam, "w") do io
         print(io, "# $len")
