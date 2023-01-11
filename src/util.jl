@@ -58,6 +58,11 @@ function update_tableau(state::StabilizerState)
     state.is_updated = true
 end
 
+"""
+    rand(StabilizerState, qubits::Int)
+
+    Return a random (valid) stabilizer state with the given number of qubits
+"""
 function Base.rand(::Type{StabilizerState}, qubits::Int)
     forward_tableau = stim.Tableau.random(qubits).inverse()
     state = StabilizerState(qubits)
