@@ -231,7 +231,7 @@ function to_stabilizer_graph(state::StabilizerState)
             if stab.X[n] == 1
                 # Change Y to X
                 stab.Z[n] = 0
-                push!(op_seq, ("P", n))
+                push!(op_seq, ("Pdag", n))
             else
                 # Check diagonal for any non-zero values
                 println("Error: invalid graph conversion (non-zero trace).")

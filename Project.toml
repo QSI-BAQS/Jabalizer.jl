@@ -1,7 +1,7 @@
 name = "Jabalizer"
 uuid = "5ba14d91-d028-496b-b148-c0fbc366f709"
-authors = ["Peter Rohde", "Madhav Krishnan Vijayan"]
-version = "0.3.2"
+authors = ["Peter Rohde", "Madhav Krishnan Vijayan", "Scott Paul Jones"]
+version = "0.4.0"
 
 [deps]
 Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
@@ -23,7 +23,7 @@ Graphs = "1.7,1.8"
 PythonCall = "0.9, 1"
 StatsBase = "0.33"
 JSON = "0.21"
-julia = "1.7,1.8"
+julia = "1.7,1.8,1.9,1.10"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
