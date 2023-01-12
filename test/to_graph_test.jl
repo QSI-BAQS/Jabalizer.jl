@@ -15,7 +15,7 @@
     Z(4)(state)
     CZ(4,5)(state)
     H(5)(state)
-    
+
     gs, adj, mseq = Jabalizer.fast_to_graph(state)
 
     A = [0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 1; 0 0 0 1 0]
@@ -23,6 +23,5 @@
 
     @test adj == A
     @test mseq == M
-
 
 end
