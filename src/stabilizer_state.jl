@@ -31,7 +31,6 @@ function zero_state(n::Int)
         state.simulator.z(i)
     end
     state.is_updated = false
-    #update_tableau(state)
     return state
 end
 

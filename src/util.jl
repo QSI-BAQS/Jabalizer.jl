@@ -145,15 +145,15 @@ function _is_symmetric(svec::Vector{Stabilizer})
     return true
 end
 
-export to_stabilizer_graph
+export graph_as_stabilizer_vector
 """
-    to_stabilizer_graph(state)
+    graph_as_stabilizer_vector(state)
 
 Convert a state to its adjacency graph state equivalent under local operations.
 
 Returns a vector of Stabilizers, and a vector of operations performed
 """
-function to_stabilizer_graph(state::StabilizerState)
+function graph_as_stabilizer_vector(state::StabilizerState)
 
     #TODO: Add a check if state is not empty. If it is, throw an exception.
     # update the state tableau from the stim simulator
@@ -253,7 +253,13 @@ function to_stabilizer_graph(state::StabilizerState)
     return (svec, op_seq)
 end
 
-function _create_matrix(svec::Vector{Stabilizer})
+export adjacency_matrix
+"""
+    adjacency_matrix(::Vector{Stabilizer})
+
+Convert an adjacency graph stored in the Z bits of a vector of Stabilizers to an adjacency matrix
+"""
+function adjacency_matrix(svec::Vector{Stabilizer})
     qubits = length(svec)
 
     # Adjacency matrix
@@ -268,26 +274,26 @@ function _create_matrix(svec::Vector{Stabilizer})
 end
 
 """
-    to_graph(state)
+    adjacency_matrix(state::StabilizerState)
 
 Convert a state to its adjacency graph state equivalent under local operations.
 """
+adjacency_matrix(state::StabilizerState) = adjacency_matrix(graph_as_stabilizer_vector(state)[1])
+
+"""
+    to_graph(state)
+
+Convert a state to its adjacency graph state equivalent under local operations.
+Returns stabilizer state, adjacency matrix, and sequence of operations.
+"""
 function to_graph(state::StabilizerState)
     @disp_time "to_graph: " begin
-        svec, op_seq = to_stabilizer_graph(state)
-        @disp_time "\tCreate Adjacency Matrix: " A = _create_matrix(svec)
+        svec, op_seq = graph_as_stabilizer_vector(state)
+        @disp_time "\tCreate Adjacency Matrix: " A = adjacency_matrix(svec)
         @disp_time "\tgraph_to_state: " g = graph_to_state(A)
     end
     g, A, op_seq
 end
-
-export adjacency_matrix
-"""
-    adjacency_matrix(state)
-
-Convert a state to its adjacency graph state equivalent under local operations.
-"""
-adjacency_matrix(state::StabilizerState) = _create_matrix(to_stabilizer_graph(state)[1])
 
 """Find first X set below the diagonal in column col"""
 function find_first_x(svec, qubits, row, col)
