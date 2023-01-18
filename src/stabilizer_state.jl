@@ -26,11 +26,11 @@ Generates a state of n qubits in the +1 Z eigenstate.
 """
 function zero_state(n::Int)
     state = StabilizerState(n)
+    state.simulator.set_num_qubits(n)
     for i in 0:n-1
         state.simulator.z(i)
     end
     state.is_updated = false
-    update_tableau(state)
     return state
 end
 

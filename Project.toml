@@ -1,7 +1,7 @@
 name = "Jabalizer"
 uuid = "5ba14d91-d028-496b-b148-c0fbc366f709"
-authors = ["Peter Rohde", "Madhav Krishnan Vijayan"]
-version = "0.3.1"
+authors = ["Peter Rohde", "Madhav Krishnan Vijayan", "Scott Paul Jones"]
+version = "0.4.0"
 
 [deps]
 Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
@@ -13,6 +13,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 
 [compat]
 Debugger = "0.7"
@@ -22,7 +23,7 @@ Graphs = "1.7,1.8"
 PythonCall = "0.9, 1"
 StatsBase = "0.33"
 JSON = "0.21"
-julia = "1.7"
+julia = "1.7,1.8,1.9,1.10"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
