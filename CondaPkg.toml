@@ -3,4 +3,4 @@ python = ">=3.5,<4"
 cirq = "1.0.0"
 
 [pip.deps]
-stim = ">=1.10"
+stim = "1.10"
