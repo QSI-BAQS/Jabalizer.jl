@@ -3,7 +3,7 @@ using OpenQASM.Types
 using OpenQASM.Tools
 using RBNF: Token
 
-const gate_map =
+const qasm_map =
     Dict("id" => "I",
          "h" => "H",
          "x" => "X",
@@ -50,7 +50,7 @@ Parses icm compatible circuit from a QASM (2.0) input string
 """
 function icm_circuit_from_qasm(str::String)
     # Hack to handle QASM 3 header
-    startswith(str, hdr3) && (str = convert3to2(str))
+    startswith(str, hdr3beg) && (str = convert3to2(str))
     ast = OpenQASM.parse(str)
     # Check header information
     ast.version == v"2.0.0" || error("Unsupported QASM version: $(ast.version)")
@@ -70,7 +70,7 @@ function icm_circuit_from_qasm(str::String)
         gate = ap[i]
         gate isa Instruction || error("Not an instruction: $gate")
         isempty(gate.cargs) || error("Classical bits not supported yet")
-        ins = get(gate_map, gate.name, "")
+        ins = get(qasm_map, gate.name, "")
         ins == "" && error("Instruction $ins not found")
         args = gate.qargs
         vals = String[]
