@@ -22,6 +22,7 @@ function __init__()
 end
 
 include("cirq_io.jl")
+include("qasm.jl")
 include("icm.jl")
 include("stabilizer.jl")
 include("stabilizer_state.jl")
@@ -31,6 +32,5 @@ include("fast_tograph.jl")
 include("stabilizer_gates.jl")
 include("execute_circuit.jl")
 include("stabilizer_measurements.jl")
-
 
 end
