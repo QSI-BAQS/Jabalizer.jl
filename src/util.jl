@@ -243,10 +243,12 @@ function graph_as_stabilizer_vector(state::StabilizerState)
     @disp_time "\tCheck symmetry: " begin
     if !_is_symmetric(svec)
         println("Error: invalid graph conversion (non-symmetric).")
-        show(to_tableau(state))
-        println()
-        show(state)
-        println()
+        if debug_out && qubits < 33
+            show(to_tableau(state))
+            println()
+            show(state)
+            println()
+        end
     end
     end
 
