@@ -15,7 +15,7 @@ println(cirq_circuit)
 
 gates_to_decomp = ["T", "T^-1"];
 icm_input = Jabalizer.load_circuit_from_cirq_json("circuits/toffoli_circuit_3.json")
-icm_circuit = Jabalizer.compile(icm_input, gates_to_decomp)
+(icm_circuit, qubit_dict) = Jabalizer.compile(icm_input, gates_to_decomp)
 
 
 Jabalizer.save_circuit_to_cirq_json(icm_circuit, "icm_output.json");
