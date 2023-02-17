@@ -5,7 +5,7 @@ const ICMGate = Tuple{String,Vector{String}}
 Perfoms gates decomposition to provide a circuit in the icm format.
 Reference: https://arxiv.org/abs/1509.02004
 """
-function compile(circuit::Vector{ICMGate}, gates_to_decompose::Vector{String}, with_measurements::Bool=false)
+function compile(circuit::Vector{ICMGate}, n_qubits::Int, gates_to_decompose::Vector{String}, with_measurements::Bool=false)
     qubit_dict = Dict()  # mapping from qubit to it's compiled version
     compiled_circuit::Vector{ICMGate} = []
     ancilla_num = 0
@@ -29,5 +29,15 @@ function compile(circuit::Vector{ICMGate}, gates_to_decompose::Vector{String}, w
             push!(compiled_circuit, (gate[1], compiled_qubits))
         end
     end
-    return compiled_circuit
+
+    # map qubits from the original circuit to the compiled one
+    data_qubits_map = [i for i in 0:n_qubits-1]
+    for (original_qubit, compiled_qubit) in qubit_dict
+        original_qubit_num = parse(Int, original_qubit)
+        compiled_qubit_num = n_qubits + parse(Int, compiled_qubit[5:end])
+        # +1 here because julia vectors are indexed from 1
+        data_qubits_map[original_qubit_num + 1] = compiled_qubit_num
+    end
+
+    return compiled_circuit, data_qubits_map
 end

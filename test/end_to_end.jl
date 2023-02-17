@@ -15,7 +15,7 @@ using Jabalizer
 
     gates_to_decomp = ["T", "T^-1"]
 
-    icm_circuit = compile(circuit, gates_to_decomp)
+    (icm_circuit, data_qubits_map) = compile(circuit, gates_to_decomp)
 
     n_qubits = count_qubits(icm_circuit)
     state = zero_state(n_qubits)
