@@ -4,8 +4,10 @@ const gate_alias =
     [("H_XZ", :H),
      ("P", :S),
      ("PHASE", :S),
-     ("SQRT_Z", :S),		# S
-     ("SQRT_Z_DAG", :S_DAG),	# SSS
+     ("SQRT_Z", :S),
+     ("SQRT_Z_DAG", :S_DAG),
+     ("S^-1", :S_DAG),
+     ("S_Dagger", :S_DAG),
      ("CX", :CNOT),
      ("ZCX", :CNOT),
      ("ZCY", :CY),
@@ -13,7 +15,8 @@ const gate_alias =
      ]
 
 const gate1_list =
-    [("X",     :X),	# HSSH
+    [("I",     :Id),
+     ("X",     :X),	# HSSH
      ("Y",     :Y),	# SSHSSH
      ("Z",     :Z),	# SS
      ("C_XYZ", :C_XYZ),	# SSSH
@@ -64,27 +67,42 @@ abstract type Gate1 <: Gate end
 abstract type Gate2 <: Gate end
 
 export Gate, Gate1, Gate2
-export Id, P, X, Y, Z, H, CNOT, CZ, SWAP
 
-"""Pauli-I gate"""
-struct Id <: Gate1 ; qubit::Int ; end
+#=
+"Pauli-I"
+"Pauli-X"
+"Pauli-Y"
+"Pauli-Z"
+"S (Phase)"
+"Hadamard"
+"Controlled NOT"
+"CZ"
+"SWAP"
+=#
 
-"""S (Phase) gate"""
-struct P <: Gate1 ; qubit::Int ; end
-"""Pauli-X gate"""
-struct X <: Gate1 ; qubit::Int ; end
-"""Pauli-Y gate"""
-struct Y <: Gate1 ; qubit::Int ; end
-"""Pauli-Z gate"""
-struct Z <: Gate1 ; qubit::Int ; end
-"""Hadamard gate"""
-struct H <: Gate1 ; qubit::Int ; end
+for (name, sym) in gate1_list
+    @eval begin
+        export $sym ; struct $sym <: Gate1 ; qubit::Int ; end
+    end
+end
+for (name, sym) in gate2_list
+    @eval begin
+        export $sym ; struct $sym <: Gate2 ; qubit1::Int ; qubit2::Int ; end
+    end
+end
 
-"""Controlled NOT gate"""
-struct CNOT <: Gate2 ; qubit1::Int ; qubit2::Int ; end
-"""CZ gate"""
-struct CZ <: Gate2 ;   qubit1::Int ; qubit2::Int ; end
-"""SWAP gate"""
-struct SWAP <: Gate2 ; qubit1::Int ; qubit2::Int ; end
+# Aliases
+const P = S ; export P
+const PHASE = S ; export PHASE
+
+const gate_map = Dict{String,Type{<:Gate}}()
+export gate_map
+
+# This is called by the Jabalizer package's __init__ function
+function _init_gate_map()
+    for (name, sym) in vcat(gate1_list, gate2_list, gate_alias)
+        gate_map[name] = eval(sym)
+    end
+end
 
 end # module Gates

@@ -18,7 +18,7 @@ const cirq = PythonCall.pynew() # initially NULL
 function __init__()
     PythonCall.pycopy!(stim, pyimport("stim"))
     PythonCall.pycopy!(cirq, pyimport("cirq"))
-    _init_gate_map()
+    Gates._init_gate_map()
 end
 
 include("cirq_io.jl")
@@ -26,10 +26,10 @@ include("qasm.jl")
 include("icm.jl")
 include("stabilizer.jl")
 include("stabilizer_state.jl")
+include("stabilizer_gates.jl")
 include("graph_state.jl")
 include("util.jl")
 include("fast_tograph.jl")
-include("stabilizer_gates.jl")
 include("execute_circuit.jl")
 include("stabilizer_measurements.jl")
 

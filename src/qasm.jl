@@ -12,9 +12,10 @@ const qasm_map =
          "cnot" => "CNOT",
          "swap" => "SWAP",
          "s" => "S",
-         "sdg" => "S", # "S_Dagger", # Temporary Hack!
+         "sdg" => "S_DAG",
          "t" => "T",
          "tdg" => "T", # "T_Dagger", # Temporary Hack!
+         "cx" => "CNOT",
          "cz" => "CZ")
 
 const hdr3beg = """OPENQASM 3;\ninclude "stdgates.inc";\nqubit["""

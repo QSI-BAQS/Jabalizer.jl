@@ -33,7 +33,7 @@ end
 end
 
 
-@testset "State to Tablue conversion" begin
+@testset "State to Tableau conversion" begin
     # TODO: Add the following tests:
     # 1. Checks whether the conversions works well
     # TODO: come up with good test cases.
