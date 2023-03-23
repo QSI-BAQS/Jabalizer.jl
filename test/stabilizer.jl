@@ -37,7 +37,7 @@
     end
 end
 
-@testset "Stabilizer to Tableu conversion" begin
+@testset "Stabilizer to Tableau conversion" begin
     # TODO: Add the following tests:
     # 1. Check if the conversion works (both ways?)
     # TODO: what are some good test cases?

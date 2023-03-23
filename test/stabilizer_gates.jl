@@ -48,6 +48,7 @@ const one_qubit_test_cases =
      ('-', Y, [1 0 0]),
      ('-', Z, [1 0 0]),
      ('-', H, [0 1 2]))
+     # Should really add all the new one-qubit gates here
 
 @testset "One qubit gates" begin
     for (state_chr, op, target_tableau) in one_qubit_test_cases
@@ -135,6 +136,97 @@ const swap_output =
             state = generate_two_qubit_state(bitarr)
             SWAP(1, 2)(state)
             @test swap_output[bitarr] == to_tableau(state)
+        end
+    end
+end
+
+@testset "Gate Aliases" begin
+    @test gate_map["H_XZ"] == H
+    @test gate_map["P"] == S
+    @test gate_map["PHASE"] == S
+    @test gate_map["SQRT_Z"] == S
+    @test gate_map["SQRT_Z_DAG"] == S_DAG
+    @test gate_map["S^-1"] == S_DAG
+    @test gate_map["S_Dagger"] == S_DAG
+    @test gate_map["CX"] == CNOT
+    @test gate_map["ZCX"] == CNOT
+    @test gate_map["ZCY"] == CY
+    @test gate_map["ZCZ"] == CZ
+end
+
+const gate1_decomp =
+    [(C_XYZ, "SSSH"),
+     (C_ZYX, "HS"),
+     (H_XY,  "HSSHS"),
+     (H_YZ,  "HSHSS"),
+     (S_DAG, "SSS"),
+     (SQRT_X, "HSH"),
+     (SQRT_X_DAG, "SHS"),
+     (SQRT_Y,     "SSH"),
+     (SQRT_Y_DAG, "HSS")]
+
+@testset "Single qubit operations" begin
+    for (gate, oplist) in gate1_decomp, state_chr in ('0', '1', '+', '-')
+        @testset "Gate $gate on state $state_chr" begin
+            state1 = generate_one_qubit_state(state_chr)
+            state2 = generate_one_qubit_state(state_chr)
+            for op in oplist
+                (op == 'H' ? H : S)(1)(state1)
+            end
+            gate(1)(state2)
+            @test state1 == state2
+        end
+    end
+end
+
+const gate2_decomp =
+    [(CY,     (S(2), S(2), S(2), CNOT(1,2), S(2))),
+     (CZ,     (H(2), CNOT(1,2), H(2))),
+     (XCX,    (H(1), CNOT(1,2), H(1))),
+     (XCY,    (H(1), S(2), S(2), S(2), CNOT(1,2), H(1), S(2))),
+     (XCZ,    (CNOT(2,1),)),
+     (YCX,    (S(1), S(1), S(1), H(2), CNOT(2,1), S(1), H(2))),
+     (YCY,    (S(1), S(1), S(1), S(2), S(2), S(2),  H(1), CNOT(1,2), H(1), S(1), S(2))),
+     (YCZ,    (S(1), S(1), S(1), CNOT(2, 1), S(1))),
+     # stim ops that don't have function calls
+     #(CXSWAP, (CNOT(2,1), CNOT(1,2))),
+     #(SWAPCX, (CNOT(1,2), CNOT(2,1))),
+     (ISWAP,  (H(1), S(1), S(1), S(1), CNOT(1,2), S(1), CNOT(2,1), H(2), S(2), S(1))),
+     (ISWAP_DAG,
+              (S(1), S(1), S(1), S(2), S(2), S(2),  H(2), CNOT(2,1),
+               S(1), S(1), S(1), CNOT(1,2), S(1), H(1))),
+#=
+     # stim ops that don't have function calls
+     (SQRT_XX,
+              (H(1), CNOT(1,2), H(2), S(1), S(2),  H(1), H(2))),
+     (SQRT_XX_DAG,
+              (H(1), CNOT(1,2), H(2), S(1), S(1), S(1), S(2), S(2), S(2),  H(1), H(2))),
+     (SQRT_YY,
+              (S(1), S(1), S(1), S(2), S(2), S(2),  H(1), CNOT(1,2),
+               H(2), S(1), S(2), H(1), H(2), S(1), S(2))),
+     (SQRT_YY_DAG,
+              (S(1), S(1), S(1), S(2), H(1), CNOT(1,2),
+               H(2), S(1), S(2),  H(1), H(2), S(1), S(2), S(2), S(2))),
+     (SQRT_ZZ,
+              (H(2), CNOT(1,2), H(2), S(1), S(2))),
+     (SQRT_ZZ_DAG,
+              (H(2), CNOT(1,2), H(2), S(1), S(1), S(1), S(2), S(2), S(2)))
+=#
+     ]
+
+@testset "Two qubit operations" begin
+    # Loop generates all arrays (a, b, c, d) with a,b,c,d in {0,1}
+    for (gate, oplist) in gate2_decomp
+        @testset "Gate $gate:" begin
+            for bitarr in Base.Iterators.product(0:1, 0:1, 0:1, 0:1)
+                state1 = generate_two_qubit_state(bitarr)
+                state2 = generate_two_qubit_state(bitarr)
+                for op in oplist
+                    op(state1)
+                end
+                gate(1, 2)(state2)
+                @test state1 == state2
+            end
         end
     end
 end

@@ -1,18 +1,20 @@
-const debug_out = true
+const debug_out = Ref(false)
 
 # Debugging timing output (if debug_out is set)
 macro disp_time(msg, ex)
-    if debug_out
-        quote
+    quote
+        if debug_out[]
             print($(esc(msg)))
             @time $(esc(ex))
-        end
-    else
-        quote
+        else
             $(esc(ex))
         end
     end
 end
+
+"""Set debugging output flag"""
+set_debug(flag) = (debug_out[] = flag)
+export set_debug
 
 """
     stim_tableau(stim_sim::Py)::Matrix{Int}
@@ -84,7 +86,7 @@ function update_tableau(state::StabilizerState)
             xv = pyconvert(BitVector, xs)
             zv = pyconvert(BitVector, zs)
             push!(svec, Stabilizer(xv, zv, pyconvert(Number, ps.sign) == -1 ? 2 : 0))
-            if debug_out && (cnt += 1) > 9999
+            if debug_out[] && (cnt += 1) > 9999
                 tn = time_ns() ; out_time(i, tn-pt, tn-t0, qubits) ; pt = tn
                 cnt = 0
             end
@@ -98,13 +100,13 @@ function update_tableau(state::StabilizerState)
             stab.X = pyconvert(BitVector, xs)
             stab.Z = pyconvert(BitVector, zs)
             stab.phase = pyconvert(Number, ps.sign) == -1 ? 2 : 0
-            if debug_out && (cnt += 1) > 9999
+            if debug_out[] && (cnt += 1) > 9999
                 tn = time_ns() ; out_time(i, tn-pt, tn-t0, qubits) ; pt = tn
                 cnt = 0
             end
         end
     end
-    debug_out && (tn = time_ns() ; out_time(cnt, tn-pt, tn-t0))
+    debug_out[] && (tn = time_ns() ; out_time(cnt, tn-pt, tn-t0))
     end
 
     # mark it as updated
@@ -243,7 +245,7 @@ function graph_as_stabilizer_vector(state::StabilizerState)
     @disp_time "\tCheck symmetry: " begin
     if !_is_symmetric(svec)
         println("Error: invalid graph conversion (non-symmetric).")
-        if debug_out && qubits < 33
+        if debug_out[] && qubits < 33
             show(to_tableau(state))
             println()
             show(state)

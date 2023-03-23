@@ -43,23 +43,9 @@ const gate2_list =
      ("YCY",    :YCY),    # S0 S0 S0 S1 S1 S1 H0 CNOT01 H0 S0 S1
      ("YCZ",    :YCZ),
      ("SWAP",   :SWAP),   # CNOT01 CNOT10 CNOT01
-     ("CXSWAP", :CXSWAP), # CNOT10 CNOT01
-     ("SWAPCX", :SWAPCX), # CNOT01 CNOT10
      ("ISWAP",  :ISWAP),  # H0 S0 S0 S0 CNOT01 S0 CNOT10 H1 S1 S0
      ("ISWAP_DAG", :ISWAP_DAG),
-         # S0 S0 S0 S1 S1 S1 H1 CNOT10 S0 S0 S0 CNOT01 S0 H0
-     ("SQRT_XX", :SQRT_XX),
-         # H0 CNOT01 H1 S0 S1 H0 H1
-     ("SQRT_XX_DAG", :SQRT_XX_DAG),
-         # H0 CNOT01 H1 S0 S0 S0 S1 S1 S1 H0 H1
-     ("SQRT_YY", :SQRT_YY),
-         # S0 S0 S0 S1 S1 S1 H0 CNOT01 H1 S0 S1 H0 H1 S0 S1
-     ("SQRT_YY_DAG", :SQRT_YY_DAG),
-         # S0 S0 S0 S1 H0 CNOT01 H1 S0 S1 H0 H1 S0 S1 S1 S1
-     ("SQRT_ZZ", :SQRT_ZZ),
-         # H1 CNOT01 H1 S0 S1
-     ("SQRT_ZZ_DAG", :SQRT_ZZ_DAG),
-         # H1 CNOT01 H1 S0 S0 S0 S1 S1 S1
+     # S0 S0 S0 S1 S1 S1 H1 CNOT10 S0 S0 S0 CNOT01 S0 H0
      ]
                    
 abstract type Gate end
