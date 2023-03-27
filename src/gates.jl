@@ -49,10 +49,10 @@ const gate2_list =
      ]
                    
 abstract type Gate end
-abstract type Gate1 <: Gate end
-abstract type Gate2 <: Gate end
+abstract type OneQubitGate <: Gate end
+abstract type TwoQubitGate <: Gate end
 
-export Gate, Gate1, Gate2
+export Gate, OneQubitGate, TwoQubitGate
 
 #=
 "Pauli-I"
@@ -68,12 +68,12 @@ export Gate, Gate1, Gate2
 
 for (name, sym) in gate1_list
     @eval begin
-        export $sym ; struct $sym <: Gate1 ; qubit::Int ; end
+        export $sym ; struct $sym <: OneQubitGate ; qubit::Int ; end
     end
 end
 for (name, sym) in gate2_list
     @eval begin
-        export $sym ; struct $sym <: Gate2 ; qubit1::Int ; qubit2::Int ; end
+        export $sym ; struct $sym <: TwoQubitGate ; qubit1::Int ; qubit2::Int ; end
     end
 end
 

@@ -27,6 +27,7 @@ function generate_two_qubit_state(arr)
     return state
 end
 
+# Test cases for basic one qubit gates (P,X,Y,Z,H)
 const one_qubit_test_cases =
     (('0', P, [0 1 0]),
      ('0', X, [0 1 2]),
@@ -48,7 +49,6 @@ const one_qubit_test_cases =
      ('-', Y, [1 0 0]),
      ('-', Z, [1 0 0]),
      ('-', H, [0 1 2]))
-     # Should really add all the new one-qubit gates here
 
 @testset "One qubit gates" begin
     for (state_chr, op, target_tableau) in one_qubit_test_cases
@@ -59,6 +59,8 @@ const one_qubit_test_cases =
         end
     end
 end
+
+# Test cases for basic two qubit gates (CNOT, CZ, SWAP)
 
 # Tableau dictionary contains result of applying CNOT to
 # H_2^d H_1^c X_2^b X_1^a | 0 0 > with key [a b c d]
@@ -154,6 +156,9 @@ end
     @test gate_map["ZCZ"] == CZ
 end
 
+# Test cases for more complex one qubit gates supported by STIM
+# which can be decomposed into a series of S and H gates
+
 const gate1_decomp =
     [(C_XYZ, "SSSH"),
      (C_ZYX, "HS"),
@@ -178,6 +183,9 @@ const gate1_decomp =
         end
     end
 end
+
+# Test cases for more complex two qubit gates supported by STIM
+# which can be decomposed into a series of S, H, and CNOT gates
 
 const gate2_decomp =
     [(CY,     (S(2), S(2), S(2), CNOT(1,2), S(2))),
