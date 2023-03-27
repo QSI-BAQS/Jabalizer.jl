@@ -34,9 +34,9 @@ const icminput =
       ("CNOT", ["4", "5"]),
       ("SWAP", ["6", "7"]),
       ("S", ["0"]),
-      ("S", ["1"]),
+      ("S_DAG", ["1"]),
       ("T", ["2"]),
-      ("T", ["3"]),
+      ("T", ["3"]),   # Will need to change to T_DAG when that is handled directly
       ("CZ", ["4", "5"])]
      )
 

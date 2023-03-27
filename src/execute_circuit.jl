@@ -1,22 +1,3 @@
-const gate_map = Dict()
-
-
-# This is called by the Jabalizer package's __init__ function
-function _init_gate_map()
-    copy!(gate_map,
-        Dict("I" => Jabalizer.Id,
-            "H" => Jabalizer.H,
-            "X" => Jabalizer.X,
-            "Y" => Jabalizer.Y,
-            "Z" => Jabalizer.Z,
-            "CNOT" => Jabalizer.CNOT,
-            "SWAP" => Jabalizer.SWAP,
-            "S" => Jabalizer.P,
-            "PHASE" => Jabalizer.P, # TODO: IS IT?!?!?!
-            "CZ" => Jabalizer.CZ))
-
-end
-
 """
 Executes circuit using stim simulator and applies it to a given state.
 """
