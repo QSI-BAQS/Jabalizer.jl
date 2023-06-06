@@ -66,6 +66,9 @@ export Gate, OneQubitGate, TwoQubitGate
 "SWAP"
 =#
 
+const gate_map = Dict{String,Type{<:Gate}}()
+export gate_map
+
 for (name, sym) in gate1_list
     @eval begin
         export $sym ; struct $sym <: OneQubitGate ; qubit::Int ; end
@@ -76,19 +79,12 @@ for (name, sym) in gate2_list
         export $sym ; struct $sym <: TwoQubitGate ; qubit1::Int ; qubit2::Int ; end
     end
 end
+for (name, sym) in vcat(gate1_list, gate2_list, gate_alias)
+    @eval gate_map[$name] = $sym
+end
 
 # Aliases
 const P = S ; export P
 const PHASE = S ; export PHASE
-
-const gate_map = Dict{String,Type{<:Gate}}()
-export gate_map
-
-# This is called by the Jabalizer package's __init__ function
-function _init_gate_map()
-    for (name, sym) in vcat(gate1_list, gate2_list, gate_alias)
-        gate_map[name] = eval(sym)
-    end
-end
 
 end # module Gates
