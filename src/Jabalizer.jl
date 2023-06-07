@@ -18,7 +18,6 @@ const cirq = PythonCall.pynew() # initially NULL
 function __init__()
     PythonCall.pycopy!(stim, pyimport("stim"))
     PythonCall.pycopy!(cirq, pyimport("cirq"))
-    Gates._init_gate_map()
 end
 
 include("cirq_io.jl")
