@@ -36,6 +36,17 @@ mutable struct Stabilizer
         qubits = length(vec) >> 1
         new(qubits, view(vec, 1:qubits), view(vec, qubits+1:2*qubits), vec[end])
     end
+
+    """
+        Stabilizer(X::BitVector, Z::BitVector, phase)
+
+    Constructor for a stabilizer from tableau form.
+    """
+    function Stabilizer(X, Z, phase)
+        lx, lz = length(X), length(Z)
+        lx == lz || error("X & Z vectors have different lengths ($lx != $lz)")
+        new(lx, X, Z, phase)
+    end
 end
 
 """

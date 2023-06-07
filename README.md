@@ -16,14 +16,14 @@
 + Casey Myers
 + Jason Gavriel
 + Michał Stęchły([michal.stechly@zapatacomputing.com](mailto:michal.stechly@zapatacomputing.com))
-+ Scott Jones
++ Scott Jones ([scott@gandalfsoftware.com](mailto:scott@gandalfsoftware.com))
 + Athena Caesura
 
 # About
 
-Jabalizer is a quantum graph state compiler for quantum circuits written in Julia. It has the functionailty to manipulate stabilizer states and graph states and provides generic functions able to operate within both pictures and dynamically convert between them, allowing arbitrary Clifford circuits to be simulated and converted into graph state language, and vice-versa. 
+Jabalizer is a quantum graph state compiler for quantum circuits written in Julia. It has the functionality to manipulate stabilizer states and graph states and provides generic functions able to operate within both pictures and dynamically convert between them, allowing arbitrary Clifford circuits to be simulated and converted into graph state language, and vice-versa.
 
-Jabalizer also provides functionality to convert Clifford + T gate circuits to an aglorithm specific graph state using the ``icm`` module. The computation can now be implmented by passing this graph state and a measurement procedure to a quantum backend. 
+Jabalizer also provides functionality to convert Clifford + T gate circuits to an aglorithm specific graph state using the ``icm`` module. The computation can now be implemented by passing this graph state and a measurement procedure to a quantum backend. 
 
 You can learn more about the Julia language at [www.julialang.org](https://www.julialang.org).
 
@@ -32,17 +32,13 @@ A techical paper on Jabalizer can be found here [https://arxiv.org/abs/2209.0734
 
 # Installation
 
-Jabalizer can be installed like any Julia package. Clone this repo to your local system using
+Jabalizer can be installed like any Julia package.
 
+type `]` in the Julia REPL to enter the pkg mode and enter
 ```
-git clone https://github.com/QSI-BAQS/Jabalizer.git
+pkg> add Jabalizer
 ```
-
-type `]` in the Julia REPL (make sure you are in the directory where you cloned Jabalizer not inside the Jabalizer repo) to enter the pkg mode and enter
-```
-pkg> add ./Jabalizer#branch_name
-```
-The module can be tested using,
+The module can be tested using
 ```
 pkg> test Jabalizer
 ```

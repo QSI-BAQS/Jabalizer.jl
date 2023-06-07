@@ -26,11 +26,11 @@ Generates a state of n qubits in the +1 Z eigenstate.
 """
 function zero_state(n::Int)
     state = StabilizerState(n)
+    state.simulator.set_num_qubits(n)
     for i in 0:n-1
         state.simulator.z(i)
     end
     state.is_updated = false
-    update_tableau(state)
     return state
 end
 
@@ -88,8 +88,8 @@ Plot the graph equivalent of a state.
 function GraphPlot.gplot(state::StabilizerState; node_dist=5.0)
     # Creates an anonymous function to allow changing the layout params
     # in gplot. The value of C determines distance between connected nodes.
-    layout = (args...) -> spring_layout(args...; C=node_dist)
-    gplot(Graph(GraphState(state).A), nodelabel=1:state.qubits, layout=layout)
+    layout = (args...) -> GraphPlot.spring_layout(args...; C=node_dist)
+    gplot(GraphPlot.Graph(GraphState(state).A), nodelabel=1:state.qubits, layout=layout)
 end
 
 

@@ -13,6 +13,21 @@ end
     # TODO: What should the test cases be?
 end
 
+@testset "Generate random stabilizer state" begin
+    # TODO:  Add more validity checks
+    len = 5
+    ss = rand(StabilizerState, len)
+    @test ss.qubits == len
+    @test length(ss.stabilizers) == len
+    st = ss.stabilizers
+    for i = 1:len
+        stab = st[i]
+        @test stab.qubits == len
+        @test length(stab.X) == len
+        @test length(stab.Z) == len
+        @test 0 <= stab.phase <= 3
+    end
+end
 
 @testset "Stabilizer State to Graph" begin
     # TODO: Add the following tests:
