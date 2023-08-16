@@ -1,0 +1,3 @@
+[submodule "pauli_tracker_extern"]
+	path = pauli_tracker_extern
+	url = git@github.com:QSI-BAQS/pauli_tracker_extern.git
