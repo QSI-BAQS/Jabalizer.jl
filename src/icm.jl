@@ -41,11 +41,14 @@ end
 
 function t_teleportation(
     frames::Ptr{Frames},
+    storage::Ptr{Storage},
     origin::UInt,
     new::UInt
 )
     frames_new_qubit(frames, new)
     frames_cx(frames, origin, new)
+    frames_move_z_to_z(frames, origin, new)
+    frames_measure_and_store(frames, origin, storage)
     frames_track_z(frames, new)
 end
 
@@ -57,9 +60,10 @@ function compile(
     circuit::Vector{ICMGate},
     n_qubits::Int,
     gates_to_decompose::Vector{String},
-    frames_file::String
+    storage_file::String
 )
     frames = frames_init(UInt(n_qubits))
+    storage = storage_new()
 
     qubit_dict = Dict()  # mapping from qubit to it's compiled version
     compiled_circuit::Vector{ICMGate} = []
@@ -77,7 +81,7 @@ function compile(
                 else
                     origin_qubit = n_qubits + bit(compiled_qubit[5:end])
                 end
-                t_teleportation(frames, origin_qubit, new_qubit)
+                t_teleportation(frames, storage, origin_qubit, new_qubit)
 
                 ancilla_num += 1
 
@@ -110,8 +114,9 @@ function compile(
         data_qubits_map[original_qubit_num+1] = compiled_qubit_num
     end
 
-    frames_serialize(frames, frames_file)
-
+    frames_measure_and_store_all(frames, storage)
+    storage_serialize(storage, storage_file)
+    storage_free(storage)
     frames_free(frames)
 
     return compiled_circuit, data_qubits_map

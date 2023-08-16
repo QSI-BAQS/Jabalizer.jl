@@ -2,10 +2,12 @@
 lib = "./pauli_tracker_extern/c_api/output/libpauli_tracker_clib.so"
 
 struct Frames end
+struct Storage end
 
 function frames_new()::Ptr{Frames}
     @ccall lib.frames_hmpsvbfx_new()::Ptr{Frames}
 end
+
 
 function frames_free(frames::Ptr{Frames})::Cvoid
     @ccall lib.frames_hmpsvbfx_free(frames::Ptr{Frames})::Cvoid
@@ -13,7 +15,7 @@ end
 
 function frames_serialize(frames::Ptr{Frames}, file::String)::Cvoid
     @ccall lib.frames_hmpsvbfx_serialize(frames::Ptr{Frames}, Base.cconvert(Cstring,
-    file)::Cstring)::Cvoid
+        file)::Cstring)::Cvoid
 end
 
 function frames_init(num_qubits::UInt)::Ptr{Frames}
@@ -84,6 +86,43 @@ function frames_swap(frames::Ptr{Frames}, qubit_a::UInt, qubit_b::UInt)::Cvoid
     @ccall lib.frames_hmpsvbfx_swap(frames::Ptr{Frames}, qubit_a::UInt, qubit_b::UInt)::Cvoid
 end
 
+function frames_move_x_to_x(frames::Ptr{Frames}, origin::UInt, new::UInt)::Cvoid
+    @ccall lib.frames_hmpsvbfx_move_x_to_x(frames::Ptr{Frames}, origin::UInt, new::UInt)::Cvoid
+end
+
+function frames_move_x_to_z(frames::Ptr{Frames}, origin::UInt, new::UInt)::Cvoid
+    @ccall lib.frames_hmpsvbfx_move_x_to_z(frames::Ptr{Frames}, origin::UInt, new::UInt)::Cvoid
+end
+
+function frames_move_z_to_x(frames::Ptr{Frames}, origin::UInt, new::UInt)::Cvoid
+    @ccall lib.frames_hmpsvbfx_move_z_to_x(frames::Ptr{Frames}, origin::UInt, new::UInt)::Cvoid
+end
+
+function frames_move_z_to_z(frames::Ptr{Frames}, origin::UInt, new::UInt)::Cvoid
+    @ccall lib.frames_hmpsvbfx_move_z_to_z(frames::Ptr{Frames}, origin::UInt, new::UInt)::Cvoid
+end
+
 function frames_new_qubit(frames::Ptr{Frames}, qubit::UInt)::Cvoid
     @ccall lib.frames_hmpsvbfx_new_qubit(frames::Ptr{Frames}, qubit::UInt)::Cvoid
+end
+
+function storage_new()::Ptr{Storage}
+    @ccall lib.map_psvbfx_new()::Ptr{Storage}
+end
+
+function storage_free(storage::Ptr{Storage})::Cvoid
+    @ccall lib.map_psvbfx_free(storage::Ptr{Storage})::Cvoid
+end
+
+function storage_serialize(storage::Ptr{Storage}, file::String)::Cvoid
+    @ccall lib.map_psvbfx_serialize(storage::Ptr{Storage}, Base.cconvert(Cstring,
+        file)::Cstring)::Cvoid
+end
+
+function frames_measure_and_store(frames::Ptr{Frames}, bit::UInt, storage::Ptr{Storage})::Cvoid
+    @ccall lib.frames_hmpsvbfx_measure_and_store(frames::Ptr{Frames}, bit::UInt, storage::Ptr{Storage})::Cvoid
+end
+
+function frames_measure_and_store_all(frames::Ptr{Frames}, storage::Ptr{Storage})::Cvoid
+    @ccall lib.frames_hmpsvbfx_measure_and_store_all(frames::Ptr{Frames}, storage::Ptr{Storage})::Cvoid
 end
