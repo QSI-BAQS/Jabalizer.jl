@@ -20,6 +20,7 @@ function __init__()
     PythonCall.pycopy!(cirq, pyimport("cirq"))
 end
 
+include("pauli_tracker.jl")
 include("cirq_io.jl")
 include("qasm.jl")
 include("icm.jl")

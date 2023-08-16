@@ -1,6 +1,6 @@
 const ICMGate = Tuple{String,Vector{String}}
 
-include("../pauli_tracker.jl")
+import .pauli_tracker: Frames, Storage
 
 function bit(qubit::String)::UInt
     parse(UInt, qubit)
@@ -10,30 +10,30 @@ function apply_gate(frames::Ptr{Frames}, gate::ICMGate)
     name = gate[1]
     bits = gate[2]
     if name == "H"
-        frames_h(frames, bit(bits[1]))
+        pauli_tracker.frames_h(frames, bit(bits[1]))
     elseif name == "S"
-        frames_s(frames, bit(bits[1]))
+        pauli_tracker.frames_s(frames, bit(bits[1]))
     elseif name == "CZ"
-        frames_cz(frames, bit(bits[1]), bit(bits[2]))
+        pauli_tracker.frames_cz(frames, bit(bits[1]), bit(bits[2]))
     elseif name == "X" || gate[1] == "Y" || gate[1] == "Z"
     elseif name == "S_DAG"
-        frames_sdg(frames, bit(bits[1]))
+        pauli_tracker.frames_sdg(frames, bit(bits[1]))
     elseif name == "SQRT_X"
-        frames_sx(frames, bit(bits[1]))
+        pauli_tracker.frames_sx(frames, bit(bits[1]))
     elseif name == "SQRT_X_DAG"
-        frames_sxdg(frames, bit(bits[1]))
+        pauli_tracker.frames_sxdg(frames, bit(bits[1]))
     elseif name == "SQRT_Y"
-        frames_sy(frames, bit(bits[1]))
+        pauli_tracker.frames_sy(frames, bit(bits[1]))
     elseif name == "SQRT_Y_DAG"
-        frames_sydg(frames, bit(bits[1]))
+        pauli_tracker.frames_sydg(frames, bit(bits[1]))
     elseif name == "SQRT_Z"
-        frames_sz(frames, bit(bits[1]))
+        pauli_tracker.frames_sz(frames, bit(bits[1]))
     elseif name == "SQRT_Z_DAG"
-        frames_szdg(frames, bit(bits[1]))
+        pauli_tracker.frames_szdg(frames, bit(bits[1]))
     elseif name == "CNOT"
-        frames_cx(frames, bit(bits[1]), bit(bits[2]))
+        pauli_tracker.frames_cx(frames, bit(bits[1]), bit(bits[2]))
     elseif name == "SWAP"
-        frames_swap(frames, bit(bits[1]), bit(bits[2]))
+        pauli_tracker.frames_swap(frames, bit(bits[1]), bit(bits[2]))
     else
         error("Unknown gate: $name")
     end
@@ -45,11 +45,11 @@ function t_teleportation(
     origin::UInt,
     new::UInt
 )
-    frames_new_qubit(frames, new)
-    frames_cx(frames, origin, new)
-    frames_move_z_to_z(frames, origin, new)
-    frames_measure_and_store(frames, origin, storage)
-    frames_track_z(frames, new)
+    pauli_tracker.frames_new_qubit(frames, new)
+    pauli_tracker.frames_cx(frames, origin, new)
+    pauli_tracker.frames_move_z_to_z(frames, origin, new)
+    pauli_tracker.frames_measure_and_store(frames, origin, storage)
+    pauli_tracker.frames_track_z(frames, new)
 end
 
 """
@@ -60,11 +60,9 @@ function compile(
     circuit::Vector{ICMGate},
     n_qubits::Int,
     gates_to_decompose::Vector{String},
-    storage_file::String
+    frames::Ptr{Frames},
+    storage::Ptr{Storage}
 )
-    frames = frames_init(UInt(n_qubits))
-    storage = storage_new()
-
     qubit_dict = Dict()  # mapping from qubit to it's compiled version
     compiled_circuit::Vector{ICMGate} = []
     ancilla_num = 0
@@ -113,11 +111,6 @@ function compile(
         # +1 here because julia vectors are indexed from 1
         data_qubits_map[original_qubit_num+1] = compiled_qubit_num
     end
-
-    frames_measure_and_store_all(frames, storage)
-    storage_serialize(storage, storage_file)
-    storage_free(storage)
-    frames_free(frames)
 
     return compiled_circuit, data_qubits_map
 end

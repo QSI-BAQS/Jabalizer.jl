@@ -1,5 +1,9 @@
-# todo: crossplatform and something like an absolute path
-lib = "./pauli_tracker_extern/c_api/output/libpauli_tracker_clib.so"
+module pauli_tracker
+
+# todo: crossplatform
+
+lib = normpath(joinpath(dirname(@__FILE__), "..",
+    "pauli_tracker_extern/c_api/output/libpauli_tracker_clib.so"))
 
 struct Frames end
 struct Storage end
@@ -125,4 +129,6 @@ end
 
 function frames_measure_and_store_all(frames::Ptr{Frames}, storage::Ptr{Storage})::Cvoid
     @ccall lib.frames_hmpsvbfx_measure_and_store_all(frames::Ptr{Frames}, storage::Ptr{Storage})::Cvoid
+end
+
 end
