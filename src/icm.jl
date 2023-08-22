@@ -112,7 +112,7 @@ function compile(
         data_qubits_map[original_qubit_num+1] = compiled_qubit_num
     end
 
-    return compiled_circuit, data_qubits_map
+    return compiled_circuit, data_qubits_map, n_qubits + ancilla_num
 end
 
 # const ICMGate = Tuple{String,Vector{String}}
