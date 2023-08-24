@@ -27,6 +27,13 @@ function load_circuit_from_cirq_json(file_name::String)
     circuit = Vector{Tuple{String,Vector{String}}}()
     for moment in raw_circuit["moments"]
         for operation in moment["operations"]
+
+            if not haskey(operation, "gate")
+                # There are other types of gates such as PauliStrings which do not have in the json
+                # the gate attribute
+                throw(DomainError(cirq_gate_name, "Gate type not supported"))
+            end
+
             cirq_gate_name = operation["gate"]["cirq_type"]
             qubits = parse_cirq_qubits(operation["qubits"])
             if cirq_gate_name == "ZPowGate" && operation["gate"]["exponent"] == 0.25
