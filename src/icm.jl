@@ -66,6 +66,8 @@ function compile(
     qubit_dict = Dict()  # mapping from qubit to it's compiled version
     compiled_circuit::Vector{ICMGate} = []
     ancilla_num = 0
+    frames_map::Vector{Int} = []
+
     for gate in circuit
         compiled_qubits = [get(qubit_dict, qubit, qubit) for qubit in gate[2]]
 
@@ -80,6 +82,7 @@ function compile(
                     origin_qubit = n_qubits + bit(compiled_qubit[5:end])
                 end
                 t_teleportation(frames, storage, origin_qubit, new_qubit)
+                push!(frames_map, Int(origin_qubit))
 
                 ancilla_num += 1
 
@@ -104,15 +107,15 @@ function compile(
     end
 
     # map qubits from the original circuit to the compiled one
-    data_qubits_map = [i for i in 0:n_qubits-1]
+    output_map = [i for i in 0:n_qubits-1]
     for (original_qubit, compiled_qubit) in qubit_dict
         original_qubit_num = parse(Int, original_qubit)
         compiled_qubit_num = n_qubits + parse(Int, compiled_qubit[5:end])
         # +1 here because julia vectors are indexed from 1
-        data_qubits_map[original_qubit_num+1] = compiled_qubit_num
+        output_map[original_qubit_num+1] = compiled_qubit_num
     end
 
-    return compiled_circuit, data_qubits_map, n_qubits + ancilla_num
+    return compiled_circuit, output_map, frames_map
 end
 
 # const ICMGate = Tuple{String,Vector{String}}
