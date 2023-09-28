@@ -15,7 +15,7 @@ function apply_gate(frames::Ptr{Frames}, gate::ICMGate)
         pauli_tracker.frames_s(frames, bit(bits[1]))
     elseif name == "CZ"
         pauli_tracker.frames_cz(frames, bit(bits[1]), bit(bits[2]))
-    elseif name == "X" || gate[1] == "Y" || gate[1] == "Z"
+    elseif name == "X" || name == "Y" || name == "Z"
     elseif name == "S_DAG"
         pauli_tracker.frames_sdg(frames, bit(bits[1]))
     elseif name == "SQRT_X"
@@ -39,16 +39,16 @@ function apply_gate(frames::Ptr{Frames}, gate::ICMGate)
     end
 end
 
-function t_teleportation(
+function rz_teleportation(
     frames::Ptr{Frames},
-    storage::Ptr{Storage},
+    _storage::Ptr{Storage},
     origin::UInt,
     new::UInt
 )
     pauli_tracker.frames_new_qubit(frames, new)
     pauli_tracker.frames_cx(frames, origin, new)
     pauli_tracker.frames_move_z_to_z(frames, origin, new)
-    pauli_tracker.frames_measure_and_store(frames, origin, storage)
+    # pauli_tracker.frames_measure_and_store(frames, origin, storage)
     pauli_tracker.frames_track_z(frames, new)
 end
 
@@ -57,14 +57,14 @@ Perfoms gates decomposition to provide a circuit in the icm format.
 Reference: https://arxiv.org/abs/1509.02004
 """
 function compile(
-    circuit::Vector{ICMGate},
+    circuit,
     n_qubits::Int,
     gates_to_decompose::Vector{String},
     frames::Ptr{Frames},
     storage::Ptr{Storage}
 )
     qubit_dict = Dict()  # mapping from qubit to it's compiled version
-    compiled_circuit::Vector{ICMGate} = []
+    compiled_circuit = []
     ancilla_num = 0
     frames_map::Vector{Int} = []
 
@@ -81,16 +81,22 @@ function compile(
                 else
                     origin_qubit = n_qubits + bit(compiled_qubit[5:end])
                 end
-                t_teleportation(frames, storage, origin_qubit, new_qubit)
+                rz_teleportation(frames, storage, origin_qubit, new_qubit)
                 push!(frames_map, Int(origin_qubit))
 
                 ancilla_num += 1
 
                 qubit_dict[original_qubit] = new_qubit_name
                 push!(compiled_circuit, ("CNOT", [compiled_qubit, new_qubit_name]))
-                push!(compiled_circuit,
-                    ("$(gate[1])_measurement_sign_conditioned_on_pauli",
-                        [compiled_qubit]))
+                if length(gate) == 2
+                    additional = 0
+                else
+                    additional = gate[3]
+                end
+                push!(
+                    compiled_circuit,
+                    ("$(gate[1])_measurement", [compiled_qubit], additional)
+                )
             end
         else
             push!(compiled_circuit, (gate[1], compiled_qubits))
@@ -117,52 +123,3 @@ function compile(
 
     return compiled_circuit, output_map, frames_map
 end
-
-# const ICMGate = Tuple{String,Vector{String}}
-
-
-# """
-# Perfoms gates decomposition to provide a circuit in the icm format.
-# Reference: https://arxiv.org/abs/1509.02004
-# """
-# function compile(circuit::Vector{ICMGate},
-#                  n_qubits::Int,
-#                  gates_to_decompose::Vector{String},
-#                  with_measurements::Bool=false)
-#     qubit_dict = Dict()  # mapping from qubit to it's compiled version
-#     compiled_circuit::Vector{ICMGate} = []
-#     ancilla_num = 0
-#     for gate in circuit
-#         compiled_qubits = [get(qubit_dict, qubit, qubit) for qubit in gate[2]]
-
-#         if gate[1] in gates_to_decompose
-#             for (original_qubit, compiled_qubit) in zip(gate[2], compiled_qubits)
-#                 new_qubit_name = "anc_$(ancilla_num)"
-#                 ancilla_num += 1
-
-#                 qubit_dict[original_qubit] = new_qubit_name
-#                 push!(compiled_circuit, ("CNOT", [compiled_qubit, new_qubit_name]))
-#                 if with_measurements
-#                     push!(compiled_circuit,
-#                           ("$(gate[1])_measurement", [compiled_qubit]))
-#                     push!(compiled_circuit,
-#                           ("Gate_Conditioned_on_$(compiled_qubit)_Measurement",
-#                            [new_qubit_name]))
-#                 end
-#             end
-#         else
-#             push!(compiled_circuit, (gate[1], compiled_qubits))
-#         end
-#     end
-
-#     # map qubits from the original circuit to the compiled one
-#     data_qubits_map = [i for i in 0:n_qubits-1]
-#     for (original_qubit, compiled_qubit) in qubit_dict
-#         original_qubit_num = parse(Int, original_qubit)
-#         compiled_qubit_num = n_qubits + parse(Int, compiled_qubit[5:end])
-#         # +1 here because julia vectors are indexed from 1
-#         data_qubits_map[original_qubit_num + 1] = compiled_qubit_num
-#     end
-
-#     return compiled_circuit, data_qubits_map
-# end
