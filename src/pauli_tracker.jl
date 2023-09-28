@@ -1,7 +1,6 @@
 module pauli_tracker
 
 # todo: crossplatform
-
 lib = normpath(joinpath(dirname(@__FILE__), "..",
     "pauli_tracker_extern/c_api/output/libpauli_tracker_clib.so"))
 

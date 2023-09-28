@@ -1,3 +1,20 @@
+# About this branch
+
+A very ugly patch to partially include the Pauli tracking. Instead of merging this
+branch in the future, one should probably redo it.
+
+How to make it work:
+- Pull this branch
+- run `git submodule update --init`
+- Go into the pauli\_tracker\_extern directory
+- `git checkout main`
+- At least skim docs/c.md
+- Go into c\_api and run `make library` (or do what the makefile does; there's also a
+dockerfile; cf. docs/c.md). This requires a that stable Rust toolchain is installed.
+- If that worked, there should be a library file in the output directory, which we are
+linking in the pauli\_tracker.jl file in Jabalizer's src directory
+- Now add Jabalizer as a path dependency to your script
+
 # Jabalizer
 
 [![Build Status](https://github.com/QSI-BAQS/Jabalizer.jl/workflows/CI/badge.svg)](https://github.com/madhavkrishnan/Jabalizer.jl/actions)
