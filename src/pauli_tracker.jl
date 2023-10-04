@@ -1,8 +1,14 @@
 module pauli_tracker
 
-# todo: crossplatform
 lib = normpath(joinpath(dirname(@__FILE__), "..",
-    "pauli_tracker_extern/c_api/output/libpauli_tracker_clib.so"))
+    "pauli_tracker_extern/c_api/output/libpauli_tracker_clib"))
+if Sys.iswindows()
+    lib = lib * ".dll"
+elseif Sys.isapple()
+    lib = lib * ".dylib"
+else
+    lib = lib * ".so"
+end
 
 struct Frames end
 struct Storage end
