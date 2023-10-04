@@ -14,6 +14,7 @@ dockerfile; cf. docs/c.md). This requires a that stable Rust toolchain is instal
 - If that worked, there should be a library file in the output directory, which we are
 linking in the pauli\_tracker.jl file in Jabalizer's src directory
 - Now add Jabalizer as a path dependency to your script
+- Compare the README in the jabalizer\_test\_scripts repo
 
 # Jabalizer
 
