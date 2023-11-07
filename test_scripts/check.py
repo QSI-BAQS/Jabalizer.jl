@@ -220,11 +220,33 @@ def step(
 # the pauli corrections (in reality one would of course first calculate the bitsum and
 # then do only one conditional Pauli)
 def correct(c: QuantumCircuit, node, stack, frames_map):
-    for (left, right), bit in zip(zip(stack["left"], stack["right"]), frames_map):
+    num_frames = len(frames_map)
+    for (left, right), bit in zip(
+        zip(
+            bitvec_to_vec_bool(stack["left"]["data"], num_frames),
+            bitvec_to_vec_bool(stack["right"]["data"], num_frames),
+        ),
+        frames_map,
+    ):
         if left:
             c.x(node).c_if(bit, 1)
         if right:
             c.z(node).c_if(bit, 1)
+
+
+# the bitvector stores the frames in chunks that consist of 64 bits and per chunk the
+# order is reversed;
+# there's surely a more idiomatic (and faster) way to do this here?
+def bitvec_to_vec_bool(bitvec, num_frames):
+    ret = []
+    for chunk in bitvec:
+        bits = format(chunk, f"#0{num_frames + 2}b")  # +2 padding because of 0b prefix
+        for bit in reversed(bits[2:]):  # skip 0b prefix
+            if bit == "0":
+                ret.append(False)
+            else:
+                ret.append(True)
+    return ret
 
 
 # transformed the counts from the qiskit simulation into a real pdf; some really ugly

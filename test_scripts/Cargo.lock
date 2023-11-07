@@ -24,6 +24,7 @@ name = "analyze"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bitvec",
  "clap",
  "pauli_tracker",
  "scoped_threadpool",

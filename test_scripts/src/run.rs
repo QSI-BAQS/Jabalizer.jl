@@ -24,7 +24,7 @@ use pauli_tracker::{
     },
     pauli::{
         PauliStack,
-        PauliTuple,
+        // PauliDense,
     },
     scheduler::{
         space::{
@@ -56,7 +56,8 @@ use serde::{
 
 use crate::cli;
 
-type Frames = frames::Frames<Map<PauliStack<Vec<bool>>>>;
+// type Frames = frames::Frames<Map<PauliStack<Vec<bool>>>>;
+type Frames = frames::Frames<Map<PauliStack<bitvec::vec::BitVec>>>;
 type Gates = Vec<(String, usize)>;
 type Measurements = Vec<(String, usize, isize)>;
 type OnePath = Vec<Vec<usize>>;
@@ -86,7 +87,7 @@ struct Analyzed {
     // the next are redundent, but it's nicer to have all in one; also, I might track
     // these "final" results with git
     frames: Frames,
-    frames_transposed: Vec<Vec<PauliTuple>>,
+    // frames_transposed: Vec<Vec<PauliDense>>,
     graph: SparseGraph,
     local_ops: Gates,
     input_map: Vec<usize>,
@@ -133,7 +134,7 @@ fn split_search(
 
     let num_bits = frames.as_storage().len();
 
-    let frames_transposed = frames.clone().transpose_reverted(num_bits);
+    // let frames_transposed = frames.clone().transpose_reverted(num_bits);
 
     let dependency_buffer = DependencyBuffer::new(num_bits);
     let graph_buffer = GraphBuffer::from_sparse(jabalize.graph.clone());
@@ -177,7 +178,7 @@ fn split_search(
     let output = Analyzed {
         paths,
         frames,
-        frames_transposed,
+        // frames_transposed,
         graph: jabalize.graph,
         local_ops: jabalize.local_ops,
         input_map: jabalize.input_map,
