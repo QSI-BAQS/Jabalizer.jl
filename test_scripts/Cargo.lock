@@ -210,8 +210,8 @@ checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
 
 [[package]]
 name = "pauli_tracker"
-version = "0.3.1-alpha.3"
-source = "git+https://github.com/taeruh/pauli_tracker.git#5b22a37ab3c299ef802578c37de82de8921200ff"
+version = "0.3.1"
+source = "git+https://github.com/taeruh/pauli_tracker.git#172576821f8787fc31ddd3eb2589eab4d274acac"
 dependencies = [
  "bit-vec",
  "bitvec",
