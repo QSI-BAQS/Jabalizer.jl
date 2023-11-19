@@ -136,4 +136,8 @@ function frames_measure_and_store_all(frames::Ptr{Frames}, storage::Ptr{Storage}
     @ccall lib.frames_hmpsvbfx_measure_and_store_all(frames::Ptr{Frames}, storage::Ptr{Storage})::Cvoid
 end
 
+function frames_remove_row(frames::Ptr{Frames}, row::UInt)::Ptr{Frames}
+    @ccall lib.frames_hmpsvbfx_remove_row(frames::Ptr{Frames}, row::UInt)::Ptr{Frames}
+end
+
 end
