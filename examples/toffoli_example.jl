@@ -40,7 +40,7 @@ print("\n Final Stabilizer State\n")
 print(state)
 
 
-(g,A,seq) = Jabalizer.to_graph(state)
+(g, A, seq) = Jabalizer.to_graph(state)
 
 
 
