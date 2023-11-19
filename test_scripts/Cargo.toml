@@ -1,0 +1,16 @@
+[package]
+name = "analyze"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+clap = "4.4.0"
+# clap = "~4.2.7" # higher requires rustc 1.70
+# pauli_tracker = { version = "0.3.0", features = ["serde", "scheduler"] }
+pauli_tracker = { version = "0.3.1-alpha.3", git = "https://github.com/taeruh/pauli_tracker.git",  features = ["serde", "scheduler"] }
+scoped_threadpool = "0.1.9"
+serde = { version = "1.0.183", features = ["derive"] }
+serde_json = "1.0.105"

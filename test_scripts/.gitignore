@@ -1,0 +1,7 @@
+output
+target
+.venv
+
+.CondaPkg
+Project.toml
+Manifest.toml

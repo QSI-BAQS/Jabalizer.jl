@@ -1,8 +1,14 @@
 module pauli_tracker
 
-# todo: crossplatform
 lib = normpath(joinpath(dirname(@__FILE__), "..",
-    "pauli_tracker_extern/c_api/output/libpauli_tracker_clib.dylib"))
+    "pauli_tracker_extern/c_api/output/libpauli_tracker_clib"))
+if Sys.iswindows()
+    lib = lib * ".dll"
+elseif Sys.isapple()
+    lib = lib * ".dylib"
+else
+    lib = lib * ".so"
+end
 
 struct Frames end
 struct Storage end
@@ -128,6 +134,10 @@ end
 
 function frames_measure_and_store_all(frames::Ptr{Frames}, storage::Ptr{Storage})::Cvoid
     @ccall lib.frames_hmpsvbfx_measure_and_store_all(frames::Ptr{Frames}, storage::Ptr{Storage})::Cvoid
+end
+
+function frames_remove_row(frames::Ptr{Frames}, row::UInt)::Ptr{Frames}
+    @ccall lib.frames_hmpsvbfx_remove_row(frames::Ptr{Frames}, row::UInt)::Ptr{Frames}
 end
 
 end

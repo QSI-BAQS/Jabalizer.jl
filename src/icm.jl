@@ -39,6 +39,7 @@ function apply_gate(frames::Ptr{Frames}, gate::ICMGate)
     end
 end
 
+# cf Madhav's paper and basic examples in the doc of pauli_tracker
 function rz_teleportation(
     frames::Ptr{Frames},
     _storage::Ptr{Storage},
@@ -66,6 +67,7 @@ function compile(
     qubit_dict = Dict()  # mapping from qubit to it's compiled version
     compiled_circuit = []
     ancilla_num = 0
+    # the labels of the measurements; correspond to the frames in the pauli tracker
     frames_map::Vector{Int} = []
 
     for gate in circuit
@@ -76,11 +78,13 @@ function compile(
                 new_qubit_name = "anc_$(ancilla_num)"
 
                 new_qubit = UInt(n_qubits + ancilla_num)
+                # get some proper qubit integers from the "anc_..." string
                 if original_qubit == compiled_qubit
                     origin_qubit = bit(original_qubit)
                 else
                     origin_qubit = n_qubits + bit(compiled_qubit[5:end])
                 end
+                # update the pauli tracker
                 rz_teleportation(frames, storage, origin_qubit, new_qubit)
                 push!(frames_map, Int(origin_qubit))
 
@@ -88,11 +92,15 @@ function compile(
 
                 qubit_dict[original_qubit] = new_qubit_name
                 push!(compiled_circuit, ("CNOT", [compiled_qubit, new_qubit_name]))
+
+                # to pass on some additional information needed for some gates, e.g.,
+                # encoded rotation angle
                 if length(gate) == 2
                     additional = 0
                 else
                     additional = gate[3]
                 end
+
                 push!(
                     compiled_circuit,
                     ("$(gate[1])_measurement", [compiled_qubit], additional)
@@ -100,6 +108,7 @@ function compile(
             end
         else
             push!(compiled_circuit, (gate[1], compiled_qubits))
+            # get some proper qubit integers from the "anc_..." string
             qubits::Vector{String} = []
             for (original_qubit, compiled_qubit) in zip(gate[2], compiled_qubits)
                 if original_qubit == compiled_qubit
@@ -108,6 +117,7 @@ function compile(
                     push!(qubits, "$(n_qubits + bit(compiled_qubit[5:end]))")
                 end
             end
+            # update the pauli tracker
             apply_gate(frames, ICMGate((gate[1], qubits)))
         end
     end
