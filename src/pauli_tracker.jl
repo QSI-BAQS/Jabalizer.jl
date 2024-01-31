@@ -22,11 +22,30 @@ function frames_free(frames::Ptr{Frames})::Cvoid
 end
 
 function frames_serialize(frames::Ptr{Frames}, file::String)::Cvoid
-    @ccall lib.frames_hmpsbvfx_serialize(frames::Ptr{Frames}, Base.cconvert(Cstring,
-        file)::Cstring)::Cvoid
+    @ccall lib.frames_hmpsbvfx_serialize(
+        frames::Ptr{Frames}, Base.cconvert(Cstring, file)::Cstring
+    )::Cvoid
 end
 
-function frames_show(frames::Ptr{Frames})::Cvoid
+function frames_deserialize(file::String)::Ptr{Frames}
+    @ccall lib.frames_hmpsbvfx_deserialize(
+        Base.cconvert(Cstring, file)::Cstring
+    )::Ptr{Frames}
+end
+
+function frames_serialize_bin(frames::Ptr{Frames}, file::String)::Cvoid
+    @ccall lib.frames_hmpsbvfx_serialize_bin(
+        frames::Ptr{Frames}, Base.cconvert(Cstring, file)::Cstring
+    )::Cvoid
+end
+
+function frames_deserialize_bin(file::String)::Ptr{Frames}
+    @ccall lib.frames_hmpsbvfx_deserialize_bin(
+        Base.cconvert(Cstring, file)::Cstring
+    )::Ptr{Frames}
+end
+
+function show_frames(frames::Ptr{Frames})::Cvoid
     @ccall lib.show_frames(frames::Ptr{Frames})::Cvoid
 end
 
