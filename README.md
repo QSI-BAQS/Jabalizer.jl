@@ -6,15 +6,15 @@ branch in the future, one should probably redo it.
 How to make it work:
 - Pull this branch
 - run `git submodule update --init`
-- Go into the pauli\_tracker\_extern directory
+- Go into the `pauli_tracker` directory
 - `git checkout main`
-- At least skim docs/c.md
-- Go into c\_api and run `make library` (or do what the makefile does; there's also a
-dockerfile; cf. docs/c.md). This requires a that stable Rust toolchain is installed.
-- If that worked, there should be a library file in the output directory, which we are
-linking in the pauli\_tracker.jl file in Jabalizer's src directory
+- Go into the `c_lib` directory
+- Go into and run `make library` (or do what the makefile does; there's also a
+dockerfile; readme). This requires a that stable Rust toolchain is installed.
+- If that worked, there should be a library file in the dist directory, which we are
+linking in the `pauli_tracker.jl` file in Jabalizer's src directory
 - Now add Jabalizer as a path dependency to your script
-- Compare the README in the test\_scripts directory
+- Compare the README in the `test_scripts` directory
 
 # Jabalizer
 

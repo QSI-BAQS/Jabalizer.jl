@@ -74,7 +74,7 @@ end
 
 # qft
 function fourier()
-    num = 4
+    num = 10
     name = "fourier_$(num)"
     gate = []
     for i in range(start=num - 1, stop=0, step=-1)
@@ -84,7 +84,7 @@ function fourier()
     jabalize_inits(
         [
             ("oooo", []),
-            ("pppp", [("H", ["0"]), ("H", ["1"]), ("H", ["2"]), ("H", ["3"])]),
+            # ("pppp", [("H", ["0"]), ("H", ["1"]), ("H", ["2"]), ("H", ["3"])]),
         ],
         name, gate, num)
 end

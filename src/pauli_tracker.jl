@@ -1,7 +1,7 @@
 module pauli_tracker
 
 lib = normpath(joinpath(dirname(@__FILE__), "..",
-    "pauli_tracker_extern/c_api/output/libpauli_tracker_clib"))
+    "pauli_tracker/c_lib/dist/libpauli_tracker_clib"))
 if Sys.iswindows()
     lib = lib * ".dll"
 elseif Sys.isapple()
