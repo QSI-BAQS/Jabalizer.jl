@@ -26,6 +26,10 @@ function frames_serialize(frames::Ptr{Frames}, file::String)::Cvoid
         file)::Cstring)::Cvoid
 end
 
+function frames_show(frames::Ptr{Frames})::Cvoid
+    @ccall lib.show_frames(frames::Ptr{Frames})::Cvoid
+end
+
 function frames_init(num_qubits::UInt)::Ptr{Frames}
     @ccall lib.frames_hmpsbvfx_init(num_qubits::UInt)::Ptr{Frames}
 end
