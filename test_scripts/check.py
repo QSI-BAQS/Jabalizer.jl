@@ -243,16 +243,16 @@ def step(
 # then do only one conditional Pauli)
 def correct(c: QuantumCircuit, node, stack, frames_map):
     num_frames = len(frames_map)
-    for (left, right), bit in zip(
+    for (x, z), bit in zip(
         zip(
-            bitvec_to_vec_bool(stack["left"]["data"], num_frames),
-            bitvec_to_vec_bool(stack["right"]["data"], num_frames),
+            bitvec_to_vec_bool(stack["x"]["data"], num_frames),
+            bitvec_to_vec_bool(stack["z"]["data"], num_frames),
         ),
         frames_map,
     ):
-        if left:
+        if x:
             c.x(node).c_if(bit, 1)
-        if right:
+        if z:
             c.z(node).c_if(bit, 1)
 
 
