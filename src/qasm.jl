@@ -14,7 +14,7 @@ const qasm_map =
          "s" => "S",
          "sdg" => "S_DAG",
          "t" => "T",
-         "tdg" => "T", # "T_Dagger", # Temporary Hack!
+         "tdg" => "T_Dagger", # Temp hack removed; "T", # "T_Dagger", # Temporary Hack!
          "cx" => "CNOT",
          "cz" => "CZ")
 

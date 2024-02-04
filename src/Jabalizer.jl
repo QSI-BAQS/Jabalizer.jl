@@ -31,5 +31,6 @@ include("util.jl")
 include("fast_tograph.jl")
 include("execute_circuit.jl")
 include("stabilizer_measurements.jl")
+include("gcompile.jl")
 
 end

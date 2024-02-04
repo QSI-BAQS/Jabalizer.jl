@@ -1,9 +1,12 @@
 """
 Executes circuit using stim simulator and applies it to a given state.
 """
-function execute_circuit(state::StabilizerState, circuit::Vector{ICMGate})
+function execute_circuit(state::StabilizerState, circuit::Vector{ICMGate}; qubit_map=nothing)
     n_qubits = 0
-    qubit_map = Dict{String,Int}()
+    if isnothing(qubit_map)
+        qubit_map = Dict{String,Int}()
+    end
+
     for op in circuit
         qindices = Vector{Int}()
         for qindex in op[2]
