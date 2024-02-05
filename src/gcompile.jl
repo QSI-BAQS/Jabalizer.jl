@@ -7,33 +7,14 @@ Run a full graph compilation on an input circuit
 
 
 """
-function gcompile(
-    circuit::Vector{ICMGate},
-    args...;
-    kwargs...)
+function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
+    icm_circuit, data_qubits, mseq, qubit_map, frames =
+        compile(circuit, args...; kwargs...)
 
-    data =  compile(
-        circuit,
-        args...;
-        kwargs...
-        )
-
-    
-
-    if :generate_qmap in keys(kwargs)
-        qubit_map = data[end]
+    if mseq === nothing
+        mseq = []
     end
 
-    if :with_measurements in keys(kwargs)
-        if :generate_qmap in keys(kwargs)
-            mseq = data[end-1]
-        else
-            mseq = data[end]
-        end
-    end
-
-    icm_circuit, data_qubits = data[1:2]
-    
     icm_qubits = Jabalizer.count_qubits(icm_circuit)
 
     state = zero_state(icm_qubits)
@@ -42,20 +23,20 @@ function gcompile(
     adj, op_seq = to_graph(state)[2:3]
 
     g = Graphs.SimpleGraph(adj)
-    input_nodes = Dict{String, Int}()
+    input_nodes = Dict{String,Int}()
 
     for i in eachindex(1:args[1])
         input_nodes["$(i-1)"] = qubit_map["i_$(i-1)"]
     end
 
-    output_nodes = Dict{String, Int}()
-    for (k,v) in data_qubits
+    output_nodes = Dict{String,Int}()
+    for (k, v) in data_qubits
         output_nodes[k] = qubit_map[v]
     end
 
-    
+
     # Add Hadamard corrections to boundry nodes.
-    del=[]
+    del = []
     for (idx, corr) in enumerate(op_seq)
         # add H corrections to input nodes
         if (corr[1] == "H") && corr[2] in values(input_nodes)
@@ -68,7 +49,7 @@ function gcompile(
             push!(del, idx)
 
             # find the input label for the node
-            for (k,v) in input_nodes
+            for (k, v) in input_nodes
                 if v == corr[2]
                     input_nodes[k] = new_node
                     break
@@ -76,10 +57,8 @@ function gcompile(
             end
 
             # Add measurement to mseq to implement the Hadamard
-            pushfirst!(mseq, ("X", [string(new_node)] ))
+            pushfirst!(mseq, ("X", [string(new_node)]))
             qubit_map[string(new_node)] = new_node
-            
-
         end
 
         # add H corrections to output nodes
@@ -91,19 +70,18 @@ function gcompile(
 
             # add index for deletion from mseq
             push!(del, idx)
-            
-            qubit_label = ""
+
             # find the output label for the node
-            for (k,v) in output_nodes
+            for (k, v) in output_nodes
                 if v == corr[2]
-                    push!(mseq, ("X", [data_qubits[k]] ))
+                    push!(mseq, ("X", [data_qubits[k]]))
                     output_nodes[k] = new_node
                     break
                 end
-            end           
+            end
             # add new node to qubit_map
             qubit_map[string(new_node)] = new_node
-        end        
+        end
     end
 
     deleteat!(op_seq, del)
@@ -113,15 +91,15 @@ function gcompile(
     meas_basis = []
     for (gate, qubit) in mseq
         push!(meas_order, qubit_map[qubit[1]])
-        push!(meas_basis, gate )
+        push!(meas_basis, gate)
     end
-    
+
 
     mseq = [meas_order, meas_basis]
 
-    return g, op_seq, mseq, input_nodes, output_nodes
-    
-    
+    return g, op_seq, mseq, input_nodes, output_nodes, frames
+
+
 end
 
 """
@@ -131,9 +109,7 @@ function gcompile(
     filename::String,
     args...;
     kwargs...
-    )
- 
-
+)
     qubits, inp_circ = load_icm_circuit_from_qasm(filename)
 
     return gcompile(
@@ -141,6 +117,5 @@ function gcompile(
         qubits,
         args...;
         kwargs...
-        )
-
+    )
 end

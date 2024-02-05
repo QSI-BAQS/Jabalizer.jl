@@ -3,16 +3,18 @@ using Graphs
 using GraphPlot
 
 source_filename = "toffoli.qasm"
-gates_to_decompose  = ["T", "T_Dagger"]
+gates_to_decompose = ["T", "T_Dagger"]
 
 data = gcompile(
     source_filename,
     gates_to_decompose;
     universal=true,
-    with_measurements=true,
-    generate_qmap=true)
+    with_measurements=false,
+)
 
-graph, loc_corr, mseq, input_nodes, output_nodes = data
+graph, loc_corr, mseq, input_nodes, output_nodes, frames = data
+
+println(frames.into_py_dict_recursive())
 
 # graph plot (requires plotting backend)
 gplot(graph, nodelabel=1:nv(graph))

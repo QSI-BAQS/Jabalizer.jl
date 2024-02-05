@@ -4,6 +4,7 @@ using Graphs, GraphPlot, LinearAlgebra
 using JSON
 using Documenter
 using PythonCall
+using CondaPkg
 
 export Stabilizer, StabilizerState, GraphState, Gates
 export zero_state, to_tableau, tableau_to_state, to_graph, graph_to_state
@@ -12,12 +13,21 @@ export measure_x, measure_y, measure_z
 include("gates.jl")
 using .Gates
 
+
+
 const stim = PythonCall.pynew() # initially NULL
 const cirq = PythonCall.pynew() # initially NULL
+const Frames = PythonCall.pynew()
 
 function __init__()
     PythonCall.pycopy!(stim, pyimport("stim"))
     PythonCall.pycopy!(cirq, pyimport("cirq"))
+
+    CondaPkg.add_pip(
+        "pauli_tracker";
+        version="@ ./pauli_tracker-0.1.0-cp38-abi3-manylinux_2_28_x86_64.whl"
+    )
+    PythonCall.pycopy!(Frames, pyimport("pauli_tracker.frames.map").Frames)
 end
 
 include("cirq_io.jl")
