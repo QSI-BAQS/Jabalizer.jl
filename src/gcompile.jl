@@ -8,12 +8,8 @@ Run a full graph compilation on an input circuit
 
 """
 function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
-    icm_circuit, data_qubits, mseq, qubit_map, frames =
+    icm_circuit, data_qubits, mseq, qubit_map, frames, buffer_frames, frame_flags =
         compile(circuit, args...; kwargs...)
-
-    if mseq === nothing
-        mseq = []
-    end
 
     icm_qubits = Jabalizer.count_qubits(icm_circuit)
 
@@ -36,6 +32,7 @@ function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
 
 
     # Add Hadamard corrections to boundry nodes.
+    # TODO: add tracking here
     del = []
     for (idx, corr) in enumerate(op_seq)
         # add H corrections to input nodes
@@ -44,6 +41,7 @@ function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
             add_vertex!(g)
             new_node = nv(g)
             add_edge!(g, corr[2], new_node)
+            
 
             # add index for deletion
             push!(del, idx)
@@ -94,12 +92,9 @@ function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
         push!(meas_basis, gate)
     end
 
-
     mseq = [meas_order, meas_basis]
 
-    return g, op_seq, mseq, input_nodes, output_nodes, frames
-
-
+    return g, op_seq, mseq, input_nodes, output_nodes, frames, buffer_frames, frame_flags
 end
 
 """

@@ -8,13 +8,17 @@ gates_to_decompose = ["T", "T_Dagger"]
 data = gcompile(
     source_filename,
     gates_to_decompose;
-    universal=true,
-    with_measurements=false,
+    universal=true
 )
 
-graph, loc_corr, mseq, input_nodes, output_nodes, frames = data
+graph, loc_corr, mseq, input_nodes, output_nodes, frames, buffer, frame_flags = data
 
 println(frames.into_py_dict_recursive())
+println(buffer.into_py_dict_recursive())
+println(frame_flags)
+println(length(buffer.into_py_dict_recursive()))
+println(length(frame_flags))
+@assert length(frame_flags) == length(buffer.stacked_transpose(100).into_py_matrix())
 
 # graph plot (requires plotting backend)
 gplot(graph, nodelabel=1:nv(graph))
