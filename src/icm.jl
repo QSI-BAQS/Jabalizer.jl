@@ -9,85 +9,90 @@ Reference: https://arxiv.org/abs/1509.02004
 """
 function compile(
     circuit::Vector{ICMGate},
-    n_qubits::Int,
+    highest_qubit_number::Int,
     gates_to_decompose::Vector{String};
-    universal::Bool=false
 )
-    qubit_dict = Dict()  # mapping from qubit to it's compiled version
+    # mapping from the original qubit name to it's compiled name
+    qubit_dict = Dict()
+    # mapping qubit names (which are strings) to integers (needed for actually
+    # calculations)
+    qubit_to_integer::Dict{String,UInt} = Dict()
+    # the compiled widget circuit, but only the gates
+    compiled_circuit::Vector{ICMGate} = []
+    # the measurements on the widget
+    measurement_sequence::Vector{ICMGate} = []
 
-    # Initialise measurement sequence
-    mseq::Vector{ICMGate} = []
+    # - the incoming qubit from the previous widget is identified with "ii_"*q
+    # - the intermediate qubit is identified with "i_"*q
+    # - we want to keep q on q(+1), so we push "ii_"*q onto q(+1)+2highest_qubit_number
+    #   and "i_"*q onto q(+1)+highest_qubit_number; according to that, any other qubit is
+    #   pushed with (+1)+3highest_qubit_number
 
-    # Generate a dictionary mapping qubit names to integers
-    qmap = Dict()
 
-    # NOTE: we are assuming here that the input qubits go from 0 to n_qubits-1 
+    # NOTE: I'm not in favor for using descriptive names (strings) for the qubits as the
+    # main qubit representation, but to be consistent, I'm doing it for the flags too
 
-    # the incoming qubit from the previous widget is identified with "ii_"*q
-
-    buffer = Frames()
-    for i in range(0, n_qubits - 1)
-        idx = i + 1 + 2 * n_qubits
-        qmap["ii_$i"] = idx
-        buffer.new_qubit(idx)
-        buffer.track_z(idx)
-        buffer.track_x(idx)
-    end
-
+    # this here is the main tracker which will track all the new pauli corrections induced
+    # by the according measurement (caputered by frame_flags) (which will later on define
+    # the time order of the measurements)
     frames = Frames()
     frame_flags = []
 
-    # BUG: when universal is false, we are not populating qmap, so when doing something
-    # like qmap[compiled_qubit] below, it can fail
-    # EDIT: the same is now true for the tracker initializations
-    if universal
-        # Add input nodes
-        initialize::Vector{ICMGate} = []
+    # there might be incoming pauli corrections; this buffers tracks all of those
+    # potential incoming pauli corrections
+    buffer = Frames()
+    # if z correction on qubit iiq get correction frame at buffer_flags.index(iiq)
+    # if x correction on qubit iiq get correction frame at buffer_flags.index(iiq) + 1
+    buffer_flags = []
 
-        # Populate qdict and add it's mapping to integers in qmap
-        for gate in circuit
-            for q in gate[2]
-                if haskey(qubit_dict, q)
-                    continue
-                end
-                qubit_dict[q] = q
-                qint = parse(Int, q)
-                qmap[q] = qint + 1
-                qmap["i_"*q] = n_qubits + qint + 1
-
-                # Initialise (graph) Bell states in registers "input_q" and "q"
-                push!(initialize, ("H", ["i_" * q]))
-                buffer.new_qubit(UInt(qmap["i_"*q]))
-                frames.new_qubit(UInt(qmap["i_"*q]))
-                push!(initialize, ("H", [q]))
-                buffer.new_qubit(UInt(qmap[q]))
-                frames.new_qubit(UInt(qmap[q]))
-                push!(initialize, ("CZ", [q, "i_" * q]))
-                # empty on those, so unnecessary
-                # buffer.cz(UInt(qmap[q]), UInt(qmap["i_"*q]))
-                # frames.cz(UInt(qmap[q]), UInt(qmap["i_"*q]))
-
-                # when stitching, we do cnot("ii_"*q, "i_"*q) and the an X measurement on
-                # "ii_"*q; the cnot is the equivalent to all the edges in the graph,
-                # especially when measuring "i_"*q, "ii_"*q has to be initialized and the
-                # cnot has to be done (and vice versa)
-                push!(mseq, ("Z", ["i_" * q]))
-                push!(mseq, ("X", ["ii_" * q]))
-                push!(frame_flags, UInt(qmap["i_"*q]))
-                push!(frame_flags, UInt(qmap["ii_"*q]))
-                frames.track_x(UInt(qmap[q]))
-                frames.track_z(UInt(qmap[q]))
-                buffer.move_x_to_z(UInt(qmap["i_"*q]), UInt(qmap[q]))
-                buffer.cx(UInt(qmap["ii_"*q]), UInt(qmap["i_"*q]))
-                buffer.move_z_to_x(UInt(qmap["i_"*q]), UInt(qmap[q]))
+    # populate qubit_dict, add it's mapping to integers in qmap and do the initialisation
+    # for the bell teleportation (i.e., everything before the actual circuit), cf.
+    # (handwritten notes -> TODO: add them to paper draft)
+    #
+    # if the qubits were just numbered from 0 to highest_qubit_number-1, we could just
+    # loop over this range, however, since we don't have this guarantee, we have to get
+    # all the qubits from the circuit and just skip the ones we already have
+    for gate in circuit
+        for q in gate[2]
+            if haskey(qubit_dict, q)
+                continue
             end
+            iq = "i_" * q
+            iiq = "ii_" * q
+            qint::UInt = parse(UInt, q) + 1
+            iqint::UInt = highest_qubit_number + qint
+            iiqint::UInt = 2 * highest_qubit_number + qint
+            qubit_dict[q] = q
+            qubit_to_integer[q] = qint
+            qubit_to_integer[iq] = iqint
+            qubit_to_integer[iiq] = iiqint
+            buffer.new_qubit(qint)
+            buffer.new_qubit(iqint)
+            frames.new_qubit(qint)
+            frames.new_qubit(iqint)
+
+            push!(compiled_circuit, ("H", [iq]))
+            push!(compiled_circuit, ("CZ", [iq, q]))
+            push!(compiled_circuit, ("H", [iq]))
+
+            # those are the "moved" potential corrections" from the previous widget
+            buffer.track_z(qint)
+            buffer.track_x(qint)
+            push!(buffer_flags, iiq)
+            # those are the induced corrections from the teleportation
+            frames.track_x(qint)
+            push!(frame_flags, iq)
+            frames.track_z(qint)
+            push!(frame_flags, iiq)
+
+            # the teleportation measurements; however, we only track the one on iq; the
+            # one on iiq, together with the cz(iq, iiq), is not tracked here, because it
+            # does not belong solely to the widget (it's the stitching process)
+            push!(measurement_sequence, ("X", [iq]))
+            # push!(measurement_sequence, ("X", [iiq])) # not tracked here
         end
-        # Prepend input initialisation to circuit
-        circuit = [initialize; circuit]
     end
 
-
-    compiled_circuit::Vector{ICMGate} = []
     ancilla_num = 0
 
     for gate in circuit
@@ -98,23 +103,24 @@ function compile(
                 new_qubit_name = "anc_$(ancilla_num)"
                 ancilla_num += 1
 
-                qmap[new_qubit_name] = 3 * n_qubits + ancilla_num
-                frames.new_qubit(UInt(qmap[new_qubit_name]))
-                buffer.new_qubit(UInt(qmap[new_qubit_name]))
+                qubit_to_integer[new_qubit_name] = 3 * highest_qubit_number + ancilla_num
+                frames.new_qubit(qubit_to_integer[new_qubit_name])
+                buffer.new_qubit(qubit_to_integer[new_qubit_name])
 
                 # NOTE: Isn't the teleportation with a cnot and an ancilla in |0> specific
                 # to z-rotations? If so, then gates_to_decompose should be restricted to
-                # those gates
+                # those gates or it should be atleast documented
                 qubit_dict[original_qubit] = new_qubit_name
                 push!(compiled_circuit, ("CNOT", [compiled_qubit, new_qubit_name]))
-                source = UInt(qmap[compiled_qubit])
-                destination = UInt(qmap[new_qubit_name])
+                source = UInt(qubit_to_integer[compiled_qubit])
+                destination = UInt(qubit_to_integer[new_qubit_name])
                 frames.cx(source, destination)
                 buffer.cx(source, destination)
                 if gate[1] == "T" || gate[1] == "T_Dagger"
                     frames.move_z_to_z(source, destination)
                     buffer.move_z_to_z(source, destination)
                     frames.track_z(destination)
+                    push!(frame_flags, new_qubit_name)
                 else
                     # NOTE: cf. note above + the current gate representation (strings) do
                     # not support parameters, so I'm not checking for something like "RZ"
@@ -124,33 +130,16 @@ function compile(
                     # needed
                     error("only support T and T_Dagger decomposition")
                 end
-                push!(mseq,
+                push!(measurement_sequence,
                     (gate[1], [compiled_qubit]))
-                # push!(compiled_circuit,
-                #       ("Gate_Conditioned_on_$(compiled_qubit)_Measurement",
-                #        [new_qubit_name]))
             end
         else
             push!(compiled_circuit, (gate[1], compiled_qubits))
             pauli_tracking.apply_gate!(
-                frames, (gate[1], [UInt(qmap[q]) for q in compiled_qubits])
+                frames, (gate[1], [UInt(qubit_to_integer[q]) for q in compiled_qubits])
             )
         end
     end
 
-    if universal
-        data_qubits_map = qubit_dict
-    else
-        # map qubits from the original circuit to the compiled one
-        data_qubits_map = [i for i in 0:n_qubits-1]
-        for (original_qubit, compiled_qubit) in qubit_dict
-            original_qubit_num = parse(Int, original_qubit)
-            compiled_qubit_num = n_qubits + parse(Int, compiled_qubit[5:end])
-            # +1 here because julia vectors are indexed from 1
-            data_qubits_map[original_qubit_num+1] = compiled_qubit_num
-        end
-    end
-
-
-    return compiled_circuit, data_qubits_map, mseq, qmap, frames, buffer, frame_flags
+    return compiled_circuit, qubit_dict, measurement_sequence, qubit_to_integer, frames, buffer, frame_flags, buffer_flags
 end
