@@ -56,7 +56,7 @@ function compile(
             end
             iq = "i_" * q
             iiq = "ii_" * q
-            qint::UInt = parse(UInt, q) + 1
+            qint::UInt = parse(UInt, q) + 1 # why + 1?
             iqint::UInt = highest_qubit_number + qint
             iiqint::UInt = 2 * highest_qubit_number + qint
             qubit_dict[q] = q
