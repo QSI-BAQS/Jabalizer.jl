@@ -7,8 +7,13 @@ Run a full graph compilation on an input circuit
 
 
 """
-function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
-    icm_circuit, data_qubits, mseq, qubit_map, frames, buffer, frame_flags, buffer_flags = compile(circuit, args...; kwargs...)
+function gcompile(
+    circuit::Vector{ICMGate},
+    n_qubits::Int,
+    gates_to_decompose::Vector{String};
+)
+    icm_circuit, data_qubits, mseq, qubit_map, frames, buffer, frame_flags, buffer_flags =
+compile(circuit, n_qubits, gates_to_decompose)
 
     icm_qubits = Jabalizer.count_qubits(icm_circuit)
 
@@ -20,7 +25,7 @@ function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
     g = Graphs.SimpleGraph(adj)
     input_nodes = Dict{String,Int}()
 
-    for i in eachindex(1:args[1])
+    for i in eachindex(1:n_qubits)
         input_nodes["$(i-1)"] = qubit_map["i_$(i-1)"]
     end
 
@@ -29,73 +34,75 @@ function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
         output_nodes[k] = qubit_map[v]
     end
 
+    # NOTE: let's not do that at all for the moment, because it is not actually improving
+    # the time order and only makes things more complicated (we can later on add as a
+    # potenital optimization to get rid of some hadamards)
+    #
+    # # Add Hadamard corrections to boundry (just input for now) nodes.
+    # del = []
+    # for (idx, corr) in enumerate(op_seq)
+    #     # add H corrections to input nodes
+    #     if (corr[1] == "H") && corr[2] in values(input_nodes)
+    #         # add new node to graph
+    #         add_vertex!(g)
+    #         new_node = nv(g)
+    #         add_edge!(g, corr[2], new_node)
 
-    # Add Hadamard corrections to boundry (just input for now) nodes.
-    del = []
-    for (idx, corr) in enumerate(op_seq)
-        # add H corrections to input nodes
-        if (corr[1] == "H") && corr[2] in values(input_nodes)
-            # add new node to graph
-            add_vertex!(g)
-            new_node = nv(g)
-            add_edge!(g, corr[2], new_node)
+    #         frames.new_qubit(new_node)
+    #         buffer.new_qubit(new_node)
 
-            frames.new_qubit(new_node)
-            buffer.new_qubit(new_node)
+    #         # NOTE: someone else please check: we can never have a Y and H correction on a
+    #         # qubit according to the implementation of the to_graph function
 
-            # NOTE: someone else please check: we can never have a Y and H correction on a
-            # qubit according to the implementation of the to_graph function
+    #         # here we are relying on the invariant discussed in the note above (if it
+    #         # does not hold we have to commute the X potentially through an additional S
+    #         # correction)
+    #         frames.track_x(new_node)
+    #         push!(frame_flags, corr[2])
+    #         frames.cz(new_node, qubit_map["ii_$(corr[2]-1-n_qubits)"])
 
-            # (if there could be an S correction we would need to commute the Z correction
-            # through the S correction if the S correction is after the H correction,
-            # however, we have the invariant from the note above, and Z commutes with S
-            # anyways)
-            frames.track_z(new_node)
-            push!(frame_flags, corr[2])
+    #         # add index for deletion
+    #         push!(del, idx)
 
-            # add index for deletion
-            push!(del, idx)
+    #         # find the input label for the node
+    #         for (k, v) in input_nodes
+    #             if v == corr[2]
+    #                 input_nodes[k] = new_node
+    #                 break
+    #             end
+    #         end
 
-            # find the input label for the node
-            for (k, v) in input_nodes
-                if v == corr[2]
-                    input_nodes[k] = new_node
-                    break
-                end
-            end
+    #         # Add measurement to mseq to implement the Hadamard
+    #         pushfirst!(mseq, ("X", [string(new_node)]))
+    #         qubit_map[string(new_node)] = new_node
+    #     end
 
-            # Add measurement to mseq to implement the Hadamard
-            pushfirst!(mseq, ("X", [string(new_node)]))
-            qubit_map[string(new_node)] = new_node
-        end
+    #     # NOTE: let's not do this for now; first we should focus on getting everything
+    #     # else to work before considering defering local clifford corrections
+    #     #
+    #     # # add H corrections to output nodes
+    #     # if (corr[1] == "H") && corr[2] in values(output_nodes)
+    #     #     # add new node to graph
+    #     #     add_vertex!(g)
+    #     #     new_node = nv(g)
+    #     #     add_edge!(g, corr[2], new_node)
 
-        # NOTE: let's not do this for now; first we should focus on getting everything
-        # else to work before considering defering local clifford corrections
-        #
-        # # add H corrections to output nodes
-        # if (corr[1] == "H") && corr[2] in values(output_nodes)
-        #     # add new node to graph
-        #     add_vertex!(g)
-        #     new_node = nv(g)
-        #     add_edge!(g, corr[2], new_node)
+    #     #     # add index for deletion from mseq
+    #     #     push!(del, idx)
 
-        #     # add index for deletion from mseq
-        #     push!(del, idx)
-
-        #     # find the output label for the node
-        #     for (k, v) in output_nodes
-        #         if v == corr[2]
-        #             push!(mseq, ("X", [data_qubits[k]]))
-        #             output_nodes[k] = new_node
-        #             break
-        #         end
-        #     end
-        #     # add new node to qubit_map
-        #     qubit_map[string(new_node)] = new_node
-        # end
-    end
-
-    deleteat!(op_seq, del)
+    #     #     # find the output label for the node
+    #     #     for (k, v) in output_nodes
+    #     #         if v == corr[2]
+    #     #             push!(mseq, ("X", [data_qubits[k]]))
+    #     #             output_nodes[k] = new_node
+    #     #             break
+    #     #         end
+    #     #     end
+    #     #     # add new node to qubit_map
+    #     #     qubit_map[string(new_node)] = new_node
+    #     # end
+    # end
+    # deleteat!(op_seq, del)
 
     # Measurement sequence
     meas_order = []

@@ -9,9 +9,12 @@ Reference: https://arxiv.org/abs/1509.02004
 """
 function compile(
     circuit::Vector{ICMGate},
-    highest_qubit_number::Int,
+    n_qubits::Int,
     gates_to_decompose::Vector{String};
 )
+    # NOTE: here, and in gcompile, we're relying on that the qubits are labeled from 0 to
+    # n_qubits-1; this should be documented
+
     # mapping from the original qubit name to it's compiled name
     qubit_dict = Dict()
     # mapping qubit names (which are strings) to integers (needed for actually
@@ -24,9 +27,9 @@ function compile(
 
     # - the incoming qubit from the previous widget is identified with "ii_"*q
     # - the intermediate qubit is identified with "i_"*q
-    # - we want to keep q on q(+1), so we push "ii_"*q onto q(+1)+2highest_qubit_number
-    #   and "i_"*q onto q(+1)+highest_qubit_number; according to that, any other qubit is
-    #   pushed with (+1)+3highest_qubit_number
+    # - we want to keep q on q(+1), so we push "ii_"*q onto q(+1)+2n_qubits
+    #   and "i_"*q onto q(+1)+n_qubits; according to that, any other qubit is
+    #   pushed with (+1)+3n_qubits
 
 
     # this here is the main tracker which will track all the new pauli corrections induced
@@ -36,7 +39,7 @@ function compile(
     frame_flags = []
 
     # there might be incoming pauli corrections; this buffers tracks all of those
-    # potential incoming pauli corrections
+    # potential incoming pauli corrections (which are all directly "moved" from iiq to q)
     buffer = Frames()
     # if z correction on qubit iiq get correction frame at buffer_flags.index(iiq)
     # if x correction on qubit iiq get correction frame at buffer_flags.index(iiq) + 1
@@ -46,7 +49,7 @@ function compile(
     # for the bell teleportation (i.e., everything before the actual circuit), cf.
     # (handwritten notes -> TODO: add them to paper draft)
     #
-    # if the qubits were just numbered from 0 to highest_qubit_number-1, we could just
+    # if the qubits were just numbered from 0 to n_qubits-1, we could just
     # loop over this range, however, since we don't have this guarantee, we have to get
     # all the qubits from the circuit and just skip the ones we already have
     for gate in circuit
@@ -57,16 +60,20 @@ function compile(
             iq = "i_" * q
             iiq = "ii_" * q
             qint::UInt = parse(UInt, q) + 1 # why + 1?
-            iqint::UInt = highest_qubit_number + qint
-            iiqint::UInt = 2 * highest_qubit_number + qint
+            iqint::UInt = n_qubits + qint
+            iiqint::UInt = 2 * n_qubits + qint
             qubit_dict[q] = q
             qubit_to_integer[q] = qint
             qubit_to_integer[iq] = iqint
             qubit_to_integer[iiq] = iiqint
-            buffer.new_qubit(qint)
-            buffer.new_qubit(iqint)
             frames.new_qubit(qint)
+            # the next two will not capture any pauli corrections (usually, cf. comment
+            # below regarding cz(iiq, iq) and the input Hadamard corrections (cf.
+            # gcompile)), but add them to easily get the time order later on
             frames.new_qubit(iqint)
+            frames.new_qubit(iiqint)
+            buffer.new_qubit(qint)
+            # buffer.new_qubit(iqint)
 
             push!(compiled_circuit, ("H", [iq]))
             push!(compiled_circuit, ("CZ", [iq, q]))
@@ -83,8 +90,11 @@ function compile(
             push!(frame_flags, iiqint)
 
             # the teleportation measurements; however, we only track the one on iq; the
-            # one on iiq, together with the cz(iq, iiq), is not tracked here, because it
-            # does not belong solely to the widget (it's the stitching process)
+            # one on iiq, together with the cz(iiq, iq), is not tracked here, because it
+            # does not belong solely to the widget (it's the stitching process) (note that
+            # we don't have to track the cz(iiq, iq) when stitching because there are no
+            # corrections on iq (or iiq); everything is on q; except if we decide to
+            # teleport the input Hadamard corrections (cf. gcompile))
             push!(measurement_sequence, ("X", [iq]))
             # push!(measurement_sequence, ("X", [iiq])) # not tracked here
         end
@@ -104,7 +114,7 @@ function compile(
                 # those gates or it should be atleast documented
 
                 source = UInt(qubit_to_integer[compiled_qubit])
-                destination = 3 * highest_qubit_number + ancilla_num
+                destination = 3 * n_qubits + ancilla_num
 
                 new_qubit_name = "anc_$(ancilla_num)"
                 qubit_dict[original_qubit] = new_qubit_name
