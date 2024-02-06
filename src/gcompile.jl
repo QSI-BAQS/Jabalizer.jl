@@ -8,7 +8,7 @@ Run a full graph compilation on an input circuit
 
 """
 function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
-    icm_circuit, data_qubits, mseq, qubit_map, frames, buffer_frames, frame_flags, buffer_flags = compile(circuit, args...; kwargs...)
+    icm_circuit, data_qubits, mseq, qubit_map, frames, buffer, frame_flags, buffer_flags = compile(circuit, args...; kwargs...)
 
     icm_qubits = Jabalizer.count_qubits(icm_circuit)
 
@@ -30,8 +30,7 @@ function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
     end
 
 
-    # Add Hadamard corrections to boundry nodes.
-    # TODO: add tracking here
+    # Add Hadamard corrections to boundry (just input for now) nodes.
     del = []
     for (idx, corr) in enumerate(op_seq)
         # add H corrections to input nodes
@@ -41,6 +40,18 @@ function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
             new_node = nv(g)
             add_edge!(g, corr[2], new_node)
 
+            frames.new_qubit(new_node)
+            buffer.new_qubit(new_node)
+
+            # NOTE: someone else please check: we can never have a Y and H correction on a
+            # qubit according to the implementation of the to_graph function
+
+            # (if there could be an S correction we would need to commute the Z correction
+            # through the S correction if the S correction is after the H correction,
+            # however, we have the invariant from the note above, and Z commutes with S
+            # anyways)
+            frames.track_z(new_node)
+            push!(frame_flags, corr[2])
 
             # add index for deletion
             push!(del, idx)
@@ -58,27 +69,30 @@ function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
             qubit_map[string(new_node)] = new_node
         end
 
-        # add H corrections to output nodes
-        if (corr[1] == "H") && corr[2] in values(output_nodes)
-            # add new node to graph
-            add_vertex!(g)
-            new_node = nv(g)
-            add_edge!(g, corr[2], new_node)
+        # NOTE: let's not do this for now; first we should focus on getting everything
+        # else to work before considering defering local clifford corrections
+        #
+        # # add H corrections to output nodes
+        # if (corr[1] == "H") && corr[2] in values(output_nodes)
+        #     # add new node to graph
+        #     add_vertex!(g)
+        #     new_node = nv(g)
+        #     add_edge!(g, corr[2], new_node)
 
-            # add index for deletion from mseq
-            push!(del, idx)
+        #     # add index for deletion from mseq
+        #     push!(del, idx)
 
-            # find the output label for the node
-            for (k, v) in output_nodes
-                if v == corr[2]
-                    push!(mseq, ("X", [data_qubits[k]]))
-                    output_nodes[k] = new_node
-                    break
-                end
-            end
-            # add new node to qubit_map
-            qubit_map[string(new_node)] = new_node
-        end
+        #     # find the output label for the node
+        #     for (k, v) in output_nodes
+        #         if v == corr[2]
+        #             push!(mseq, ("X", [data_qubits[k]]))
+        #             output_nodes[k] = new_node
+        #             break
+        #         end
+        #     end
+        #     # add new node to qubit_map
+        #     qubit_map[string(new_node)] = new_node
+        # end
     end
 
     deleteat!(op_seq, del)
@@ -93,7 +107,7 @@ function gcompile(circuit::Vector{ICMGate}, args...; kwargs...)
 
     mseq = [meas_order, meas_basis]
 
-    return g, op_seq, mseq, input_nodes, output_nodes, frames, buffer_frames, frame_flags, buffer_flags
+    return g, op_seq, mseq, input_nodes, output_nodes, frames, buffer, frame_flags, buffer_flags
 end
 
 """

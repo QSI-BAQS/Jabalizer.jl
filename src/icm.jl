@@ -29,9 +29,6 @@ function compile(
     #   pushed with (+1)+3highest_qubit_number
 
 
-    # NOTE: I'm not in favor for using descriptive names (strings) for the qubits as the
-    # main qubit representation, but to be consistent, I'm doing it for the flags too
-
     # this here is the main tracker which will track all the new pauli corrections induced
     # by the according measurement (caputered by frame_flags) (which will later on define
     # the time order of the measurements)
@@ -78,12 +75,12 @@ function compile(
             # those are the "moved" potential corrections" from the previous widget
             buffer.track_z(qint)
             buffer.track_x(qint)
-            push!(buffer_flags, iiq)
+            push!(buffer_flags, iiqint)
             # those are the induced corrections from the teleportation
             frames.track_x(qint)
-            push!(frame_flags, iq)
+            push!(frame_flags, iqint)
             frames.track_z(qint)
-            push!(frame_flags, iiq)
+            push!(frame_flags, iiqint)
 
             # the teleportation measurements; however, we only track the one on iq; the
             # one on iiq, together with the cz(iq, iiq), is not tracked here, because it
@@ -100,27 +97,30 @@ function compile(
 
         if gate[1] in gates_to_decompose
             for (original_qubit, compiled_qubit) in zip(gate[2], compiled_qubits)
-                new_qubit_name = "anc_$(ancilla_num)"
                 ancilla_num += 1
-
-                qubit_to_integer[new_qubit_name] = 3 * highest_qubit_number + ancilla_num
-                frames.new_qubit(qubit_to_integer[new_qubit_name])
-                buffer.new_qubit(qubit_to_integer[new_qubit_name])
 
                 # NOTE: Isn't the teleportation with a cnot and an ancilla in |0> specific
                 # to z-rotations? If so, then gates_to_decompose should be restricted to
                 # those gates or it should be atleast documented
-                qubit_dict[original_qubit] = new_qubit_name
-                push!(compiled_circuit, ("CNOT", [compiled_qubit, new_qubit_name]))
+
                 source = UInt(qubit_to_integer[compiled_qubit])
-                destination = UInt(qubit_to_integer[new_qubit_name])
+                destination = 3 * highest_qubit_number + ancilla_num
+
+                new_qubit_name = "anc_$(ancilla_num)"
+                qubit_dict[original_qubit] = new_qubit_name
+                qubit_to_integer[new_qubit_name] = destination
+
+                frames.new_qubit(destination)
+                buffer.new_qubit(destination)
+
+                push!(compiled_circuit, ("CNOT", [compiled_qubit, new_qubit_name]))
                 frames.cx(source, destination)
                 buffer.cx(source, destination)
                 if gate[1] == "T" || gate[1] == "T_Dagger"
                     frames.move_z_to_z(source, destination)
                     buffer.move_z_to_z(source, destination)
                     frames.track_z(destination)
-                    push!(frame_flags, new_qubit_name)
+                    push!(frame_flags, source)
                 else
                     # NOTE: cf. note above + the current gate representation (strings) do
                     # not support parameters, so I'm not checking for something like "RZ"
@@ -136,7 +136,7 @@ function compile(
         else
             push!(compiled_circuit, (gate[1], compiled_qubits))
             pauli_tracking.apply_gate!(
-                frames, (gate[1], [UInt(qubit_to_integer[q]) for q in compiled_qubits])
+                frames, (gate[1], [qubit_to_integer[q] for q in compiled_qubits])
             )
         end
     end
