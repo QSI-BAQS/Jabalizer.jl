@@ -89,14 +89,13 @@ function compile(
             frames.track_z(qint)
             push!(frame_flags, iiqint)
 
-            # the teleportation measurements; however, we only track the one on iq; the
-            # one on iiq, together with the cz(iiq, iq), is not tracked here, because it
-            # does not belong solely to the widget (it's the stitching process) (note that
-            # we don't have to track the cz(iiq, iq) when stitching because there are no
-            # corrections on iq (or iiq); everything is on q; except if we decide to
-            # teleport the input Hadamard corrections (cf. gcompile))
+            # the teleportation measurements; however, note that we are not tracking the
+            # cz(iiq, iq) here, because it does not belong solely to the widget (it's the
+            # stitching process) ( we don't have to track the cz(iiq, iq) when stitching
+            # because there are no corrections on iq (or iiq); everything is on q; except
+            # if we decide to teleport the input Hadamard corrections (cf. gcompile))
             push!(measurement_sequence, ("X", [iq]))
-            # push!(measurement_sequence, ("X", [iiq])) # not tracked here
+            push!(measurement_sequence, ("X", [iiq]))
         end
     end
 

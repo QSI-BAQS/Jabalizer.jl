@@ -1,6 +1,7 @@
 using Jabalizer
 using Graphs
 using GraphPlot
+using PythonCall
 
 source_filename = "toffoli.qasm"
 gates_to_decompose = ["T", "T_Dagger"]
@@ -12,7 +13,13 @@ data = gcompile(
 
 graph, loc_corr, mseq, input_nodes, output_nodes, frames, buffer, frame_flags, buffer_flags = data
 
+scheduling = pyimport("mbqc_scheduling.scheduling")
+SpacialGraph = pyimport("mbqc_scheduling.scheduling").SpacialGraph
 
+order = frames.get_order(frame_flags)
+println("order: ", order.into_py_graph())
+# sparse_graph = ... great, seems like I need to write my own to_sparse function again
+# println(scheduling.run(SpacialGraph(sparse_graph, order)))
 
 println("frames: ", frames.into_py_dict_recursive())
 # println("buffer: ", buffer.into_py_dict_recursive())
