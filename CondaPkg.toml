@@ -3,5 +3,6 @@ cirq-core = "1.0.0"
 python = ">=3.5,<4"
 
 [pip.deps]
-mbqc-scheduling = "@ ./mbqc_scheduling-0.1.1-cp38-abi3-manylinux_2_28_x86_64.whl"
+mbqc-scheduling = "@ ./mbqc_scheduling-0.1.2-cp38-abi3-manylinux_2_28_x86_64.whl"
 stim = "==1.10"
+pauli-tracker = "@ ./pauli_tracker-0.1.2-cp38-abi3-manylinux_2_28_x86_64.whl"

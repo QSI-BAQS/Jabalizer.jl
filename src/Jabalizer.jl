@@ -25,9 +25,13 @@ function __init__()
 
     CondaPkg.add_pip(
         "mbqc-scheduling";
-        version="@ ./mbqc_scheduling-0.1.1-cp38-abi3-manylinux_2_28_x86_64.whl"
+        version="@ ./mbqc_scheduling-0.1.2-cp38-abi3-manylinux_2_28_x86_64.whl"
     )
-    PythonCall.pycopy!(Frames, pyimport("mbqc_scheduling.frames.map").Frames)
+    CondaPkg.add_pip(
+        "pauli-tracker";
+        version="@ ./pauli_tracker-0.1.2-cp38-abi3-manylinux_2_28_x86_64.whl"
+    )
+    PythonCall.pycopy!(Frames, pyimport("pauli_tracker.frames.map").Frames)
 end
 
 include("pauli_tracking.jl")
