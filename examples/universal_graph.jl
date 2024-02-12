@@ -59,9 +59,9 @@ shifted_order = PartialOrderGraph(shifted_order)
 # just the time optimal (trivial) path
 paths = mbqc_scheduling.run(sparse_graph, shifted_order)
 
-# for path in paths.into_py_paths()
-#     println("time: $(path.time); space: $(path.space); steps: $(path.steps)")
-# end
+for path in paths.into_py_paths()
+    println("time: $(path.time); space: $(path.space); steps: $(path.steps)")
+end
 
 # this takes some time; cf. docs of the run function for additional options, e.g., try out
 # setting a timeout and/or a probabilistic layer onto it (when doing the latter, the
@@ -69,19 +69,19 @@ paths = mbqc_scheduling.run(sparse_graph, shifted_order)
 full_search_path = mbqc_scheduling.run(
     sparse_graph, shifted_order; do_search=true, nthreads=3
     # timeout in seconds; only integers are possible; funny thing: with 1 second, it
-    # already found the best paths, so as a showcase I set it to 0 (which effactively
+    # already found the best paths, so as a showcase I set it to 0 (which effectively
     # means "take the first paths (more or less)") to see a difference
-    # , timeout=0
-    , timeout=1
+    , timeout=0
+    # , timeout=1
     # cf. mbqc_scheduling.probabilistic docs
     , probabilistic = (AcceptFunc(), nothing)
 )
 
 nothing
 
-# for path in full_search_path.into_py_paths()
-#     println("time: $(path.time); space: $(path.space); steps: $(path.steps)")
-# end
+for path in full_search_path.into_py_paths()
+    println("time: $(path.time); space: $(path.space); steps: $(path.steps)")
+end
 
 # now one probably wants to serialize stuff to deserialize it later; the objects provided
 # by the pauli_tracker and mbqc_scheduling library provide all (de)serialize methods (cf.

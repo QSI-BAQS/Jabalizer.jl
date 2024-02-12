@@ -22,15 +22,6 @@ const Frames = PythonCall.pynew()
 function __init__()
     PythonCall.pycopy!(stim, pyimport("stim"))
     PythonCall.pycopy!(cirq, pyimport("cirq"))
-
-    CondaPkg.add_pip(
-        "mbqc-scheduling";
-        version="@ ./mbqc_scheduling-0.1.2-cp38-abi3-manylinux_2_28_x86_64.whl"
-    )
-    CondaPkg.add_pip(
-        "pauli-tracker";
-        version="@ ./pauli_tracker-0.1.2-cp38-abi3-manylinux_2_28_x86_64.whl"
-    )
     PythonCall.pycopy!(Frames, pyimport("pauli_tracker.frames.map").Frames)
 end
 
