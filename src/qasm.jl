@@ -48,6 +48,9 @@ load_icm_circuit_from_qasm(filename) = icm_circuit_from_qasm(read(filename, Stri
 
 """
 Parses icm compatible circuit from a QASM (2.0) input string
+
+Note : qasm is 0 indexed while Jabalizer is 1 indexed so qubits labels will
+be transalated from i -> i+1.
 """
 function icm_circuit_from_qasm(str::String)
     # Hack to handle QASM 3 header
@@ -65,8 +68,8 @@ function icm_circuit_from_qasm(str::String)
          error("Missing qubit register declaration")
     # Pick up qubit reg name
     nam = reg.name.str
-    siz = parse(Int, reg.size.str)
-    circuit = Vector{Tuple{String,Vector{String}}}()
+    siz = parse(Int, reg.size.str) 
+    circuit = Vector{Tuple{String, Vector{Int}}}()
     for i = 3:length(ap)
         gate = ap[i]
         gate isa Instruction || error("Not an instruction: $gate")
@@ -74,13 +77,14 @@ function icm_circuit_from_qasm(str::String)
         ins = get(qasm_map, gate.name, "")
         ins == "" && error("Instruction $ins not found")
         args = gate.qargs
-        vals = String[]
+        vals = Int[]
         for qarg in args
             (qarg isa Bit &&
              qarg.name isa Token{:id} && qarg.name.str == nam &&
              qarg.address isa Token{:int}) ||
              error("Invalid instruction argument: $qarg")
-            push!(vals, qarg.address.str)
+            # convert to 1 index from qasm 0 index
+            push!(vals, parse(Int, qarg.address.str) + 1) 
         end
         push!(circuit, (ins, vals))
     end
