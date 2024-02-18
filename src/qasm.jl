@@ -2,6 +2,49 @@ using OpenQASM
 using OpenQASM.Types
 using OpenQASM.Tools
 using RBNF: Token
+using MLStyle
+
+function parse_file(filename::String)
+    return OpenQASM.parse(read(filename, String))
+end
+
+# Take output of parse_file and return same data as icm_circuit_from_qasm
+function transform(qasm)
+    return @match qasm begin
+        Token{:reserved}(str=str) => @match str begin
+            :pi => Base.pi
+            _ => String(str)
+        end
+        Token{:id}(str=str) => String(str)
+        Token{:float64}(str=str) => parse(Float64, str) 
+        Token{:int}(str=str) => parse(Int64, str)
+        Token{:str}(str=str) => str
+        Include(file) => transform(file)
+        RegDecl(type, name, size) => (transform(type), transform(name), transform(size))
+        Bit(name=id, address=int) => transform(int) + 1 # assume only one name "q"
+        Instruction(name, cargs, qargs) => @match name begin
+            "id"    => ("I", transform(qargs[1]))
+            "h"     => ("H", transform(qargs[1]))
+            "x"     => ("X", transform(qargs[1]))
+            "y"     => ("Y", transform(qargs[1]))
+            "z"     => ("Z", transform(qargs[1]))
+            "cnot"  => ("CNOT", transform(qargs[1]))
+            "swap"  => ("SWAP", transform(qargs[1]))
+            "s"     => ("S", transform(qargs[1]))
+            "sdg"   => ("S_DAG", transform(qargs[1]))
+            "t"     => ("T", transform(qargs[1]))
+            "tdg"   => ("T_Dagger", transform(qargs[1]))
+            "cx"    => ("CNOT", map(transform, qargs))
+            "cz"    => ("CZ", transform(qargs[1]))
+            "rz"    => ("RZ", map(transform, cargs), map(transform, qargs)) #TODO: fix rz(pi/2) q[1];
+            _       => (name, cargs, qargs)
+        end
+        MainProgram(prog=statements) => let result = map(transform, statements)
+            # (number of qubits, circuit as Vector{ICMGate})
+            (result[2][3], result[3:end])
+        end
+    end
+end
 
 const qasm_map =
     Dict("id" => "I",
