@@ -1,5 +1,6 @@
 const ICMGate = Tuple{String,Vector{Int}}
 
+import .pauli_tracking
 
 export compile
 """
@@ -19,7 +20,8 @@ support will be added soon.
 function compile(circuit::Vector{ICMGate},
                  n_qubits::Int,
                  gates_to_decompose::Vector{String};
-                 universal::Bool=true
+                 universal::Bool=true,
+                 ptrack=true
                  )
     
     # Initialize dictionary to track teleported qubits
@@ -27,6 +29,11 @@ function compile(circuit::Vector{ICMGate},
     
     # Initialise measurement sequence
     mseq::Vector{ICMGate} = []
+
+    # Initialise pauli tracker frames to track internal qubits
+    frames = ptrack ? Frames() : nothing
+    frame_flags = ptrack ? [] : nothing
+    
 
     if universal
         """
@@ -42,12 +49,22 @@ function compile(circuit::Vector{ICMGate},
             push!(initialize, ("H", [i]))
             push!(initialize, ("H", [i + n_qubits]))
             push!(initialize, ("CZ",[i, i + n_qubits]))
+            
+            # track Z correction from measuring input nodes n+1:2n
+            # adjust for 0 indexing in tracker
+            frames.track_z(i-1)
+            push!(frame_flags, n_qubits + i - 1)
 
             # Add input measurements to mseq
             # This does not include the measurement on the incoming qubit!
             push!(mseq, ("X", [i + n_qubits]))
-        end
 
+            # add all qubit to the tracker excluding inputs
+            if ptrack
+                frames.new_qubit(n_qubits + i - 1)
+                frames.new_qubit(i-1)
+            end
+        end
         # Prepend input initialisation to circuit
         circuit = [initialize; circuit]
     end
@@ -69,18 +86,44 @@ function compile(circuit::Vector{ICMGate},
                 new_qubit = 2 * n_qubits + ancilla_num
                 # update ancilla count
                 ancilla_num += 1
+
+                if ptrack
+                    # add a new qubit to the pauli tracker.
+                    # adjust for 0 indexing in tracker
+                    frames.new_qubit(new_qubit-1)
+                end
                 
                 # Update data qubit map
                 qubit_dict[original_qubit] = new_qubit
+
+                # add teleportation CNOT
                 push!(compiled_circuit, ("CNOT", [compiled_qubit, new_qubit]))
                 
-                # Update measuremnet sequence
+                # apply the teleportation cnot to the tracker
+                # adjusting for 0 indexing
+                if ptrack
+                    frames.cx(compiled_qubit-1, new_qubit-1)
+                    push!(frame_flags, compiled_qubit-1)
+                    # This assumes the teleportation induces a z corrections
+                    # which holds for Rz teleporations.
+                    frames.track_z(new_qubit-1)
+                end
+                
+                # Update measurement sequence
                 push!(mseq, (gate, [compiled_qubit]))
+                
             end
         else
             push!(compiled_circuit, (gate, compiled_qubits))
+            if ptrack
+                # apply Clifford gates to the pauli tracker
+                # adjust for 1 indexing in tracker
+                pauli_tracking.apply_gate(
+                    frames, 
+                    (gate, [UInt(q-1) for q in compiled_qubits]))
+            end
         end
     end
 
-    return compiled_circuit, qubit_dict, mseq
+    return compiled_circuit, qubit_dict, mseq, frames, frame_flags
 end

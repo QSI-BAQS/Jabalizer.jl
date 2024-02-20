@@ -9,11 +9,11 @@ function gcompile(
     args...;
     kwargs...)
 
-    icm_circuit, data_qubits, mseq = compile(
-                                            circuit,
-                                            args...;
-                                            kwargs...
-                                            )
+    icm_circuit, data_qubits, mseq, frames, frame_flags = compile(
+                                                            circuit,
+                                                            args...;
+                                                            kwargs...
+                                                            )
 
     icm_qubits = Jabalizer.count_qubits(icm_circuit)
 
@@ -32,55 +32,55 @@ function gcompile(
 
     output_nodes = data_qubits
    
-    # Add Hadamard corrections to boundry nodes.
-    del=[]
-    for (idx, corr) in enumerate(op_seq)
-        # add H corrections to input nodes
-        if (corr[1] == "H") && corr[2] in values(input_nodes)
-            # add new node to graph
-            add_vertex!(g)
-            new_node = nv(g)
-            add_edge!(g, corr[2], new_node)
+    # # Add Hadamard corrections to boundry nodes.
+    # del=[]
+    # for (idx, corr) in enumerate(op_seq)
+    #     # add H corrections to input nodes
+    #     if (corr[1] == "H") && corr[2] in values(input_nodes)
+    #         # add new node to graph
+    #         add_vertex!(g)
+    #         new_node = nv(g)
+    #         add_edge!(g, corr[2], new_node)
 
-            # add index for deletion
-            push!(del, idx)
+    #         # add index for deletion
+    #         push!(del, idx)
 
-            # find the input label for the node
-            for (k,v) in input_nodes
-                if v == corr[2]
-                    input_nodes[k] = new_node 
-                    break
-                end
-            end
+    #         # find the input label for the node
+    #         for (k,v) in input_nodes
+    #             if v == corr[2]
+    #                 input_nodes[k] = new_node 
+    #                 break
+    #             end
+    #         end
 
-            # Add measurement to mseq to implement the Hadamard
-            pushfirst!(mseq, ("X", [new_node] ))
-            # qubit_map[string(new_node)] = new_node
+    #         # Add measurement to mseq to implement the Hadamard
+    #         pushfirst!(mseq, ("X", [new_node] ))
+    #         # qubit_map[string(new_node)] = new_node
             
-        end
+    #     end
 
-        # add H corrections to output nodes
-        if (corr[1] == "H") && corr[2] in values(output_nodes)
-            # add new node to graph
-            add_vertex!(g)
-            new_node = nv(g)
-            add_edge!(g, corr[2], new_node)
+    #     # add H corrections to output nodes
+    #     if (corr[1] == "H") && corr[2] in values(output_nodes)
+    #         # add new node to graph
+    #         add_vertex!(g)
+    #         new_node = nv(g)
+    #         add_edge!(g, corr[2], new_node)
 
-            # add index for deletion from mseq
-            push!(del, idx)
+    #         # add index for deletion from mseq
+    #         push!(del, idx)
                     
-            # find the output label for the node
-            for (k,v) in output_nodes
-                if v == corr[2]
-                    push!(mseq, ("X", [corr[2]] ))
-                    output_nodes[k] = new_node
-                    break
-                end
-            end           
-        end        
-    end
+    #         # find the output label for the node
+    #         for (k,v) in output_nodes
+    #             if v == corr[2]
+    #                 push!(mseq, ("X", [corr[2]] ))
+    #                 output_nodes[k] = new_node
+    #                 break
+    #             end
+    #         end           
+    #     end        
+    # end
 
-    deleteat!(op_seq, del)
+    # deleteat!(op_seq, del)
 
     # Measurement sequence
     meas_order = []
@@ -92,7 +92,7 @@ function gcompile(
 
     mseq = [meas_order, meas_basis]
 
-    return g, op_seq, mseq, input_nodes, output_nodes    
+    return g, op_seq, mseq, input_nodes, output_nodes, frames, frame_flags   
 end
 
 """
