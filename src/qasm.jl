@@ -13,16 +13,23 @@ end
 name(g::Gate) = g.name
 cargs(g::Gate) = g.cargs
 qargs(g::Gate) = g.qargs
+width(g::Gate) = length(qargs(g))
 
 struct QuantumCircuit
-    qubits::Vector{Int}
+    registers::Vector{Int}
     circuit::Vector{Gate}
-    # TODO: check valid circuit acts within qubits
+    function QuantumCircuit(registers, circuit)
+        @assert all(qargs(g) ⊆ registers for g in circuit)
+        return new(registers, circuit)
+    end
 end
 
-width(c::QuantumCircuit) = length(c.qubits)
-depth(c::QuantumCircuit) = length(c.circuit)
-circuit(c::QuantumCircuit) = c.circuit
+width(qc::QuantumCircuit) = length(qc.registers)
+depth(qc::QuantumCircuit) = length(qc.circuit)
+registers(qc::QuantumCircuit) = qc.registers
+gates(qc::QuantumCircuit) = qc.circuit
+
+Base.show(io::IO, qc::QuantumCircuit) = Base.show(io, gates(qc))
 
 # Parse qasm file and return a QuantumCircuit
 function parse_file(filename::String)
@@ -65,7 +72,7 @@ function transform(qasm)
             _       => error("Instruction not supported by Jabalizer yet")
         end
         OpenQASM.Types.MainProgram(prog=stmts) => let result = map(transform, stmts)
-            qubits = 1:result[2][3]
+            qubits = 1:result[2][3] # ASSUME continuous register declaration
             circuit = result[3:end]
             QuantumCircuit(qubits, circuit)
         end
