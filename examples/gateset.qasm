@@ -4,6 +4,5 @@ qreg q[3];
 t q[0];
 h q[1];
 tdg q[2];
-rz(0) q[0];
+rz(0.3) q[0];
 cx q[1],q[2];
-rz(pi/2) q[1];

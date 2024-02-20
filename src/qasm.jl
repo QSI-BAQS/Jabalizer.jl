@@ -1,50 +1,78 @@
 using OpenQASM
-using OpenQASM.Types
-using OpenQASM.Tools
-using RBNF: Token
 using MLStyle
+import RBNF: Token
+export parse_file
 
-function parse_file(filename::String)
-    return OpenQASM.parse(read(filename, String))
+# Wrapper for OpenQASM.Types.Instruction
+struct Gate
+    name
+    cargs
+    qargs
 end
 
-# Take output of parse_file and return same data as icm_circuit_from_qasm
+name(g::Gate) = g.name
+cargs(g::Gate) = g.cargs
+qargs(g::Gate) = g.qargs
+
+struct QuantumCircuit
+    qubits::Vector{Int}
+    circuit::Vector{Gate}
+    # TODO: check valid circuit acts within qubits
+end
+
+width(c::QuantumCircuit) = length(c.qubits)
+depth(c::QuantumCircuit) = length(c.circuit)
+circuit(c::QuantumCircuit) = c.circuit
+
+# Parse qasm file and return a QuantumCircuit
+function parse_file(filename::String)
+    ast = OpenQASM.parse(read(filename, String))
+    # Only support the following qasm format
+    @assert ast.version == v"2.0.0" "Unsupported QASM version: $(ast.version)"
+    @assert length(filter(x->x isa OpenQASM.Types.Include, ast.prog)) == 1 "Incorrect qasm file format: must have one include statement"
+    @assert ast.prog[1] isa OpenQASM.Types.Include "Incorrect qasm file format: first statement must be an include statement"
+    @assert length(filter(x->x isa OpenQASM.Types.RegDecl, ast.prog)) == 1 "Unsupported multiple qubit register declarations"
+    @assert ast.prog[2] isa OpenQASM.Types.RegDecl "Incorrect qasm file format: second statement must be a qubit register declaration"
+    return transform(ast)
+end
+
+# TODO: expand include statements
 function transform(qasm)
     return @match qasm begin
-        Token{:reserved}(str=str) => @match str begin
-            :pi => Base.pi
-            _ => String(str)
+        t::Token{:id} => convert(Symbol, t)
+        t::Token{:float64} => convert(Float64, t) 
+        t::Token{:int} => convert(Int, t)
+        t::Token{:str} => convert(String, t)
+        t::Token{:reserved} => convert(Symbol, t)
+        OpenQASM.Types.Include(file) => transform(file)
+        OpenQASM.Types.RegDecl(type, name, size) => (transform(type), transform(name), transform(size))
+        OpenQASM.Types.Bit(name=id, address=int) => transform(int) + 1 # convert to one-based indexing
+        OpenQASM.Types.Instruction(name, cargs, qargs) => @match name begin
+            "id"    => Gate("I", nothing, map(transform, qargs))
+            "h"     => Gate("H", nothing, map(transform, qargs))
+            "x"     => Gate("X", nothing, map(transform, qargs))
+            "y"     => Gate("Y", nothing, map(transform, qargs))
+            "z"     => Gate("Z", nothing, map(transform, qargs))
+            "cnot"  => Gate("CNOT", nothing, map(transform, qargs))
+            "swap"  => Gate("SWAP", nothing, map(transform, qargs))
+            "s"     => Gate("S", nothing, map(transform, qargs))
+            "sdg"   => Gate("S_DAG", nothing, map(transform, qargs))
+            "t"     => Gate("T", nothing, map(transform, qargs))
+            "tdg"   => Gate("T_Dagger", nothing, map(transform, qargs))
+            "cx"    => Gate("CNOT", nothing, map(transform, qargs))
+            "cz"    => Gate("CZ", nothing, map(transform, qargs))
+            "rz"    => Gate("RZ", map(transform, cargs), map(transform, qargs)) #TODO: fix rz(pi/2) q[1];
+            _       => error("Instruction not supported by Jabalizer yet")
         end
-        Token{:id}(str=str) => String(str)
-        Token{:float64}(str=str) => parse(Float64, str) 
-        Token{:int}(str=str) => parse(Int64, str)
-        Token{:str}(str=str) => str
-        Include(file) => transform(file)
-        RegDecl(type, name, size) => (transform(type), transform(name), transform(size))
-        Bit(name=id, address=int) => transform(int) + 1 # assume only one name "q"
-        Instruction(name, cargs, qargs) => @match name begin
-            "id"    => ("I", transform(qargs[1]))
-            "h"     => ("H", transform(qargs[1]))
-            "x"     => ("X", transform(qargs[1]))
-            "y"     => ("Y", transform(qargs[1]))
-            "z"     => ("Z", transform(qargs[1]))
-            "cnot"  => ("CNOT", transform(qargs[1]))
-            "swap"  => ("SWAP", transform(qargs[1]))
-            "s"     => ("S", transform(qargs[1]))
-            "sdg"   => ("S_DAG", transform(qargs[1]))
-            "t"     => ("T", transform(qargs[1]))
-            "tdg"   => ("T_Dagger", transform(qargs[1]))
-            "cx"    => ("CNOT", map(transform, qargs))
-            "cz"    => ("CZ", transform(qargs[1]))
-            "rz"    => ("RZ", map(transform, cargs), map(transform, qargs)) #TODO: fix rz(pi/2) q[1];
-            _       => (name, cargs, qargs)
-        end
-        MainProgram(prog=statements) => let result = map(transform, statements)
-            # (number of qubits, circuit as Vector{ICMGate})
-            (result[2][3], result[3:end])
+        OpenQASM.Types.MainProgram(prog=stmts) => let result = map(transform, stmts)
+            qubits = 1:result[2][3]
+            circuit = result[3:end]
+            QuantumCircuit(qubits, circuit)
         end
     end
 end
+
+# BELOW WILL BE DELETED
 
 const qasm_map =
     Dict("id" => "I",
