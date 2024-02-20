@@ -18,7 +18,7 @@ function choistate(qc::QuantumCircuit)
         newgate = Gate(name(gate), cargs(gate), [mapping[i] for i in qargs(gate)])
         push!(circuit, newgate)
     end
-    return QuantumCircuit(new, circuit), mapping
+    return QuantumCircuit(allqubits, circuit), mapping
 end
 
 function icmcompile(qc::QuantumCircuit; universal::Bool=false)
