@@ -1,6 +1,26 @@
 const ICMGate = Tuple{String,Vector{Int}}
 export icmcompile
 
+"""
+Example: quantum circuit on 3 qubits with 2 gates (say T )to be teleported
+- quantum circuit acts on qubits indexed [3,4,5]
+- universal compile needs a copy of [3,4,5] and we choose the
+smallest natural number not in [3,4,5] here [1,2,6] with mapping
+3=>1, 4=>2, 5=>6
+- we put the original circuit acting in the registers [1,2,6]
+- we compile as per nonuniversal, need two qubits to teleport two T gates,
+we call these qubit [7,8]
+- we need to reserve 3 qubits for stitching later, here [9,10,11]
+- we need to insert into ptracker the right position for 9,10,11
+
+Compare with previous method: 1,2,3,4,5,6,7,8,9,10,11 where
+1,2,3 input of original circuit,
+4,5,6 half of maximally entangled state, acted on by identity
+7,8,9 half of maximally entangled state acted on by original quantum circuit
+10,11 extra qubits for teleported T-gates 
+"""
+
+
 # Convert QuantumCircuit to ICM form by teleportation
 function icmcompile(qc::QuantumCircuit; universal=true, ptrack=true)
     ptrack ? (println("initialise pauli tracker code goes here");ptracker=[]) : (ptracker=nothing)
@@ -24,6 +44,7 @@ function choistate(qc::QuantumCircuit, ptracker)
     return QuantumCircuit(allqubits, circuit), ptracker
 end
 
+# Old compile without universal
 function icmcompile(qc::QuantumCircuit, ptracker; universal::Bool=false)
     allqubits = copy(registers(qc))
     mapping = Dict(zip(allqubits, allqubits)) # identity mapping
