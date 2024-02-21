@@ -2,26 +2,29 @@ const ICMGate = Tuple{String,Vector{Int}}
 export icmcompile
 
 # Convert QuantumCircuit to ICM form by teleportation
-function icmcompile(qc::QuantumCircuit; universal::Bool=true)
-    circuit, mapping = choistate(qc)
-    return icmcompile(circuit; universal=false)
+function icmcompile(qc::QuantumCircuit; universal=true, ptrack=true)
+    ptrack ? (println("initialise pauli tracker code goes here");ptracker=[]) : (ptracker=nothing)
+    universal && (qc, ptracker = choistate(qc, ptracker))
+    return icmcompile(qc, ptracker; universal=false)
 end
 
 # Make circuit for (id⊗qc)|B⟩ starting from |0⟩ where B is a Bell state
-function choistate(qc::QuantumCircuit)
+function choistate(qc::QuantumCircuit, ptracker)
     allqubits = copy(registers(qc))
     mapping = Dict(zip(allqubits, allqubits)) # identity mapping
     allqubits, mapping = extend!!(allqubits, mapping, registers(qc))
+    isnothing(ptracker) || println("pauli tracking code goes here")
     circuit = [Gate("H", nothing, [i]) for i in allqubits]
     append!(circuit, [Gate("CZ", nothing, [i, mapping[i]]) for i in registers(qc)])
     for gate in gates(qc)
         newgate = Gate(name(gate), cargs(gate), [mapping[i] for i in qargs(gate)])
         push!(circuit, newgate)
+        isnothing(ptracker) || println("pauli tracking code goes here")
     end
-    return QuantumCircuit(allqubits, circuit), mapping
+    return QuantumCircuit(allqubits, circuit), ptracker
 end
 
-function icmcompile(qc::QuantumCircuit; universal::Bool=false)
+function icmcompile(qc::QuantumCircuit, ptracker; universal::Bool=false)
     allqubits = copy(registers(qc))
     mapping = Dict(zip(allqubits, allqubits)) # identity mapping
     measurements = Gate[]
@@ -33,15 +36,18 @@ function icmcompile(qc::QuantumCircuit; universal::Bool=false)
             allqubits, mapping = extend!!(allqubits, mapping, regs)
             append!(circuit, [Gate("CNOT", nothing, [r, mapping[r]]) for r in regs])
             push!(measurements, Gate(name(gate), cargs(gate), regs))
+            isnothing(ptracker) || println("update pauli tracker")
         else
             # just write gate
             push!(circuit, Gate(name(gate), cargs(gate), regs))
         end
     end
-    return QuantumCircuit(allqubits, circuit), measurements
+    if isnothing(ptracker)
+        return QuantumCircuit(allqubits, circuit), measurements
+    else
+        return QuantumCircuit(allqubits, circuit), measurements, ptracker
+    end
 end
-
-
 
 # Never call with registers = allqubits: infinite loop extension
 function extend!!(
