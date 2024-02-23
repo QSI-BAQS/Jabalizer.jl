@@ -1,5 +1,6 @@
 const ICMGate = Tuple{String,Vector{Int}}
-export icmcompile
+import .pauli_tracking
+export icmcompile, icmcompile2
 
 """
 Example: quantum circuit on 3 qubits with 2 gates (say T )to be teleported
@@ -20,54 +21,33 @@ Compare with previous method: 1,2,3,4,5,6,7,8,9,10,11 where
 10,11 extra qubits for teleported T-gates 
 """
 
-
-# Convert QuantumCircuit to ICM form by teleportation
-function icmcompile(qc::QuantumCircuit; universal=true, ptrack=true)
-    ptrack ? (println("initialise pauli tracker code goes here");ptracker=[]) : (ptracker=nothing)
-    universal && (qc, ptracker = choistate(qc, ptracker))
-    return icmcompile(qc, ptracker; universal=false)
-end
-
-# Make circuit for (id⊗qc)|B⟩ starting from |0⟩ where B is a Bell state
-function choistate(qc::QuantumCircuit, ptracker)
-    allqubits = copy(registers(qc))
-    mapping = Dict(zip(allqubits, allqubits)) # identity mapping
-    allqubits, mapping = extend!!(allqubits, mapping, registers(qc))
-    isnothing(ptracker) || println("pauli tracking code goes here")
-    circuit = [Gate("H", nothing, [i]) for i in allqubits]
-    append!(circuit, [Gate("CZ", nothing, [i, mapping[i]]) for i in registers(qc)])
-    for gate in gates(qc)
-        newgate = Gate(name(gate), cargs(gate), [mapping[i] for i in qargs(gate)])
-        push!(circuit, newgate)
-        isnothing(ptracker) || println("pauli tracking code goes here")
-    end
-    return QuantumCircuit(allqubits, circuit), ptracker
-end
-
-# Old compile without universal
-function icmcompile(qc::QuantumCircuit, ptracker; universal::Bool=false)
-    allqubits = copy(registers(qc))
-    mapping = Dict(zip(allqubits, allqubits)) # identity mapping
-    measurements = Gate[]
+function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_Dagger", "RZ"])
+    input = copy(registers(qc))
+    output = copy(registers(qc))
+    @info mapping = Dict(zip(input, output))
     circuit = Gate[]
+    measure = Gate[]
+    if universal
+        @info "Universal compilation..."
+        input, mapping = extend!!(input, mapping, registers(qc))
+        @info mapping
+        append!(circuit, Gate("H", nothing, [i]) for i in input)
+        append!(circuit, Gate("CZ", nothing, [i, mapping[i]]) for i in registers(qc))
+    end
+    @info "Non-Clifford teleportation..."
     for gate in gates(qc)
-        regs = [mapping[reg] for reg in qargs(gate)]
-        if name(gate) in ["T", "T_Dagger"]
-            # teleporting regs to new qubits appended to allqubits
-            allqubits, mapping = extend!!(allqubits, mapping, regs)
-            append!(circuit, [Gate("CNOT", nothing, [r, mapping[r]]) for r in regs])
-            push!(measurements, Gate(name(gate), cargs(gate), regs))
-            isnothing(ptracker) || println("update pauli tracker")
+        actingon = [mapping[q] for q in qargs(gate)]
+        if name(gate) in teleport
+            # specific way to gate teleport this name(gate)
+            input, mapping = extend!!(input, mapping, actingon)
+            @info mapping
+            append!(circuit, Gate("CNOT", nothing, [q, mapping[q]]) for q in actingon)
+            push!(measure, Gate(name(gate), cargs(gate), actingon))
         else
-            # just write gate
-            push!(circuit, Gate(name(gate), cargs(gate), regs))
+            push!(circuit, Gate(name(gate), cargs(gate), actingon))
         end
     end
-    if isnothing(ptracker)
-        return QuantumCircuit(allqubits, circuit), measurements
-    else
-        return QuantumCircuit(allqubits, circuit), measurements, ptracker
-    end
+    return circuit, measure, mapping
 end
 
 # Never call with registers = allqubits: infinite loop extension
@@ -81,6 +61,12 @@ function extend!!(
     for reg in registers
         newqubit = nextinteger(allqubits)
         push!(allqubits, newqubit)
+        # mapping[reg] = newqubit
+        for key in keys(mapping)
+            if mapping[key] == reg
+                mapping[key] = newqubit
+            end
+        end
         mapping[reg] = newqubit
     end
     return allqubits, mapping

@@ -1,7 +1,7 @@
 using OpenQASM
 using MLStyle
 import RBNF: Token
-export parse_file
+export Gate, QuantumCircuit, parse_file
 
 # Wrapper for OpenQASM.Types.Instruction
 struct Gate
@@ -15,8 +15,9 @@ cargs(g::Gate) = g.cargs
 qargs(g::Gate) = g.qargs
 width(g::Gate) = length(qargs(g))
 
+# 
 struct QuantumCircuit
-    registers::Vector{Int}
+    registers::Vector{Int} # allow tensor product of circuits
     circuit::Vector{Gate}
     function QuantumCircuit(registers, circuit)
         @assert all(qargs(g) ⊆ registers for g in circuit)
