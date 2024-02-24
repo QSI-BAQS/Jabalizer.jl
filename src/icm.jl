@@ -9,10 +9,10 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
     circuit = Gate[]
     measure = Gate[]
     if ptracking
-        # frames = Frames()
+        frames = Frames()
         frame_flags = Int[]
         # buffer = Frames()
-        buffer_flags = []
+        # buffer_flags = []
     end
     if universal
         debug && @info "Universal compilation..."

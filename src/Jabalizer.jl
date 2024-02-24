@@ -4,7 +4,7 @@ using Graphs, GraphPlot, LinearAlgebra
 using JSON
 using Documenter
 using PythonCall
-using CondaPkg
+# using CondaPkg
 
 export Stabilizer, StabilizerState, GraphState, Gates
 export zero_state, to_tableau, tableau_to_state, to_graph, graph_to_state
@@ -22,8 +22,7 @@ const Frames = PythonCall.pynew()
 function __init__()
     PythonCall.pycopy!(stim, pyimport("stim"))
     PythonCall.pycopy!(cirq, pyimport("cirq"))
-    # PythonCall.pycopy!(Frames, pyimport("pauli_tracker.frames.map").Frames)
-    # ERROR: InitError: Python: ModuleNotFoundError: No module named 'pauli_tracker'
+    PythonCall.pycopy!(Frames, pyimport("pauli_tracker.frames.map").Frames)
 end
 
 include("pauli_tracking.jl")
