@@ -22,32 +22,50 @@ Compare with previous method: 1,2,3,4,5,6,7,8,9,10,11 where
 """
 
 function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_Dagger", "RZ"])
-    input = copy(registers(qc))
-    output = copy(registers(qc))
-    @info mapping = Dict(zip(input, output))
+    input = copy(registers(qc)) # teleport state into these nodes
+    allqubit = copy(registers(qc))
+    @info mapping = Dict(zip(input, allqubit))
     circuit = Gate[]
     measure = Gate[]
+    # if ptracking
+    #     frames = Frames()
+    #     frame_flags = Int[]
+    #     buffer = Frames()
+    #     buffer_flags = []
+    # end
     if universal
         @info "Universal compilation..."
-        input, mapping = extend!!(input, mapping, registers(qc))
+        allqubit, mapping = extend!!(allqubit, mapping, registers(qc))
         @info mapping
-        append!(circuit, Gate("H", nothing, [i]) for i in input)
+        append!(circuit, Gate("H", nothing, [i]) for i in allqubit)
         append!(circuit, Gate("CZ", nothing, [i, mapping[i]]) for i in registers(qc))
+        # Immediately before X measurement, needs CZ current state and input
+        push!(measure, Gate("X", nothing, [i]) for i in input) # outcome t
+        # The following has to be done but we dont write it here
+        # push!(measure, Gate("X", nothing, [i]) for i in state) # outcome s
+        # if ptracking
+            
+        # end
     end
     @info "Non-Clifford teleportation..."
     for gate in gates(qc)
         actingon = [mapping[q] for q in qargs(gate)]
         if name(gate) in teleport
-            # specific way to gate teleport this name(gate)
-            input, mapping = extend!!(input, mapping, actingon)
+            # specific individual gate
+            allqubit, mapping = extend!!(allqubit, mapping, actingon)
             @info mapping
             append!(circuit, Gate("CNOT", nothing, [q, mapping[q]]) for q in actingon)
             push!(measure, Gate(name(gate), cargs(gate), actingon))
+            # if ptracking
+
+            # end
         else
             push!(circuit, Gate(name(gate), cargs(gate), actingon))
         end
     end
-    return circuit, measure, mapping
+    @info mapping
+    output = [mapping[q] for q in input] # store output state 
+    return circuit, measure, input, output
 end
 
 # Never call with registers = allqubits: infinite loop extension
