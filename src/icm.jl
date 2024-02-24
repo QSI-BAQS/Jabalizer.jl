@@ -2,70 +2,55 @@ const ICMGate = Tuple{String,Vector{Int}}
 import .pauli_tracking
 export icmcompile, icmcompile2
 
-"""
-Example: quantum circuit on 3 qubits with 2 gates (say T )to be teleported
-- quantum circuit acts on qubits indexed [3,4,5]
-- universal compile needs a copy of [3,4,5] and we choose the
-smallest natural number not in [3,4,5] here [1,2,6] with mapping
-3=>1, 4=>2, 5=>6
-- we put the original circuit acting in the registers [1,2,6]
-- we compile as per nonuniversal, need two qubits to teleport two T gates,
-we call these qubit [7,8]
-- we need to reserve 3 qubits for stitching later, here [9,10,11]
-- we need to insert into ptracker the right position for 9,10,11
-
-Compare with previous method: 1,2,3,4,5,6,7,8,9,10,11 where
-1,2,3 input of original circuit,
-4,5,6 half of maximally entangled state, acted on by identity
-7,8,9 half of maximally entangled state acted on by original quantum circuit
-10,11 extra qubits for teleported T-gates 
-"""
-
-function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_Dagger", "RZ"])
+function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_Dagger", "RZ"], debug=false)
     input = copy(registers(qc)) # teleport state into these nodes
     allqubit = copy(registers(qc))
-    @info mapping = Dict(zip(input, allqubit))
+    debug && @info mapping = Dict(zip(input, allqubit))
     circuit = Gate[]
     measure = Gate[]
-    # if ptracking
-    #     frames = Frames()
-    #     frame_flags = Int[]
-    #     buffer = Frames()
-    #     buffer_flags = []
-    # end
+    if ptracking
+        # frames = Frames()
+        frame_flags = Int[]
+        # buffer = Frames()
+        buffer_flags = []
+    end
     if universal
-        @info "Universal compilation..."
+        debug && @info "Universal compilation..."
         allqubit, mapping = extend!!(allqubit, mapping, registers(qc))
-        @info mapping
+        debug && @info mapping
         append!(circuit, Gate("H", nothing, [i]) for i in allqubit)
         append!(circuit, Gate("CZ", nothing, [i, mapping[i]]) for i in registers(qc))
         # Immediately before X measurement, needs CZ current state and input
-        push!(measure, Gate("X", nothing, [i]) for i in input) # outcome t
-        # The following has to be done but we dont write it here
+        append!(measure, Gate("X", nothing, [i]) for i in input) # outcome t
+        # The following has to be done but we dont write it in the circuit
         # push!(measure, Gate("X", nothing, [i]) for i in state) # outcome s
         # if ptracking
-            
+            # put Xᵗ correction on system mapping[input] from measuring input
+            # put Zᵗ correction on system mapping[input] from measuring state
+            # track buffer (from previous widget)
         # end
     end
-    @info "Non-Clifford teleportation..."
+    debug && @info "Teleporting all non-Clifford gates..."
     for gate in gates(qc)
         actingon = [mapping[q] for q in qargs(gate)]
         if name(gate) in teleport
             # specific individual gate
             allqubit, mapping = extend!!(allqubit, mapping, actingon)
-            @info mapping
+            debug && @info mapping
             append!(circuit, Gate("CNOT", nothing, [q, mapping[q]]) for q in actingon)
             push!(measure, Gate(name(gate), cargs(gate), actingon))
-            # if ptracking
-
-            # end
+            if ptracking # to zero indexing
+                # frames.cx(first(actingon)-1, mapping[first(actingon)]-1)
+                # push!(frame_flags, first(actingon)-1)
+                # frames.track_z(mapping[first(actingon)]-1) # e.g. for exp(iαZ) gates 
+            end
         else
             push!(circuit, Gate(name(gate), cargs(gate), actingon))
         end
     end
-    @info mapping
+    debug && @info mapping
     output = [mapping[q] for q in input] # store output state 
-    return circuit, measure, input, output
+    return circuit, measure, Dict(zip(input, output))
 end
 
 # Never call with registers = allqubits: infinite loop extension
