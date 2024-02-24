@@ -13,8 +13,6 @@ export measure_x, measure_y, measure_z
 include("gates.jl")
 using .Gates
 
-
-
 const stim = PythonCall.pynew() # initially NULL
 const cirq = PythonCall.pynew() # initially NULL
 const Frames = PythonCall.pynew()

@@ -5,7 +5,8 @@ export icmcompile, icmcompile2
 function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_Dagger", "RZ"], debug=false)
     input = copy(registers(qc)) # teleport state into these nodes
     allqubit = copy(registers(qc))
-    debug && @info mapping = Dict(zip(input, allqubit))
+    mapping = Dict(zip(input, allqubit))
+    debug && @info mapping
     circuit = Gate[]
     measure = Gate[]
     if ptracking
@@ -40,9 +41,11 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
             append!(circuit, Gate("CNOT", nothing, [q, mapping[q]]) for q in actingon)
             push!(measure, Gate(name(gate), cargs(gate), actingon))
             if ptracking # to zero indexing
-                # frames.cx(first(actingon)-1, mapping[first(actingon)]-1)
-                # push!(frame_flags, first(actingon)-1)
-                # frames.track_z(mapping[first(actingon)]-1) # e.g. for exp(iαZ) gates 
+                frames.new_qubit(first(actingon)-1)
+                frames.new_qubit(mapping[first(actingon)]-1)
+                frames.cx(first(actingon)-1, mapping[first(actingon)]-1)
+                push!(frame_flags, first(actingon)-1)
+                frames.track_z(mapping[first(actingon)]-1) # e.g. for exp(iαZ) gates 
             end
         else
             push!(circuit, Gate(name(gate), cargs(gate), actingon))
@@ -50,7 +53,7 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
     end
     debug && @info mapping
     output = [mapping[q] for q in input] # store output state 
-    return circuit, measure, Dict(zip(input, output))
+    return circuit, measure, Dict(zip(input, output)), frames, frame_flags
 end
 
 # Never call with registers = allqubits: infinite loop extension

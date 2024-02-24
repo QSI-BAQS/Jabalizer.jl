@@ -3,6 +3,10 @@ using MLStyle
 import RBNF: Token
 export Gate, QuantumCircuit, parse_file
 
+# abstract type QuantumRegister end
+# abstract type QuantumCircuit end
+# interface getregisters() and getcircuit()
+
 # Wrapper for OpenQASM.Types.Instruction
 struct Gate
     name
