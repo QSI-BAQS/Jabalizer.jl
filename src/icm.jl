@@ -4,6 +4,7 @@ export icmcompile
 # Assume registers(qc) is of the form collect(1:n) for some n
 function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_Dagger", "RZ"], debug=false)
     # Register layout: [input, universal, teleport, state]
+    # We do not write part of the circuit involving state
     input = copy(registers(qc)) # teleport state into these nodes
     allqubit = copy(registers(qc))
     state = zeros(Int, length(input)) # register storing input state
@@ -14,7 +15,7 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
     if ptracking
         # Pauli correction in this widget
         frames = Frames(length(input))
-        @info frames.into_py_dict_recursive()
+        debug && @info frames.into_py_dict_recursive()
         frame_flags = Int[]
     end
     if universal
@@ -23,14 +24,14 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
         debug && @info mapping
         append!(circuit, Gate("H", nothing, [i]) for i in allqubit)
         append!(circuit, Gate("CZ", nothing, [i, mapping[i]]) for i in input)
-        # Immediately before X measurement, needs CZ current state and input
+        # Not written: immediately before X measurement, needs CZ current state and input
         append!(measure, Gate("X", nothing, [i]) for i in input) # outcome t
-        # The following has to be done but we dont write it in the circuit
+        # Not written: X measurement on state register
         # push!(measure, Gate("X", nothing, [i]) for i in state) # outcome s
         if ptracking # to zero indexing
             # buffer frames are used to modify current frames, dont need buffer_flags
             buffer = Frames() # Pauli correction from previous widget
-            buffer_flags = state # adjust zero indexing later # qubits of the PREVIOUS widget
+            buffer_flags = state # adjust zero indexing later # qubits of the PREVIOUS widget?
             for i in input
                 frames.new_qubit(mapping[i]-1)
                 # Xᵗ correction on system mapping[i] from outcome t
@@ -38,7 +39,7 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
                 push!(frame_flags, i-1)
                 # Zˢ correction on system mapping[i] from outcome s
                 frames.track_z(mapping[i]-1)
-                push!(frame_flags, -1) # rewrite later when have info
+                push!(frame_flags, -1) # placeholder
                 # push!(frame_flags, state[i]) # adjust zero indexing later MUTABLE...
                 # Potential correction on system mapping[i] from previous widget
                 buffer.new_qubit(mapping[i]-1)
@@ -75,10 +76,18 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
     end
     debug && @info mapping
     output = [mapping[q] for q in input] # store output state
-    state .= collect(length(allqubit)+1:length(allqubit)+length(state)) .- 1 # to zero indexing
-    # write state to frame_flags
+    # Calculate the state register and write to frame_flags
+    state .= collect(length(allqubit)+1:length(allqubit)+length(state))
+    counter = 0
+    for (idx, val) in enumerate(frame_flags)
+        if val == -1
+            counter += 1
+            frame_flags[idx] = state[counter] - 1 # to zero indexing
+        end
+    end
+    @assert counter == length(state)
     if ptracking
-        # universal && @assert length(frame_flags) == length(allqubit) - 2*length(input)
+        universal && @assert length(frame_flags) == length(allqubit)
         universal || @assert length(frame_flags) == length(allqubit) - length(input)
     end
     if ptracking
@@ -113,7 +122,7 @@ function extend!!(
 end
 
 function ptracking_apply_gate(frames, gate::Gate)
-    bits = qargs(gate) .-1 # Vector{UInt}
+    bits = qargs(gate) .-1 # Vector{UInt} # to zero indexing
     if name(gate) == "H"
         frames.h(bits[1])
     elseif name(gate) == "S"
