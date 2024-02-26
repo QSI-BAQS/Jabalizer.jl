@@ -1,6 +1,5 @@
 const ICMGate = Tuple{String,Vector{Int}}
-import .pauli_tracking
-export icmcompile, icmcompile2
+export icmcompile
 
 function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_Dagger", "RZ"], debug=false)
     # Register layout: [input, universal, teleport, state]
@@ -27,8 +26,9 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
         # The following has to be done but we dont write it in the circuit
         # push!(measure, Gate("X", nothing, [i]) for i in state) # outcome s
         if ptracking # to zero indexing
+            # buffer frames are used to modify current frames, dont need buffer_flags
             buffer = Frames() # Pauli correction from previous widget
-            buffer_flags = state # adjust zero indexing later
+            buffer_flags = state # adjust zero indexing later # qubits of the PREVIOUS widget
             for i in input
                 frames.new_qubit(mapping[i]-1)
                 # Xᵗ correction on system mapping[i] from outcome t
@@ -36,38 +36,53 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
                 push!(frame_flags, i-1)
                 # Zˢ correction on system mapping[i] from outcome s
                 frames.track_z(mapping[i]-1)
-                # push!(frame_flags, state[i]) # adjust zero indexing later
+                push!(frame_flags, state[i]) # adjust zero indexing later MUTABLE...
                 # Potential correction on system mapping[i] from previous widget
                 buffer.new_qubit(mapping[i]-1)
                 buffer.track_z(mapping[i]-1)
-                buffer.track_x(mapping[i]-1)
+                buffer.track_x(mapping[i]-1) # Q: use buffer to modify frame and pauli track?
             end
         end
     end
     debug && @info "Teleporting all non-Clifford gates..."
-    for gate in gates(qc)
+    for gate in gates(qc) # gate in the original circuit
         actingon = [mapping[q] for q in qargs(gate)]
+        # with teleportation so far, the gate becomes
+        currentgate = Gate(name(gate), cargs(gate), actingon)
+        # previousmapping = copy(mapping) # would remove additional keys to mapping, modify extend!!
         if name(gate) in teleport
             # specific individual gate
             allqubit, mapping = extend!!(allqubit, mapping, actingon) # append teleport register
             debug && @info mapping
             append!(circuit, Gate("CNOT", nothing, [q, mapping[q]]) for q in actingon)
+            # append!(circuit, Gate("CNOT", nothing, [previousmapping[q], mapping[q]]) for q in qargs(gate))
             push!(measure, Gate(name(gate), cargs(gate), actingon))
             if ptracking # to zero indexing
                 frames.new_qubit(first(actingon)-1)
                 frames.new_qubit(mapping[first(actingon)]-1)
+                # could just call ptracking_apply_gate
                 frames.cx(first(actingon)-1, mapping[first(actingon)]-1)
                 push!(frame_flags, first(actingon)-1)
                 frames.track_z(mapping[first(actingon)]-1) # e.g. for exp(iαZ) gates 
             end
         else
-            push!(circuit, Gate(name(gate), cargs(gate), actingon))
+            push!(circuit, currentgate)
+            # apply Clifford gates to the pauli tracker
+            ptracking && pauli_tracking.apply_gate(frames, currentgate)
         end
     end
     debug && @info mapping
     output = [mapping[q] for q in input] # store output state
     state .= collect(length(allqubit)+1:length(allqubit)+length(state)) .- 1 # to zero indexing
-    return circuit, measure, Dict(zip(input, output)), frames, frame_flags, buffer, buffer_flags
+    if ptracking
+        universal && @assert length(frame_flags) == length(allqubits) - 2*length(input)
+        universal || @assert length(frame_flags) == length(allqubits) - length(input)
+    end
+    if ptracking
+        universal && return circuit, measure, Dict(zip(input, output)), frames, frame_flags, buffer, buffer_flags
+        universal || return circuit, measure, Dict(zip(input, output)), frames, frame_flags
+    end
+    return circuit, measure, Dict(zip(input, output))
 end
 
 # Never call with registers = allqubits: infinite loop extension
@@ -92,7 +107,40 @@ function extend!!(
     return allqubits, mapping
 end
 
-
+function ptracking_apply_gate(frames, gate::Gate)
+    name = name(gate)
+    bits = qargs(gate) # Vector{UInt}
+    # name = gate[1]
+    # bits = gate[2]
+    if name == "H"
+        frames.h(bits[1])
+    elseif name == "S"
+        frames.s(bits[1])
+    elseif name == "CZ"
+        frames.cz(bits[1], bits[2])
+    elseif name == "X" || name == "Y" || name == "Z"
+    elseif name == "S_DAG"
+        frames.sdg(bits[1])
+    elseif name == "SQRT_X"
+        frames.sx(bits[1])
+    elseif name == "SQRT_X_DAG"
+        frames.sxdg(bits[1])
+    elseif name == "SQRT_Y"
+        frames.sy(bits[1])
+    elseif name == "SQRT_Y_DAG"
+        frames.sydg(bits[1])
+    elseif name == "SQRT_Z"
+        frames.sz(bits[1])
+    elseif name == "SQRT_Z_DAG"
+        frames.szdg(bits[1])
+    elseif name == "CNOT"
+        frames.cx(bits[1], bits[2])
+    elseif name == "SWAP"
+        frames.swap(bits[1], bits[2])
+    else
+        error("Unknown gate: $name")
+    end
+end
 
 
 # BELOW WILL BE DELETED

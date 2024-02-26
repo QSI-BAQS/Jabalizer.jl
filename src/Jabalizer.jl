@@ -23,7 +23,6 @@ function __init__()
     PythonCall.pycopy!(Frames, pyimport("pauli_tracker.frames.map").Frames)
 end
 
-include("pauli_tracking.jl")
 include("cirq_io.jl")
 include("qasm.jl")
 include("icm.jl")
