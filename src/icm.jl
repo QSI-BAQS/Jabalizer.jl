@@ -1,6 +1,7 @@
 const ICMGate = Tuple{String,Vector{Int}}
 export icmcompile
 
+# Assume registers(qc) is of the form collect(1:n) for some n
 function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_Dagger", "RZ"], debug=false)
     # Register layout: [input, universal, teleport, state]
     input = copy(registers(qc)) # teleport state into these nodes
@@ -12,7 +13,8 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
     measure = Gate[]
     if ptracking
         # Pauli correction in this widget
-        frames = Frames()
+        frames = Frames(length(input))
+        @info frames.into_py_dict_recursive()
         frame_flags = Int[]
     end
     if universal
@@ -36,7 +38,8 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
                 push!(frame_flags, i-1)
                 # Zˢ correction on system mapping[i] from outcome s
                 frames.track_z(mapping[i]-1)
-                push!(frame_flags, state[i]) # adjust zero indexing later MUTABLE...
+                push!(frame_flags, -1) # rewrite later when have info
+                # push!(frame_flags, state[i]) # adjust zero indexing later MUTABLE...
                 # Potential correction on system mapping[i] from previous widget
                 buffer.new_qubit(mapping[i]-1)
                 buffer.track_z(mapping[i]-1)
@@ -60,23 +63,23 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
             if ptracking # to zero indexing
                 frames.new_qubit(first(actingon)-1)
                 frames.new_qubit(mapping[first(actingon)]-1)
-                # could just call ptracking_apply_gate
-                frames.cx(first(actingon)-1, mapping[first(actingon)]-1)
+                frames.cx(first(actingon)-1, mapping[first(actingon)]-1) # could just call ptracking_apply_gate
                 push!(frame_flags, first(actingon)-1)
                 frames.track_z(mapping[first(actingon)]-1) # e.g. for exp(iαZ) gates 
             end
         else
             push!(circuit, currentgate)
             # apply Clifford gates to the pauli tracker
-            ptracking && pauli_tracking.apply_gate(frames, currentgate)
+            ptracking && ptracking_apply_gate(frames, currentgate)
         end
     end
     debug && @info mapping
     output = [mapping[q] for q in input] # store output state
     state .= collect(length(allqubit)+1:length(allqubit)+length(state)) .- 1 # to zero indexing
+    # write state to frame_flags
     if ptracking
-        universal && @assert length(frame_flags) == length(allqubits) - 2*length(input)
-        universal || @assert length(frame_flags) == length(allqubits) - length(input)
+        # universal && @assert length(frame_flags) == length(allqubit) - 2*length(input)
+        universal || @assert length(frame_flags) == length(allqubit) - length(input)
     end
     if ptracking
         universal && return circuit, measure, Dict(zip(input, output)), frames, frame_flags, buffer, buffer_flags
@@ -86,13 +89,15 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
 end
 
 # Never call with registers = allqubits: infinite loop extension
+# Assume allqubits is of the form collect(1:n) for some n
 function extend!!(
     allqubits::Vector{<:Integer},
     mapping::Dict{<:Integer, <:Integer},
     registers::Vector{<:Integer}
 )
     @assert registers ⊆ allqubits
-    nextinteger(v, i=1) = i ∈ v ? nextinteger(v, i+1) : i
+    # nextinteger(v, i=1) = i ∈ v ? nextinteger(v, i+1) : i
+    nextinteger(v) = length(v) + 1
     for reg in registers
         newqubit = nextinteger(allqubits)
         push!(allqubits, newqubit)
@@ -108,37 +113,35 @@ function extend!!(
 end
 
 function ptracking_apply_gate(frames, gate::Gate)
-    name = name(gate)
-    bits = qargs(gate) # Vector{UInt}
-    # name = gate[1]
-    # bits = gate[2]
-    if name == "H"
+    bits = qargs(gate) .-1 # Vector{UInt}
+    if name(gate) == "H"
         frames.h(bits[1])
-    elseif name == "S"
+    elseif name(gate) == "S"
         frames.s(bits[1])
-    elseif name == "CZ"
+    elseif name(gate) == "CZ"
         frames.cz(bits[1], bits[2])
-    elseif name == "X" || name == "Y" || name == "Z"
-    elseif name == "S_DAG"
+    elseif name(gate) == "X" || name(gate) == "Y" || name(gate) == "Z"
+        # commute or anticommute
+    elseif name(gate) == "S_DAG"
         frames.sdg(bits[1])
-    elseif name == "SQRT_X"
+    elseif name(gate) == "SQRT_X"
         frames.sx(bits[1])
-    elseif name == "SQRT_X_DAG"
+    elseif name(gate) == "SQRT_X_DAG"
         frames.sxdg(bits[1])
-    elseif name == "SQRT_Y"
+    elseif name(gate) == "SQRT_Y"
         frames.sy(bits[1])
-    elseif name == "SQRT_Y_DAG"
+    elseif name(gate) == "SQRT_Y_DAG"
         frames.sydg(bits[1])
-    elseif name == "SQRT_Z"
+    elseif name(gate) == "SQRT_Z"
         frames.sz(bits[1])
-    elseif name == "SQRT_Z_DAG"
+    elseif name(gate) == "SQRT_Z_DAG"
         frames.szdg(bits[1])
-    elseif name == "CNOT"
+    elseif name(gate) == "CNOT"
         frames.cx(bits[1], bits[2])
-    elseif name == "SWAP"
+    elseif name(gate) == "SWAP"
         frames.swap(bits[1], bits[2])
     else
-        error("Unknown gate: $name")
+        error("Unknown gate: $(name(gate))")
     end
 end
 
