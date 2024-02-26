@@ -78,14 +78,16 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
     output = [mapping[q] for q in input] # store output state
     # Calculate the state register and write to frame_flags
     state .= collect(length(allqubit)+1:length(allqubit)+length(state))
-    counter = 0
-    for (idx, val) in enumerate(frame_flags)
-        if val == -1
-            counter += 1
-            frame_flags[idx] = state[counter] - 1 # to zero indexing
+    if universal && ptracking
+        counter = 0
+        for (idx, val) in enumerate(frame_flags)
+            if val == -1
+                counter += 1
+                frame_flags[idx] = state[counter] - 1 # to zero indexing
+            end
         end
+        @assert counter == length(state)
     end
-    @assert counter == length(state)
     if ptracking
         universal && @assert length(frame_flags) == length(allqubit)
         universal || @assert length(frame_flags) == length(allqubit) - length(input)
