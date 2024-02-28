@@ -95,22 +95,49 @@ function gcompile(
     return g, op_seq, mseq, input_nodes, output_nodes    
 end
 
+
+"""
+gcompile for QuantumCircuit
+"""
+function gcompile(
+    circuit::QuantumCircuit;
+    universal::Bool,
+    ptracking::Bool,
+    teleport=["T", "T_Dagger", "RZ"]
+    )
+    
+    icm_circuit, mseq, data_qubits, frames_array = icmcompile(circuit; 
+                                                            universal=universal,
+                                                            ptracking = ptracking,
+                                                            teleport = teleport
+                                                            ) 
+
+    icm_qubits = icm_circuit.registers |> length
+    state = zero_state(icm_qubits)
+    Jabalizer.execute_circuit(state, icm_circuit)
+
+    adj, loc_corr = to_graph(state)[2:3]
+
+    g = Graphs.SimpleGraph(adj)
+
+    return g, loc_corr, mseq, data_qubits, frames_array 
+end
+
+
+
 """
 run gcompile on an input file
 """
 function gcompile(
-    filename::String,
-    args...;
+    filename::String;
     kwargs...
     )
  
-
-    qubits, inp_circ = load_icm_circuit_from_qasm(filename)
+    qc = parse_file(filename)
+    # qubits, inp_circ = load_icm_circuit_from_qasm(filename)
 
     return gcompile(
-        inp_circ::Vector{ICMGate},
-        qubits,
-        args...;
+        qc;
         kwargs...
         )
 

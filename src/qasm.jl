@@ -1,13 +1,17 @@
 using OpenQASM
 using MLStyle
 import RBNF: Token
-export Gate, QuantumCircuit, parse_file
+export Gate, QuantumCircuit, parse_file, width, depth
+export cargs, qargs,registers, gates
+
+using OpenQASM.Types
 
 # abstract type QuantumRegister end
 # abstract type QuantumCircuit end
 # interface getregisters() and getcircuit()
 
 # Wrapper for OpenQASM.Types.Instruction
+
 struct Gate
     name
     cargs

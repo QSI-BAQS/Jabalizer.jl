@@ -37,9 +37,12 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
                 # Xᵗ correction on system mapping[i] from outcome t
                 frames.track_x(mapping[i]-1)
                 push!(frame_flags, i-1)
+                @info frames.into_py_dict_recursive()
+    
                 # Zˢ correction on system mapping[i] from outcome s
                 frames.track_z(mapping[i]-1)
                 push!(frame_flags, -1) # placeholder
+                @info frames.into_py_dict_recursive()
                 # push!(frame_flags, state[i]) # adjust zero indexing later MUTABLE...
                 # Potential correction on system mapping[i] from previous widget
                 buffer.new_qubit(mapping[i]-1)
@@ -62,16 +65,21 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
             # append!(circuit, Gate("CNOT", nothing, [previousmapping[q], mapping[q]]) for q in qargs(gate))
             push!(measure, Gate(name(gate), cargs(gate), actingon))
             if ptracking # to zero indexing
-                frames.new_qubit(first(actingon)-1)
+                # frames.new_qubit(first(actingon)-1)
                 frames.new_qubit(mapping[first(actingon)]-1)
+                
                 frames.cx(first(actingon)-1, mapping[first(actingon)]-1) # could just call ptracking_apply_gate
+                @info frames.into_py_dict_recursive()
                 push!(frame_flags, first(actingon)-1)
                 frames.track_z(mapping[first(actingon)]-1) # e.g. for exp(iαZ) gates 
+                @info frames.into_py_dict_recursive()
             end
         else
             push!(circuit, currentgate)
             # apply Clifford gates to the pauli tracker
             ptracking && ptracking_apply_gate(frames, currentgate)
+            
+            @info "no teleport", frames.into_py_dict_recursive()
         end
     end
     debug && @info mapping
@@ -92,11 +100,21 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
         universal && @assert length(frame_flags) == length(allqubit)
         universal || @assert length(frame_flags) == length(allqubit) - length(input)
     end
+
+    circuit = QuantumCircuit(allqubit, circuit)
+    frames_array = []
+
     if ptracking
-        universal && return circuit, measure, Dict(zip(input, output)), frames, frame_flags, buffer, buffer_flags
-        universal || return circuit, measure, Dict(zip(input, output)), frames, frame_flags
+        push!(frames_array, frames, frame_flags)
+        universal && push!(frames_array, buffer, buffer_flags)
     end
-    return circuit, measure, Dict(zip(input, output))
+
+    # if ptracking
+
+    #     # universal && return circuit, measure, Dict(zip(input, output)), frames, frame_flags, buffer, buffer_flags
+    #     # universal || return circuit, measure, Dict(zip(input, output)), frames, frame_flags
+    # end
+    return circuit, measure, Dict(zip(input, output)), frames_array
 end
 
 # Never call with registers = allqubits: infinite loop extension
