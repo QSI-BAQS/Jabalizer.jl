@@ -118,8 +118,9 @@ function gcompile(
 
     adj, loc_corr = to_graph(state)[2:3]
 
-    g = Graphs.SimpleGraph(adj)
+    #Hadamard corr TODO
 
+    g = Graphs.SimpleGraph(adj)
     return g, loc_corr, mseq, data_qubits, frames_array 
 end
 

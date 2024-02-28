@@ -37,12 +37,10 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
                 # Xᵗ correction on system mapping[i] from outcome t
                 frames.track_x(mapping[i]-1)
                 push!(frame_flags, i-1)
-                @info frames.into_py_dict_recursive()
     
                 # Zˢ correction on system mapping[i] from outcome s
                 frames.track_z(mapping[i]-1)
                 push!(frame_flags, -1) # placeholder
-                @info frames.into_py_dict_recursive()
                 # push!(frame_flags, state[i]) # adjust zero indexing later MUTABLE...
                 # Potential correction on system mapping[i] from previous widget
                 buffer.new_qubit(mapping[i]-1)
@@ -69,23 +67,24 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
                 frames.new_qubit(mapping[first(actingon)]-1)
                 
                 frames.cx(first(actingon)-1, mapping[first(actingon)]-1) # could just call ptracking_apply_gate
-                @info frames.into_py_dict_recursive()
                 push!(frame_flags, first(actingon)-1)
                 frames.track_z(mapping[first(actingon)]-1) # e.g. for exp(iαZ) gates 
-                @info frames.into_py_dict_recursive()
             end
         else
             push!(circuit, currentgate)
             # apply Clifford gates to the pauli tracker
             ptracking && ptracking_apply_gate(frames, currentgate)
-            
-            @info "no teleport", frames.into_py_dict_recursive()
         end
     end
     debug && @info mapping
     output = [mapping[q] for q in input] # store output state
     # Calculate the state register and write to frame_flags
     state .= collect(length(allqubit)+1:length(allqubit)+length(state))
+    # initialise frames for state indices
+    for i in state
+        frames.new_qubit(i-1)
+    end
+
     if universal && ptracking
         counter = 0
         for (idx, val) in enumerate(frame_flags)
@@ -109,12 +108,11 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
         universal && push!(frames_array, buffer, buffer_flags)
     end
 
-    # if ptracking
-
-    #     # universal && return circuit, measure, Dict(zip(input, output)), frames, frame_flags, buffer, buffer_flags
-    #     # universal || return circuit, measure, Dict(zip(input, output)), frames, frame_flags
-    # end
-    return circuit, measure, Dict(zip(input, output)), frames_array
+    return (circuit,
+             measure, 
+             Dict(:input => input, :output => output, :state => state),
+             frames_array
+            )
 end
 
 # Never call with registers = allqubits: infinite loop extension
