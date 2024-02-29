@@ -47,15 +47,9 @@
 if !isinteractive()
     import Pkg
     Pkg.activate("Jabalizer.jl/")
-    Pkg.add("JSON")
-    Pkg.add("Graphs")
-    Pkg.add("GraphPlot")
-    Pkg.add("Documenter")
-    Pkg.add("PythonCall"); Pkg.build("PythonCall");
 end
 
 using Jabalizer
-using JSON
 
 # circuit is an orquestra.quantum.circuits.Circuit object
 function run_jabalizer(circuit, circuit_fname, suffix, debug_flag=false)
@@ -72,7 +66,7 @@ function run_jabalizer(circuit, circuit_fname, suffix, debug_flag=false)
     onebased_circuit = Gate[]
     for op in circuit.operations
         name = Jabalizer.pyconvert(String, op.gate.name)
-        cargs = nothing # Nariman: read in rotation gate angles, for example if RX(0.5) then cargs = [0.5] a list of one Float64
+        cargs = nothing # Thinh: read in rotation gate angles, for example if RX(0.5) then cargs = [0.5] a list of one Float64
         qargs = [Jabalizer.pyconvert(Int, qubit) + 1 for qubit in op.qubit_indices] # one-based indexing
         push!(onebased_circuit, Jabalizer.Gate(name, cargs, qargs))
     end
@@ -81,55 +75,20 @@ function run_jabalizer(circuit, circuit_fname, suffix, debug_flag=false)
     # Warning: from now on assume input_circuit is a list of Jabalizer.Gate
     # acting on [1,2,...,n_qubits]. Please ensure this when splitting qasm files.
     
+    filepath = "output/$(circuit_fname)/$(circuit_fname)$(suffix)_all0init_jabalizer.out.json"
+
     if debug_flag
-        println("RRE: Running `Jabalizer.gcompile` function ...\n")
+        @info "RRE: Running `Jabalizer.mbqccompile` ...\n"
     end
 
     # ASSUME qubits are indexed from 1 to n_qubits
-    graphstate, correction, inputnodes, outputnodes, frames_map, measurements = Jabalizer.gcompile(
+    dict = Jabalizer.mbqccompile(
         Jabalizer.QuantumCircuit([1:n_qubits], onebased_circuit);
         universal=true,
         ptracking=true,
+        filepath=filepath,
     )
 
-    # Move to Jabalizer
-    # Converting to sparse graph representation (adjacency list)
-    sparsegraph::Vector{Vector{Int}} = []
-    for i in range(1, n_total)
-        node = []
-        for (j, e) in enumerate(graphState.A[i, :])
-            if e == 1 && j != i
-                push!(node, j - 1)
-            end
-        end
-        push!(graph, node)
-    end
-
-    jabalizer_out = Dict(
-        :graphstate     => graphstate, # the "spacial" graph as adjacency list
-        :correction     => correction, # local corrections on the spacial graph from the Gauß-like elimination
-        :inputnodes     => inputnodes, # which qubits are the input qubits
-        :outputnodes    => outputnodes, # which qubits are the output qubits
-        :frames_map     => frames_map, # which Pauli frames belong to which measurements
-        :initializer    => [], # currently not used, i.e. initial state is 00...0
-        :measurements   => measurements, # sequence of single qubit measurements (gate_name, qubit, additional information encoded in one integer (cf. qft rotations))
-    )
-
-    if debug_flag
-        println("RRE: Writing Jabalizer outputs to JSON...\n")
-    end
-
-    filepath = "output/$(circuit_fname)/$(circuit_fname)$(suffix)_all0init_jabalizer.out.json"
-
-    open(filepath, "w") do file
-        write(file, JSON.json(jabalize_output))
-    end
-
-    # # Replace unwanted chars in jabalize JSON (since Julia lacks some JSON tools)
-    # jabalize_string = read(jabalizeframes_json, String)
-    # jabalize_string = replace(jabalize_string, "}{" => ",", count=1)
-    # open(jabalizeframes_json, "w") do file
-    #     write(file, jabalize_string)
-    # end
+    return dict
 end
 
