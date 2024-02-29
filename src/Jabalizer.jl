@@ -16,11 +16,14 @@ using .Gates
 const stim = PythonCall.pynew() # initially NULL
 const cirq = PythonCall.pynew() # initially NULL
 const Frames = PythonCall.pynew()
+const mbqc_scheduling = PythonCall.pynew()
+
 
 function __init__()
     PythonCall.pycopy!(stim, pyimport("stim"))
     PythonCall.pycopy!(cirq, pyimport("cirq"))
     PythonCall.pycopy!(Frames, pyimport("pauli_tracker.frames.map").Frames)
+    PythonCall.pycopy!(mbqc_scheduling, pyimport("mbqc_scheduling"))
 end
 
 include("cirq_io.jl")

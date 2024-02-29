@@ -1,15 +1,13 @@
 using Graphs
 using PythonCall
 using JSON
+using PythonCall
 export mbqccompile
 
-mbqc_scheduling = pyimport("mbqc_scheduling")
-SpacialGraph = pyimport("mbqc_scheduling").SpacialGraph
-PartialOrderGraph = pyimport("mbqc_scheduling").PartialOrderGraph
 
-"""
-    Return MBQC instructions for a given QuantumCircuit
-"""
+# """
+#     Return MBQC instructions for a given QuantumCircuit
+# """
 function mbqccompile(
     circuit::QuantumCircuit;
     universal = true,
@@ -17,6 +15,8 @@ function mbqccompile(
     teleport  = ["T", "T_Dagger", "RZ"],
     filepath  = nothing,
 )
+
+
     icm, measure, labels, ptracker = icmcompile(circuit; universal=universal, ptracking = ptracking, teleport = teleport)
     state = zero_state(width(icm))
     Jabalizer.execute_circuit(state, icm)
@@ -28,7 +28,7 @@ function mbqccompile(
         add_edge!(fullgraph, s, i)
     end # extended graph state with state registers for scheduling
     # SEGFAULT ???
-    spacialgraph = SpacialGraph([nb .- 1 for nb in Graphs.SimpleGraphs.adj(fullgraph)]) # zero-based indexing
+    spacialgraph = mbqc_scheduling.SpacialGraph([nb .- 1 for nb in Graphs.SimpleGraphs.adj(fullgraph)]) # zero-based indexing
     # ptracking && (order = PartialOrderGraph(ptracker[:frames].get_py_order(ptracker[:frameflags])))
     # AcceptFunc = pyimport("mbqc_scheduling.probabilistic").AcceptFunc
     # paths = mbqc_scheduling.run(spacialgraph, order)
@@ -51,7 +51,7 @@ function mbqccompile(
     #         write(f, JSON.json(jabalizer_out))
     #     end
     # end
-    return jabalizer_out
+    return jabalizer_out = "I'm working"
 end
 
 function unpackGate(gate::Gate)
