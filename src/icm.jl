@@ -80,7 +80,7 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
     output = [mapping[q] for q in input] # store output state
     # Calculate the state register and write to frame_flags
     state .= collect(length(allqubit)+1:length(allqubit)+length(state))
-    # initialise frames for state indices
+    # Initialise frames for state indices
     for i in state
         frames.new_qubit(i-1)
     end
@@ -95,24 +95,23 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
         end
         @assert counter == length(state)
     end
+
+    # Check sizes
     if ptracking
         universal && @assert length(frame_flags) == length(allqubit)
         universal || @assert length(frame_flags) == length(allqubit) - length(input)
     end
 
+    # Preparing return data
     circuit = QuantumCircuit(allqubit, circuit)
-    frames_array = []
+    labels = (input = input, output = output, state = state)
+    ptracker = (frames      = ptracking ? frames : nothing,
+                frameflags  = ptracking ? frame_flags : nothing,
+                buffer      = universal ? buffer : nothing,
+                bufferflags = universal ? buffer_flags : nothing,
+    )
 
-    if ptracking
-        push!(frames_array, frames, frame_flags)
-        universal && push!(frames_array, buffer, buffer_flags)
-    end
-
-    return (circuit,
-             measure, 
-             Dict(:input => input, :output => output, :state => state),
-             frames_array
-            )
+    return (circuit, measure, labels, ptracker)
 end
 
 # Never call with registers = allqubits: infinite loop extension
