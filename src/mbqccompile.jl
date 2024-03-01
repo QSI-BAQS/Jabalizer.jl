@@ -1,11 +1,5 @@
-using Graphs
-using PythonCall
-using JSON
-using PythonCall
+# using Graphs, PythonCall, JSON # done in Jabalizer.jl
 export mbqccompile
-
-SpacialGraph = pyimport("mbqc_scheduling").SpacialGraph
-PartialOrderGraph = pyimport("mbqc_scheduling").PartialOrderGraph
 
 # """
 #     Return MBQC instructions for a given QuantumCircuit
@@ -16,9 +10,8 @@ function mbqccompile(
     ptracking = true,
     teleport  = ["T", "T_Dagger", "RZ"],
     filepath  = nothing,
+    initializer = [],
 )
-
-
     icm, measure, labels, ptracker = icmcompile(circuit; universal=universal, ptracking = ptracking, teleport = teleport)
     state = zero_state(width(icm))
     Jabalizer.execute_circuit(state, icm)
@@ -29,8 +22,8 @@ function mbqccompile(
     for (s, i) in zip(labels[:state], labels[:input]) # teleporting state into input registers
         add_edge!(fullgraph, s, i)
     end # extended graph state with state registers for scheduling
-    spacialgraph = mbqc_scheduling.SpacialGraph([nb .- 1 for nb in Graphs.SimpleGraphs.adj(fullgraph)]) # zero-based indexing
-    ptracking && (order = PartialOrderGraph(ptracker[:frames].get_py_order(ptracker[:frameflags])))
+    spacialgraph = mbqc_scheduling.SpacialGraph([zerobasing(nb) for nb in Graphs.SimpleGraphs.adj(fullgraph)])
+    ptracking && (order = mbqc_scheduling.PartialOrderGraph(ptracker[:frames].get_py_order(ptracker[:frameflags]))) # already zero-based
     AcceptFunc = pyimport("mbqc_scheduling.probabilistic").AcceptFunc
     paths = mbqc_scheduling.run(spacialgraph, order)
     path0 = paths.into_py_paths()[0]
@@ -43,20 +36,40 @@ function mbqccompile(
         :time => time,
         :space => space,
         :steps => steps,
-        :correction => [(g, q-1) for (g, q) in correction],
+        :spacialgraph => [zerobasing(nb) for nb in Graphs.SimpleGraphs.adj(fullgraph)],
+        :correction => [(g, zerobasing(q)) for (g, q) in correction],
         :measurements => map(unpackGate, measurements),
-        :statenodes => labels[:state] .- 1,
-        :outputnodes => labels[:output] .- 1,
+        :statenodes => zerobasing(labels[:state]),
+        :outputnodes => zerobasing(labels[:output]),
+        :frameflags => ptracker[:frameflags], # already zero-based
+        :initializer => initializer,
     )
+    js = JSON.json(jabalizer_out)
     if !isnothing(filepath)
         @info "Jabalizer: writing to $(filepath)"
         open(filepath, "w") do f
-            write(f, JSON.json(jabalizer_out))
+            write(f, js)
         end
     end
-    return jabalizer_out
+    return js
 end
 
 function unpackGate(gate::Gate; tozerobased = true)
-    return (name(gate), tozerobased ? qargs(gate) .-1 : qargs(gate), cargs(gate))
+    gatename = name(gate)
+    @assert !isnothing(qargs(gate)) "Error: $(gatename) must act on some qubits, got $(qargs(gate))."
+    if length(qargs(gate)) == 1
+        tozerobased ? (actingon = zerobasing(qargs(gate)[1])) : (actingon = qargs(gate)[1])
+    else
+        tozerobased ? (actingon = zerobasing(qargs(gate))) : (actingon = qargs(gate))
+    end
+    if !isnothing(cargs(gate)) && length(cargs(gate)) == 1
+        params = cargs(gate)[1]
+    else
+        params = cargs(gate)
+    end
+    return (gatename, actingon, params)
+end
+
+function zerobasing(index)
+    return index .- 1
 end

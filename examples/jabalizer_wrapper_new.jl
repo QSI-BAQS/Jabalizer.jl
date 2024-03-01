@@ -82,13 +82,25 @@ function run_jabalizer(circuit, circuit_fname, suffix, debug_flag=false)
     end
 
     # ASSUME qubits are indexed from 1 to n_qubits
-    dict = Jabalizer.mbqccompile(
+    js = Jabalizer.mbqccompile(
         Jabalizer.QuantumCircuit([1:n_qubits], onebased_circuit);
         universal=true,
         ptracking=true,
         filepath=filepath,
     )
 
-    return dict
+    return js # return the Jabalizer output in JSON format
+    # js = JSON.json(Dict(
+    #     :time => time, # length(steps) how many time steps
+    #     :space => space, # maximum number of qubits required
+    #     :steps => steps, # actual MBQC instructions: for each step in steps init nodes and CZ based on spacialgraph
+    #     :spacialgraph => [zerobasing(nb) for nb in Graphs.SimpleGraphs.adj(fullgraph)], # description of CZ gates to be applied (edge = apply CZ gate)
+    #     :correction => [(g, zerobasing(q)) for (g, q) in correction], # potential local Clifford correction on each nodes right after CZ above
+    #     :measurements => map(unpackGate, measurements), # list of measurements
+    #     :statenodes => zerobasing(labels[:state]), # nodes where the input state is currently in
+    #     :outputnodes => zerobasing(labels[:output]), # get the output state returned by the circuit from these nodes
+    #     :frameflags => ptracker[:frameflags], # already zero-based # used to be frame_maps
+    #     :initializer => initializer, # what was passed in from caller
+    # ))
 end
 
