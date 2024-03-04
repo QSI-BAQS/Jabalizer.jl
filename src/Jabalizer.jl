@@ -39,5 +39,6 @@ include("execute_circuit.jl")
 include("stabilizer_measurements.jl")
 include("gcompile.jl")
 include("mbqccompile.jl")
+include("qasm_out.jl")
 
 end

@@ -25,7 +25,14 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
         append!(circuit, Gate("H", nothing, [i]) for i in allqubit)
         append!(circuit, Gate("CZ", nothing, [i, mapping[i]]) for i in input)
         # Not written: immediately before X measurement, needs CZ current state and input
-        append!(measure, Gate("X", nothing, [i]) for i in input) # outcome t
+        
+        # Add state and input measurements
+        for i in input
+            push!(measure, Gate("X", nothing, [-1])) # outcome S
+            push!(measure, Gate("X", nothing, [i])) # outcome t
+        end
+
+        # append!(measure, Gate("X", nothing, [i]) for i in input) # outcome t
         # Not written: X measurement on state register
         # push!(measure, Gate("X", nothing, [i]) for i in state) # outcome s
         if ptracking # to zero indexing
@@ -34,14 +41,17 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
             buffer_flags = state # adjust zero indexing later # qubits of the PREVIOUS widget?
             for i in input
                 frames.new_qubit(mapping[i]-1)
-                # Xᵗ correction on system mapping[i] from outcome t
-                frames.track_x(mapping[i]-1)
-                push!(frame_flags, i-1)
-    
+
                 # Zˢ correction on system mapping[i] from outcome s
                 frames.track_z(mapping[i]-1)
                 push!(frame_flags, -1) # placeholder
                 # push!(frame_flags, state[i]) # adjust zero indexing later MUTABLE...
+                
+                # Xᵗ correction on system mapping[i] from outcome t
+                frames.track_x(mapping[i]-1)
+                push!(frame_flags, i-1)
+    
+                
                 # Potential correction on system mapping[i] from previous widget
                 buffer.new_qubit(mapping[i]-1)
                 buffer.track_z(mapping[i]-1)
@@ -81,8 +91,18 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
     # Calculate the state register and write to frame_flags
     state .= collect(length(allqubit)+1:length(allqubit)+length(state))
     # Initialise frames for state indices
+    
     for i in state
         frames.new_qubit(i-1)
+    end
+
+    # add state qubit indices to measure
+    counter = state[1]
+    for m in measure
+        if m.qargs[1] == -1
+            m.qargs[1] = counter
+            counter += 1
+        end
     end
 
     if universal && ptracking
@@ -91,6 +111,7 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
             if val == -1
                 counter += 1
                 frame_flags[idx] = state[counter] - 1 # to zero indexing
+
             end
         end
         @assert counter == length(state)
