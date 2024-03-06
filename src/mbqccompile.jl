@@ -33,16 +33,16 @@ function mbqccompile(
     # Jabalizer output, converted to zero-based indexing
     measurements = append!(measure, Gate("X", nothing, [i]) for i in labels[:state])
     jabalizer_out = Dict(
-        :time => time,
-        :space => space,
-        :steps => steps,
-        :spacialgraph => [zerobasing(nb) for nb in Graphs.SimpleGraphs.adj(fullgraph)],
-        :correction => [(g, zerobasing(q)) for (g, q) in correction],
-        :measurements => map(unpackGate, measurements),
-        :statenodes => zerobasing(labels[:state]),
-        :outputnodes => zerobasing(labels[:output]),
-        :frameflags => ptracker[:frameflags], # already zero-based
-        :initializer => initializer,
+        :time => time, # length(steps) how many time steps
+        :space => space, # maximum number of qubits required
+        :steps => steps, # actual MBQC instructions: for each step in steps init nodes and CZ based on spacialgraph
+        :spacialgraph => [zerobasing(nb) for nb in Graphs.SimpleGraphs.adj(fullgraph)], # description of CZ gates to be applied (edge = apply CZ gate)
+        :correction => [(g, zerobasing(q)) for (g, q) in correction], # potential local Clifford correction on each nodes right after CZ above
+        :measurements => map(unpackGate, measurements), # list of measurements
+        :statenodes => zerobasing(labels[:state]), # nodes where the input state is currently in
+        :outputnodes => zerobasing(labels[:output]), # get the output state returned by the circuit from these nodes
+        :frameflags => ptracker[:frameflags], # already zero-based # used to be frame_maps
+        :initializer => initializer, # what was passed in from caller
     )
     js = JSON.json(jabalizer_out)
     if !isnothing(filepath)

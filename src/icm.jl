@@ -28,7 +28,7 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
         
         # Add state and input measurements
         for i in input
-            push!(measure, Gate("X", nothing, [-1])) # outcome S
+            push!(measure, Gate("X", nothing, [-1])) # outcome s
             push!(measure, Gate("X", nothing, [i])) # outcome t
         end
 
@@ -64,6 +64,7 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
         actingon = [mapping[q] for q in qargs(gate)]
         # with teleportation so far, the gate becomes
         currentgate = Gate(name(gate), cargs(gate), actingon)
+        @info "Current gate: $currentgate"
         # previousmapping = copy(mapping) # would remove additional keys to mapping, modify extend!!
         if name(gate) in teleport
             # specific individual gate
@@ -97,14 +98,15 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
     end
 
     # add state qubit indices to measure
-    counter = state[1]
+    @info measure
+    counter = 0
     for m in measure
-        if m.qargs[1] == -1
-            m.qargs[1] = counter
+        if qargs(m)[1] == -1
             counter += 1
+            qargs(m)[1] = state[counter]
         end
     end
-
+    @info measure
     if universal && ptracking
         counter = 0
         for (idx, val) in enumerate(frame_flags)
