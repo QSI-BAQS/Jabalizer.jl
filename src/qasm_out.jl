@@ -76,13 +76,9 @@ function qasm_instruction(outfile, graph, loc_corr, mseq, data_qubits, frames_ar
     qregs_total = qregs + length(data_qubits[:state])
     println(file, "\nqreg q[$qregs_total];")
 
-    for i in frame_flags
+    for i in 0:qregs_total-1
         println(file, "creg c$(i)[1];")
     end
-
-    # state specifciation
-    println(file)
-    println(file, "// Define input state here")
 
     # Graph state generation
     println(file, "\n// Graph state generation")
@@ -155,7 +151,16 @@ function qasm_instruction(outfile, graph, loc_corr, mseq, data_qubits, frames_ar
         println(file)
     end
 
-
+    # Add pauli corrections to output qubits
+    println(file, "// Pauli correct output qubits")
+    for q in outqubits
+        if haskey(pc, q)
+            pcorr = pc[q]
+            for p in pcorr
+                println(file, "if(c$(p[2]) == 1) $(p[1]) q[$q];")
+            end
+        end
+    end
 
     close(file)
     return nothing
