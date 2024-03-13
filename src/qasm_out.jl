@@ -1,6 +1,8 @@
 # write graph compilation to qasm file
 
 using Graphs
+using JSON
+
 
 const qasm_inversemap = Dict(map(reverse,collect(qasm_map)))
 qasm_inversemap["RZ"] = "rz"
@@ -161,7 +163,19 @@ function qasm_instruction(outfile, graph, loc_corr, mseq, data_qubits, frames_ar
             end
         end
     end
-
     close(file)
+
+    
+    # convert data_qubits to 0 index
+    d = Dict()
+    for k in keys(data_qubits)
+        d[k] = data_qubits[k] .-1
+    end
+    data_file = splitext(outfile)[1]*"_dqubits.json"
+    
+    open(data_file,"w") do f
+        JSON.print(f, d)
+    end
+
     return nothing
 end
