@@ -27,17 +27,17 @@ cz q[4],q[5];
 
 const icminput =
     (8,
-     [("H", ["0"]),
-      ("X", ["1"]),
-      ("Y", ["2"]),
-      ("Z", ["3"]),
-      ("CNOT", ["4", "5"]),
-      ("SWAP", ["6", "7"]),
-      ("S", ["0"]),
-      ("S_DAG", ["1"]),
-      ("T", ["2"]),
-      ("T", ["3"]),   # Will need to change to T_DAG when that is handled directly
-      ("CZ", ["4", "5"])]
+     [("H", [1]),
+      ("X", [2]),
+      ("Y", [3]),
+      ("Z", [4]),
+      ("CNOT", [5, 6]),
+      ("SWAP", [7, 8]),
+      ("S", [1]),
+      ("S_DAG", [2]),
+      ("T", [3]),
+      ("T_Dagger", [4]),   # Will need to change to T_DAG when that is handled directly
+      ("CZ", [5, 6])]
      )
 
 @testset "QASM file input" begin
