@@ -1,6 +1,8 @@
 [deps]
-python = ">=3.5,<4"
 cirq-core = "1.0.0"
+python = ">=3.5,<4"
 
 [pip.deps]
+mbqc-scheduling = "==0.1.0"
 stim = "==1.10"
+pauli-tracker = "==0.1.0"
