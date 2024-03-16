@@ -9,7 +9,8 @@ mbqc_scheduling = pyimport("mbqc_scheduling")
 SpacialGraph = pyimport("mbqc_scheduling").SpacialGraph
 PartialOrderGraph = pyimport("mbqc_scheduling").PartialOrderGraph
 
-source_filename = "examples/toffoli.qasm"
+source_filename = "examples/mwe.qasm"
+# source_filename = "examples/toffoli.qasm"
 # gates_to_decompose  = ["T", "T_Dagger"]
 
 # Some commented code accessing internal functions that gcompile uses.
@@ -56,6 +57,10 @@ sparse_rep = SimpleGraphs.adj(graph)
 
 # shift indices for mbqc_scheduling
 sparse_rep = [e.-1 for e in sparse_rep]
+
+for (s,i) in zip(data_qubits[:state], data_qubits[:input])
+    insert!(sparse_rep, s, [i])   
+end
 
 sparse_rep = SpacialGraph(sparse_rep)
 

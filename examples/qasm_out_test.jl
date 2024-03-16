@@ -1,6 +1,7 @@
 using Jabalizer
 
-input_file = "examples/mwe.qasm"
+# input_file = "examples/mwe.qasm"
+input_file = "examples/toffoli.qasm"
 outfile = "examples/qasm_out.qasm"
 
 graph, loc_corr, mseq, data_qubits, frames_array = gcompile(input_file;
