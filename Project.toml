@@ -21,6 +21,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 
 [compat]
+CondaPkg = "0.2"
 Debugger = "0.7"
 Documenter = "0.27"
 GraphPlot = "0.4, 0.5"
