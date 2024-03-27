@@ -127,7 +127,8 @@ function icmcompile(qc::QuantumCircuit; universal, ptracking, teleport=["T", "T_
 
     # Preparing return data
     circuit = QuantumCircuit(allqubit, circuit)
-    labels = (input = input, output = output, state = state)
+    # labels = (input = input, output = output, state = state)
+    labels = Dict(:input => input, :output => output, :state => state)
     ptracker = (frames      = ptracking ? frames : nothing,
                 frameflags  = ptracking ? frame_flags : nothing,
                 buffer      = universal ? buffer : nothing,
