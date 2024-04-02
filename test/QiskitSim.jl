@@ -1,15 +1,15 @@
+
+module QiskitSim
+
 using CondaPkg
 using PythonCall
 using Jabalizer
-using Test
+using JSON
 
 # add qiskit python backends for circuit simulation
-# CondaPkg.add_pip("qiskit")
 if !(haskey(CondaPkg.current_pip_packages(), "qiskit-aer"))
     CondaPkg.add_pip("qiskit-aer")
 end
-# CondaPkg.add_pip("qiskit-aer")
-
 
 qaer = pyimport("qiskit_aer")
 qiskit = pyimport("qiskit")
@@ -20,28 +20,40 @@ Simulate the compiled circuit + input_circuit.inverse() on
 the computational basis. Returns the measured shots for each 
 basis input for the outcome 0^n.
 """
-function simulate(input_file, shots)
-    graph, loc_corr, mseq, data_qubits, frames_array = gcompile(input_file;
-                                                        universal=true,
-                                                         ptracking=true
-    )
+function simulate(input_qasm, shots; compiled_qasm="", data_qubits=Dict())
+    
+    # flag to cleanup generated files
+    clean = false
+    if compiled_qasm == ""
+        clean = true        
+        compiled_qasm = "outfile.qasm"
+        graph, loc_corr, mseq, data_qubits, frames_array = gcompile(input_qasm;
+                                                            universal=true,
+                                                            ptracking=true
+        )
 
-    output_qubits =  data_qubits[:output] .- 1
-    state_qubits = data_qubits[:state] .- 1
-    # qubits = [q for q in frame_flags]
-    # # we want to find pauli corrections for measured and output qubits
-    # append!(qubits, outqubits)
+        # write qasm instructions to outfile
+        qasm_instruction(compiled_qasm, graph, loc_corr, mseq, data_qubits, frames_array);
+        data_qubits[:output] =  data_qubits[:output] .- 1
+        data_qubits[:state] = data_qubits[:state] .- 1    
+    end
 
-    # write qasm instructions to outfile
-    qasm_instruction(outfile, graph, loc_corr, mseq, data_qubits, frames_array);
-
+    output_qubits =  data_qubits[:output] 
+    state_qubits = data_qubits[:state] 
+    
+    # check that for mbqccompile, path is time optimal
+    sl = get(data_qubits, :state_layer, [0])
+    all([i ==0 for i in sl]) || error("Only time optimal paths are supported")
+    # @info state_qubits
+    # @info output_qubits
     # load circuits into qiskit
-    simulator = Aer.get_backend("aer_simulator")
-    input_circ = qiskit.QuantumCircuit.from_qasm_file(input_file)
-    compiled_circ = qiskit.QuantumCircuit.from_qasm_file(outfile)
-    compiled_circ.barrier()
 
-    #
+    simulator = Aer.get_backend("aer_simulator")
+    input_circ = qiskit.QuantumCircuit.from_qasm_file(input_qasm)
+    # @info compiled_qasm
+    compiled_circ = qiskit.QuantumCircuit.from_qasm_file(compiled_qasm)
+    compiled_circ.barrier()
+    # println(compiled_circ)
     
     qtot = length(output_qubits)
     meas_outcomes = []
@@ -78,18 +90,15 @@ function simulate(input_file, shots)
 
     end
     
+    # clean generated output files
+    if clean
+        rm(compiled_qasm)
+        rm(splitext(compiled_qasm)[1]*"_dqubits.json")
+    end
     return meas_outcomes
+
 end
 
 
-input_files = ["test_circuits/mwe.qasm", "test_circuits/toffoli.qasm"]
-outfile = "outfile.qasm"
-shots = 1024
 
-@testset "gcompile simulation with Qiskit" begin
-
-    for inp in input_files
-        meas_outcomes = simulate(inp, shots)
-        @test all(m == shots for m in meas_outcomes)
-    end
 end
