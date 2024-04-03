@@ -8,6 +8,7 @@ function mbqccompile(
     circuit::QuantumCircuit;
     universal = true,
     ptracking = true,
+    pcorrections=false,
     teleport  = ["T", "T_Dagger", "RZ"],
     filepath  = nothing,
     initializer = [],
@@ -31,27 +32,37 @@ function mbqccompile(
     space = pyconvert(Int, path0.space)
     steps = [pyconvert(Vector, step) for step in path0.steps]
     # Jabalizer output, converted to zero-based indexing
-    measurements = append!(measure, Gate("X", nothing, [i]) for i in labels[:state])
+    # measurements = append!(measure, Gate("X", nothing, [i]) for i in labels[:state])
+    # Generate pauli-tracker for all qubits
+    if pcorrections
+        allqubits = reduce(vcat, steps)
+        pcorrs = pauli_corrections(ptracker[:frames],ptracker[:frameflags], allqubits)
+    end
+
     jabalizer_out = Dict(
-        :time => time, # length(steps) how many time steps
-        :space => space, # maximum number of qubits required
-        :steps => steps, # actual MBQC instructions: for each step in steps init nodes and CZ based on spacialgraph
-        :spacialgraph => [zerobasing(nb) for nb in Graphs.SimpleGraphs.adj(fullgraph)], # description of CZ gates to be applied (edge = apply CZ gate)
-        :correction => [(g, zerobasing(q)) for (g, q) in correction], # potential local Clifford correction on each nodes right after CZ above
-        :measurements => map(unpackGate, measurements), # list of measurements
-        :statenodes => zerobasing(labels[:state]), # nodes where the input state is currently in
-        :outputnodes => zerobasing(labels[:output]), # get the output state returned by the circuit from these nodes
-        :frameflags => ptracker[:frameflags], # already zero-based # used to be frame_maps
-        :initializer => initializer, # what was passed in from caller
+        "time" => time, # length(steps) how many time steps
+        "space" => space, # maximum number of qubits required
+        "steps" => steps, # actual MBQC instructions: for each step in steps init nodes and CZ based on spacialgraph
+        "spatialgraph" => [zerobasing(nb) for nb in Graphs.SimpleGraphs.adj(fullgraph)], # description of CZ gates to be applied (edge = apply CZ gate)
+        "correction" => [[g, zerobasing(q)] for (g, q) in correction], # potential local Clifford correction on each nodes right after CZ above
+        "measurements" => map(unpackGate, measure), # list of measurements
+        "statenodes" => zerobasing(labels[:state]), # nodes where the input state is currently in
+        "outputnodes" => zerobasing(labels[:output]), # get the output state returned by the circuit from these nodes
+        "frameflags" => ptracker[:frameflags], # already zero-based # used to be frame_maps
+        "initializer" => initializer, # what was passed in from caller
     )
+    
+    if pcorrections
+        jabalizer_out["pcorrs"] = pcorrs
+    end
     js = JSON.json(jabalizer_out)
     if !isnothing(filepath)
-        @info "Jabalizer: writing to $(filepath)"
+        # @info "Jabalizer: writing to $(filepath)"
         open(filepath, "w") do f
             write(f, js)
         end
     end
-    return js
+    return jabalizer_out
 end
 
 function unpackGate(gate::Gate; tozerobased = true)
@@ -67,7 +78,7 @@ function unpackGate(gate::Gate; tozerobased = true)
     else
         params = cargs(gate)
     end
-    return (gatename, actingon, params)
+    return [gatename, actingon, params]
 end
 
 function zerobasing(index)

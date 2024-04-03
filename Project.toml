@@ -1,7 +1,7 @@
 name = "Jabalizer"
 uuid = "5ba14d91-d028-496b-b148-c0fbc366f709"
 authors = ["Peter Rohde", "Madhav Krishnan Vijayan", "Scott Paul Jones"]
-version = "0.5.0"
+version = "0.5.1"
 
 [deps]
 CondaPkg = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"

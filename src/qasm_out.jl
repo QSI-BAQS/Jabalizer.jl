@@ -38,12 +38,12 @@ function pauli_corrections(frames, frame_flags, qubits)
         for mq in reverse(frame_flags)
             for z in zcontrol
                 if z == mq
-                    push!(qcorr, ("z", z))
+                    push!(qcorr, ["z", z])
                 end
             end
             for x in xcontrol
                 if x == mq
-                    push!(qcorr, ("x", x))
+                    push!(qcorr, ["x", x])
                 end
             end
             
@@ -63,7 +63,12 @@ end
 """
 export qasm file given a graph compilation
 """
-function qasm_instruction(outfile, graph, loc_corr, mseq, data_qubits, frames_array)
+function qasm_instruction(outfile, 
+                          graph::SimpleGraph{Int},
+                          loc_corr,
+                          mseq,
+                          data_qubits,
+                          frames_array)
     
     # open output file
     file = open(outfile, "w")
@@ -178,4 +183,200 @@ function qasm_instruction(outfile, graph, loc_corr, mseq, data_qubits, frames_ar
     end
 
     return nothing
+end
+
+"""
+memory allocation helper function
+"""
+function alloc(logicalq, physicalmap, ram)
+    if !(logicalq in keys(physicalmap))
+        physicalmap[logicalq] = pop!(ram)
+    end
+end
+
+"""
+memory deallocation helper function
+"""
+function dealloc(logicalq, physicalmap, ram)
+    if (logicalq in keys(physicalmap))
+       freeq = pop!(physicalmap, logicalq)
+       push!(ram, freeq)
+    end
+end
+
+
+
+"""
+Generates a qasm file implementing the mbqc instruction
+"""
+function qasm_instruction(outfile,
+                          mbqc_inst::Dict)
+
+    # open output file
+    file = open(outfile, "w")
+    
+    # unpack data dictionary
+    qphysical = mbqc_inst["space"]
+    mlayers = mbqc_inst["steps"]
+    pc = mbqc_inst["pcorrs"]
+    outqubits = mbqc_inst["outputnodes"]
+    statequbits = mbqc_inst["statenodes"]
+    # @info statequbits
+    loc_corr = mbqc_inst["correction"]
+    measurements = mbqc_inst["measurements"]
+    graph = mbqc_inst["spatialgraph"]
+
+    # initialise map to phyiscal qubits for memory management
+    mq = Dict{Int, Int}()
+    # Convert measurement sequence to a dictionary. 
+    # the sequence is now decided by layers
+    mdict = Dict()
+    for m in measurements
+      mdict[m[2]] = (m[1], m[3]) 
+    end
+
+    # initialise qasm file
+    println(file, "OPENQASM 2.0;\ninclude \"qelib1.inc\";" )
+   
+    # # initialise qregs and cregs
+    # qregs = nv(graph)
+    # qregs_total = qregs + length(data_qubits[:state])
+    qlogical = length(measurements) + length(outqubits)
+    
+    # println(file, "\nqreg q[$qlogical];")
+    println(file, "\nqreg q[$qphysical];")
+
+    # defining a classical register for every logical qubit 
+    for i in 0:qlogical-1
+        println(file, "creg c$(i)[1];")
+    end
+
+    
+    # keep track of initialised qubits
+    # init = copy(statequbits)
+    init = []
+    # keep track of qubit connections
+    connection_graph = SimpleGraph(qlogical)
+    # initialise available physical qubits
+    ram = collect(qphysical-1:-1:0)
+    # tracker for state qubit assignment
+    state_physical = Dict()
+    state_layer = Dict()
+    # Generate and measure layers
+    for (idx,lr) in enumerate(mlayers)
+        # initialise qubits and neighbors if not initialised
+        for q in lr
+            if !(q in init)
+                # allocate qubit in memory if unallocated
+                alloc(q, mq, ram)
+                # skip hadamard for incoming state qubits
+                if !(q in statequbits)
+                    println(file, "h q[$(mq[q])];")
+                else
+                    # store state input physical qubit and layer
+                    state_physical[q] = mq[q]
+                    state_layer[q] = idx-1
+                    # @info state_physical
+                end
+                push!(init, q)
+            end
+            for n in graph[q+1]
+                if !(n in init)
+                    alloc(n, mq, ram)
+                    # skip hadamard for incoming state qubits
+                    if !(n in statequbits)
+                        println(file, "h q[$(mq[n])];")
+                    else
+                        # store state input physical qubit and layer
+                        state_physical[n] = mq[n]
+                        state_layer[n] = idx-1
+                    end
+                    push!(init, n)
+                end
+            end
+
+        end
+        # conect all neighbors of qubits in measurement layer
+        for q in lr
+            for n in graph[q+1]
+                # check if already connected
+                if !(n+1 in neighbors(connection_graph, q+1))
+                    println(file, "cz q[$(mq[q])], q[$(mq[n])];")
+                    add_edge!(connection_graph, q+1, n+1) 
+                end
+            end
+        end
+
+        # apply local corrections
+        for gate in loc_corr
+            if gate[2] in lr
+                if gate[1] == "H"
+                    println(file, "h q[$(mq[gate[2]])];")
+                end
+        
+                if gate[1] == "Z"
+                    println(file, "z q[$(mq[gate[2]])];")
+                end
+        
+                # inverting local clifford corrections applies the inverse gate
+                if gate[1] == "Pdag"
+                    println(file, "s q[$(mq[gate[2]])];")
+                end
+            end
+        end
+
+        # measurement
+        for q in lr
+            # apply Pauli corrections.
+            if haskey(pc, q)
+                for p in pc[q]
+                    println(file, "if(c$(p[2]) == 1) $(p[1]) q[$(mq[q])];")
+                end
+            end
+
+            # skip measurement for output qubits
+            (q in outqubits) && continue
+            # perform measurements
+            gate = qasm_inversemap[mdict[q][1]]
+
+            if gate == "x"
+                println(file, "h q[$(mq[q])];")
+                println(file, "measure q[$(mq[q])] -> c$q[0];")
+            elseif gate in ["t", "tdg"]
+                println(file, "$gate q[$(mq[q])];" )
+                println(file, "h q[$(mq[q])];")
+                println(file, "measure q[$(mq[q])] -> c$q[0];")
+            elseif gate == "rz"
+                # @info mdict[q]
+                println(file, "$gate($(mdict[q][2])) q[$(mq[q])];" )
+                println(file, "h q[$(mq[q])];")
+                println(file, "measure q[$(mq[q])] -> c$q[0];")
+            else
+                error("unsupported gate teleportation: ", gate)
+            end
+
+            # reset qubit
+            println(file, "reset q[$(mq[q])];")
+            # release measured physical qubit back to ram
+            dealloc(q, mq, ram)
+
+        end
+
+
+
+
+    end 
+
+    close(file)
+    data_qubits = Dict()
+    data_qubits[:state] = [state_physical[s] for s in statequbits]
+    data_qubits[:output] = [mq[o] for o in outqubits]
+    data_qubits[:state_layer] = [state_layer[s] for s in statequbits]
+
+    data_file = splitext(outfile)[1]*"_dqubits.json"
+    open(data_file,"w") do f
+        JSON.print(f, data_qubits)
+    end
+
+    return nothing    
 end

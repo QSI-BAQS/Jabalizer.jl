@@ -1,9 +1,14 @@
+# Example of how to use qasm_instruction to output a qasm file
+# for the outputs of gcompile and mbqccompile
 using Jabalizer
 
-# input_file = "examples/mwe.qasm"
-input_file = "examples/toffoli.qasm"
-outfile = "examples/qasm_out.qasm"
+input_file = "examples/mwe.qasm"
+# input_file = "examples/toffoli.qasm"
 
+gcompile_outfile = "examples/gcompile_mwe_out.qasm"
+mbqccompile_outfile = "examples/mbqccompile_mwe_out.qasm"
+
+# gcompile output -> qasm file
 graph, loc_corr, mseq, data_qubits, frames_array = gcompile(input_file;
                                                         universal=true,
                                                          ptracking=true
@@ -24,6 +29,11 @@ display(pc)
 # qasm_instruction generates a qasm file which generates the graph
 # state, applies local corrections, applies pauli corrections and
 # measurements and writes it to outfile. 
-qasm_instruction(outfile, graph, loc_corr, mseq, data_qubits, frames_array);
+qasm_instruction(gcompile_outfile, graph, loc_corr, mseq, data_qubits, frames_array);
+
+
+# mbqccompile output -> qasm file
+mbqc_output = mbqccompile(qc,pcorrections=true)
+qasm_instruction(mbqccompile_outfile, mbqc_output)
 
 
