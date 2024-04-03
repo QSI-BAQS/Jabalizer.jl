@@ -38,12 +38,12 @@ function pauli_corrections(frames, frame_flags, qubits)
         for mq in reverse(frame_flags)
             for z in zcontrol
                 if z == mq
-                    push!(qcorr, ("z", z))
+                    push!(qcorr, ["z", z])
                 end
             end
             for x in xcontrol
                 if x == mq
-                    push!(qcorr, ("x", x))
+                    push!(qcorr, ["x", x])
                 end
             end
             

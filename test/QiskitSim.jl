@@ -20,9 +20,12 @@ Simulate the compiled circuit + input_circuit.inverse() on
 the computational basis. Returns the measured shots for each 
 basis input for the outcome 0^n.
 """
-function simulate(input_qasm, shots; compiled_qasm="", data_qubits=Dict())
+function simulate(input_qasm,
+                  shots;
+                  compiled_qasm="",
+                  data_qubits=Dict())
     
-    # flag to cleanup generated files
+    # flag to cleanup any generated files
     clean = false
     if compiled_qasm == ""
         clean = true        
