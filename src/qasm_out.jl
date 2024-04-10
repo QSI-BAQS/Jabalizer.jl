@@ -19,7 +19,30 @@ function correction_controls(frame_bitvector, frame_flags)
         return corr
 end
 
+"""
+    frame_bitvector(frame_vec, frames_length)
 
+Return a bitvector of Pauli corrections given a vector of python integers
+
+It is assumed that each integer in `frames_vec` represents a 64 bit chunk of the
+full bitvector. 
+"""
+function frame_bitvector(frame_vec, frames_length)
+    intvec = [pyconvert(UInt, pint) for pint in frame_vec]
+    bitvec = [digits(jint, base=2, pad=64) for jint in intvec]
+    
+    # concatenate all bitvector chunks and return frame_length bits
+    return vcat(bitvec...)[1:frames_length]
+end
+
+"""
+    pauli_corrections(frames, frame_flags, qubits)
+
+Returns a dictionary of Pauli correction for every qubit in the vector `qubits`.
+
+`frames` are expected to be `pauli_tracker.frames.map.Frames` class.
+
+"""
 function pauli_corrections(frames, frame_flags, qubits)
     corr = Dict()
 
@@ -27,11 +50,9 @@ function pauli_corrections(frames, frame_flags, qubits)
     flen = frame_flags |> length
     for q in qubits
         qcorr = []
-        z_int = pyconvert(Int, frame_dict[q][0][0])
-        x_int = pyconvert(Int, frame_dict[q][1][0])
-        z_bitvector = digits(z_int, base=2, pad=flen)
-        x_bitvector = digits(x_int, base=2, pad=flen)
-
+        z_bitvector = frame_bitvector(frame_dict[q][0], flen)
+        x_bitvector = frame_bitvector(frame_dict[q][1], flen)
+        
         zcontrol = correction_controls(z_bitvector, frame_flags)
         xcontrol = correction_controls(x_bitvector, frame_flags)
 
