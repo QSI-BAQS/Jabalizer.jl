@@ -3,10 +3,10 @@ Parses cirq qubits to qubits in the format needed for icm.
 Helper function.
 """
 function parse_cirq_qubits(cirq_qubits::Vector{Any})
-    output_qubits = Vector{String}()
+    output_qubits = Vector{Int}()
     for qubit in cirq_qubits
         if qubit["cirq_type"] == "LineQubit"
-            push!(output_qubits, string(qubit["x"]))
+            push!(output_qubits, qubit["x"])
         else
             throw(DomainError(qubit["cirq_type"], "Only LineQubits are supported right now."))
         end
@@ -24,11 +24,11 @@ function load_circuit_from_cirq_json(file_name::String)
         raw_circuit = JSON.parse(replace(raw_circuit, "\n" => ""))
     end
 
-    circuit = Vector{Tuple{String,Vector{String}}}()
+    circuit = Vector{Tuple{String,Vector{Int}}}()
     for moment in raw_circuit["moments"]
         for operation in moment["operations"]
 
-            if not haskey(operation, "gate")
+            if !haskey(operation, "gate")
                 # There are other types of gates such as PauliStrings which do not have in the json
                 # the gate attribute
                 throw(DomainError(cirq_gate_name, "Gate type not supported"))
@@ -87,7 +87,7 @@ function save_circuit_to_cirq_json(circuit, file_name::String)
         for qubit in qubits
             cirq_qubit = Dict()
             cirq_qubit["cirq_type"] = "NamedQubit"
-            cirq_qubit["name"] = qubit
+            cirq_qubit["name"] = string(qubit)
             push!(cirq_qubits, cirq_qubit)
         end
         operation["gate"] = cirq_gate
